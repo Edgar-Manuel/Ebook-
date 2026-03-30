@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { BookData, BookIdea, Chapter, Step } from '@/types';
+import CostOptimizer, { type ModelConfig } from '@/components/CostOptimizer';
 
 const STEPS = [
   { number: 1, title: 'Book Ideas', icon: '💡', desc: 'Generate profitable book ideas with AI' },
@@ -189,6 +190,8 @@ function renderAIContent(text: string): React.ReactNode {
 }
 
 export default function Home() {
+  const [phase, setPhase] = useState<'setup' | 'wizard'>('setup');
+  const [modelConfig, setModelConfig] = useState<ModelConfig | null>(null);
   const [step, setStep] = useState<Step>(1);
   const [bookData, setBookData] = useState<BookData>(initialBookData);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -200,6 +203,17 @@ export default function Home() {
   const [coverError, setCoverError] = useState('');
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
+
+  if (phase === 'setup') {
+    return (
+      <CostOptimizer
+        onConfirm={(config) => {
+          setModelConfig(config);
+          setPhase('wizard');
+        }}
+      />
+    );
+  }
 
   useEffect(() => {
     contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -218,7 +232,7 @@ export default function Home() {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step, data }),
+          body: JSON.stringify({ step, data, modelConfig }),
         });
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -422,10 +436,22 @@ export default function Home() {
               </span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-slate-400 text-sm">
-            <span>Step {step}</span>
-            <span className="text-slate-600">/</span>
-            <span>8</span>
+          <div className="flex items-center gap-3">
+            {modelConfig && (
+              <button
+                onClick={() => setPhase('setup')}
+                title="Change strategy"
+                className="hidden md:flex items-center gap-1.5 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl px-3 py-1.5 text-xs text-slate-400 transition-colors"
+              >
+                <span>⚙️</span>
+                <span>{modelConfig.strategyName}</span>
+              </button>
+            )}
+            <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <span>Step {step}</span>
+              <span className="text-slate-600">/</span>
+              <span>8</span>
+            </div>
           </div>
         </div>
       </header>

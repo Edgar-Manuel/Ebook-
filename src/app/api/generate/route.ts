@@ -5,6 +5,18 @@ import type { BookData } from '@/types';
 
 const client = new Anthropic();
 
+// Map shorthand model IDs (from CostOptimizer) to full Anthropic model IDs
+const MODEL_ID_MAP: Record<string, string> = {
+  'opus-4.6':   'claude-opus-4-6',
+  'sonnet-4.6': 'claude-sonnet-4-6',
+  'sonnet-4.5': 'claude-sonnet-4-5',
+  'haiku-4.5':  'claude-haiku-4-5-20251001',
+  'haiku-3.5':  'claude-haiku-4-5-20251001', // retired — fallback to haiku 4.5
+};
+
+// Only these models support adaptive thinking
+const SUPPORTS_THINKING = new Set(['opus-4.6', 'sonnet-4.6']);
+
 // Smart model routing: assign each step the right model for cost/quality
 const STEP_CONFIG: Record<
   number,
@@ -20,15 +32,36 @@ const STEP_CONFIG: Record<
   8: { model: 'claude-sonnet-4-6', maxTokens: 5000, useThinking: false },
 };
 
+interface ModelConfig {
+  assignments: Record<number, string>;
+  thinking: Record<number, boolean>;
+  maxTokens: Record<number, number>;
+}
+
 const SYSTEM_PROMPT =
   'You are an expert ebook creation assistant helping to automate the entire process of writing and publishing profitable ebooks on Amazon Kindle. You provide detailed, actionable, and professional content. Always format your responses with clear headings, bullet points, and structured information that is immediately usable.';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { step, data }: { step: number; data: Partial<BookData> } = body;
+    const { step, data, modelConfig }: {
+      step: number;
+      data: Partial<BookData>;
+      modelConfig?: ModelConfig;
+    } = body;
 
-    const config = STEP_CONFIG[step];
+    // Build step config: use modelConfig overrides when provided
+    let config = STEP_CONFIG[step];
+    if (modelConfig?.assignments?.[step]) {
+      const shortId = modelConfig.assignments[step];
+      const fullModelId = MODEL_ID_MAP[shortId] ?? shortId;
+      const useThinking = SUPPORTS_THINKING.has(shortId) && !!(modelConfig.thinking?.[step]);
+      config = {
+        model: fullModelId,
+        maxTokens: modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000,
+        useThinking,
+      };
+    }
     if (!config) {
       return new Response(JSON.stringify({ error: 'Invalid step (1-8)' }), {
         status: 400,
