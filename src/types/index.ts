@@ -32,6 +32,8 @@ export interface BookData {
 
   // Step 5
   coverDesign: string;
+  coverImage: string | null;   // base64 JPEG from Nano Banana Pro
+  coverPrompt: string;         // image prompt used for generation
 
   // Step 6
   kdpSetup: string;

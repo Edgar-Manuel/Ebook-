@@ -1,16 +1,36 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/messages';
 import { getPrompt } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
 const client = new Anthropic();
+
+// Smart model routing: assign each step the right model for cost/quality
+const STEP_CONFIG: Record<
+  number,
+  { model: string; maxTokens: number; useThinking: boolean }
+> = {
+  1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
+  2: { model: 'claude-sonnet-4-6', maxTokens: 3000, useThinking: true },
+  3: { model: 'claude-opus-4-6', maxTokens: 6000, useThinking: true },
+  4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
+  5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
+  6: { model: 'claude-haiku-4-5-20251001', maxTokens: 3500, useThinking: false },
+  7: { model: 'claude-sonnet-4-6', maxTokens: 3000, useThinking: false },
+  8: { model: 'claude-sonnet-4-6', maxTokens: 5000, useThinking: false },
+};
+
+const SYSTEM_PROMPT =
+  'You are an expert ebook creation assistant helping to automate the entire process of writing and publishing profitable ebooks on Amazon Kindle. You provide detailed, actionable, and professional content. Always format your responses with clear headings, bullet points, and structured information that is immediately usable.';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { step, data }: { step: number; data: Partial<BookData> } = body;
 
-    if (!step || step < 1 || step > 8) {
-      return new Response(JSON.stringify({ error: 'Invalid step' }), {
+    const config = STEP_CONFIG[step];
+    if (!config) {
+      return new Response(JSON.stringify({ error: 'Invalid step (1-8)' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -22,34 +42,39 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const anthropicStream = await client.messages.create({
-            model: 'claude-opus-4-6',
-            max_tokens: 8000,
-            thinking: { type: 'adaptive' },
-            stream: true,
-            messages: [
+          // Build params — only add thinking when the model supports it
+          const createParams: MessageCreateParamsStreaming = {
+            model: config.model,
+            max_tokens: config.maxTokens,
+            stream: true as const,
+            messages: [{ role: 'user', content: prompt }],
+            system: [
               {
-                role: 'user',
-                content: prompt,
+                type: 'text',
+                text: SYSTEM_PROMPT,
+                cache_control: { type: 'ephemeral' },
               },
             ],
-            system: `You are an expert ebook creation assistant helping to automate the entire process of writing and publishing profitable ebooks on Amazon Kindle. You provide detailed, actionable, and professional content. Always format your responses with clear headings, bullet points, and structured information that is immediately usable.`,
-          });
+            ...(config.useThinking ? { thinking: { type: 'adaptive' } } : {}),
+          };
+
+          const anthropicStream = await client.messages.create(createParams);
 
           for await (const event of anthropicStream) {
             if (
               event.type === 'content_block_delta' &&
               event.delta.type === 'text_delta'
             ) {
-              const data = `data: ${JSON.stringify({ text: event.delta.text })}\n\n`;
-              controller.enqueue(encoder.encode(data));
+              const chunk = `data: ${JSON.stringify({ text: event.delta.text })}\n\n`;
+              controller.enqueue(encoder.encode(chunk));
             }
           }
 
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Stream error';
+          const message =
+            error instanceof Error ? error.message : 'Stream error';
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
           );

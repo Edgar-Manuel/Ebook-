@@ -8,7 +8,7 @@ const STEPS = [
   { number: 2, title: 'Outline', icon: '📋', desc: 'Create detailed chapter structure' },
   { number: 3, title: 'Write Book', icon: '✍️', desc: 'AI writes each chapter' },
   { number: 4, title: 'Format', icon: '📄', desc: 'Format for Kindle publishing' },
-  { number: 5, title: 'Cover Design', icon: '🎨', desc: 'Cover design brief & Canva tips' },
+  { number: 5, title: 'Cover Design', icon: '🎨', desc: 'AI generates your cover with Nano Banana Pro' },
   { number: 6, title: 'KDP Setup', icon: '📚', desc: 'Amazon Kindle setup guide' },
   { number: 7, title: 'Pricing', icon: '💰', desc: 'Pricing strategy & royalties' },
   { number: 8, title: 'Marketing', icon: '📣', desc: 'Marketing & promotion plan' },
@@ -25,6 +25,8 @@ const initialBookData: BookData = {
   currentWritingChapter: 1,
   formattedContent: '',
   coverDesign: '',
+  coverImage: null,
+  coverPrompt: '',
   kdpSetup: '',
   pricingStrategy: '',
   marketingContent: '',
@@ -194,6 +196,8 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [isGeneratingCover, setIsGeneratingCover] = useState(false);
+  const [coverError, setCoverError] = useState('');
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
 
@@ -295,6 +299,40 @@ export default function Home() {
     },
     [step, bookData]
   );
+
+  const generateCover = async () => {
+    setIsGeneratingCover(true);
+    setCoverError('');
+    try {
+      const response = await fetch('/api/cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData),
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.error ?? 'Cover generation failed');
+      }
+      setBookData((prev) => ({
+        ...prev,
+        coverImage: result.image,
+        coverPrompt: result.prompt,
+      }));
+    } catch (err) {
+      setCoverError(err instanceof Error ? err.message : 'Cover generation failed');
+    } finally {
+      setIsGeneratingCover(false);
+    }
+  };
+
+  const downloadCover = () => {
+    if (!bookData.coverImage) return;
+    const link = document.createElement('a');
+    const title = bookData.selectedIdea?.title ?? 'cover';
+    link.href = `data:image/jpeg;base64,${bookData.coverImage}`;
+    link.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-cover.jpg`;
+    link.click();
+  };
 
   const exportDocx = async () => {
     setIsExporting(true);
@@ -616,6 +654,49 @@ export default function Home() {
                       </p>
                     </div>
                   )}
+
+                  {/* Step 5 extra: AI cover generation with Nano Banana Pro */}
+                  {step === 5 && (
+                    <>
+                      <div className="bg-slate-800/60 border border-slate-600/40 rounded-xl p-3 text-xs text-slate-400 space-y-1">
+                        <p className="text-slate-300 font-medium">🍌 Nano Banana Pro</p>
+                        <p>Generates your cover as a real 1600×2560 JPG — ready for KDP upload.</p>
+                        <p className="text-slate-500">Requires <code className="text-indigo-400">GOOGLE_API_KEY</code> in .env.local</p>
+                      </div>
+                      <button
+                        onClick={generateCover}
+                        disabled={isGeneratingCover || !bookData.selectedIdea}
+                        className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        {isGeneratingCover ? (
+                          <>
+                            <span className="animate-spin">⟳</span> Generating Cover...
+                          </>
+                        ) : bookData.coverImage ? (
+                          <>🍌 Regenerate Cover</>
+                        ) : (
+                          <>🍌 Generate Cover with Nano Banana Pro</>
+                        )}
+                      </button>
+                      {bookData.coverImage && (
+                        <button
+                          onClick={downloadCover}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          📥 Download Cover JPG (1600×2560)
+                        </button>
+                      )}
+                      {coverError && (
+                        <div className="bg-red-950/50 border border-red-700/30 rounded-xl p-3">
+                          <p className="text-red-400 text-xs">❌ {coverError}</p>
+                        </div>
+                      )}
+                      <div className="border-t border-slate-700/50 pt-3">
+                        <p className="text-slate-500 text-xs mb-2">Also get design brief text:</p>
+                      </div>
+                    </>
+                  )}
+
                   <button
                     onClick={() => generate()}
                     disabled={isGenerating}
@@ -631,7 +712,7 @@ export default function Home() {
                         {step === 4
                           ? 'Format Guide'
                           : step === 5
-                          ? 'Cover Brief'
+                          ? 'Design Tips'
                           : step === 6
                           ? 'KDP Guide'
                           : step === 7
@@ -798,13 +879,67 @@ export default function Home() {
                     )}
                   </div>
                 ) : (
-                  /* Default: show streaming/static text */
+                  /* Default: show streaming/static text + cover preview for step 5 */
                   <div className="ai-content">
+                    {/* Step 5: cover image preview */}
+                    {step === 5 && (bookData.coverImage || isGeneratingCover) && (
+                      <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-yellow-400 font-semibold text-sm">🍌 Nano Banana Pro — Generated Cover</span>
+                          {bookData.coverImage && (
+                            <span className="text-slate-500 text-xs">1600×2560 · Kindle-ready JPG</span>
+                          )}
+                        </div>
+                        {isGeneratingCover ? (
+                          <div className="flex flex-col items-center justify-center h-64 bg-slate-800/50 rounded-xl border border-yellow-700/30">
+                            <div className="text-5xl mb-3 animate-pulse">🍌</div>
+                            <p className="text-yellow-400 font-medium">Generating your cover...</p>
+                            <p className="text-slate-500 text-sm mt-1">Nano Banana Pro is working its magic</p>
+                          </div>
+                        ) : bookData.coverImage ? (
+                          <div className="flex flex-col items-center gap-3">
+                            {/* Aspect-ratio preview (9:16 portrait) */}
+                            <div className="relative w-full max-w-[220px] mx-auto">
+                              <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl shadow-yellow-900/30 border border-yellow-700/20">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`data:image/jpeg;base64,${bookData.coverImage}`}
+                                  alt="Generated book cover"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            {bookData.coverPrompt && (
+                              <details className="w-full">
+                                <summary className="text-slate-500 text-xs cursor-pointer hover:text-slate-400">
+                                  View image prompt
+                                </summary>
+                                <p className="text-slate-500 text-xs mt-2 bg-slate-800/50 rounded-lg p-3 leading-relaxed">
+                                  {bookData.coverPrompt}
+                                </p>
+                              </details>
+                            )}
+                            <button
+                              onClick={downloadCover}
+                              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                            >
+                              📥 Download Cover (1600×2560 JPG)
+                            </button>
+                          </div>
+                        ) : null}
+                        {(completedText || streamedText) && (
+                          <div className="mt-6 border-t border-slate-700/50 pt-4">
+                            <p className="text-slate-400 text-xs font-medium mb-3">Design Tips & Notes</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {completedText || streamedText ? (
                       <div className={isGenerating ? 'streaming-cursor' : ''}>
                         {renderAIContent(isGenerating ? streamedText : completedText)}
                       </div>
-                    ) : (
+                    ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
                       <div className="flex flex-col items-center justify-center h-64 text-center">
                         <div className="text-6xl mb-4 opacity-30">{STEPS[step - 1].icon}</div>
                         <p className="text-slate-500 text-lg font-medium">
@@ -817,10 +952,12 @@ export default function Home() {
                             ? 'Click "Generate Outline" to create your book structure'
                             : step === 3
                             ? 'Select a chapter and click "Write Chapter" to generate content'
+                            : step === 5
+                            ? 'Click "Generate Cover" to create your cover with Nano Banana Pro'
                             : `Click "Generate ${STEPS[step - 1].title}" to continue`}
                         </p>
                       </div>
-                    )}
+                    ) : null}
                     <div ref={contentEndRef} />
                   </div>
                 )}
