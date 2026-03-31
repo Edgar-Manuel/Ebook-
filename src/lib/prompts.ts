@@ -17,62 +17,62 @@ Amazon Keywords: [Keyword 1], [Keyword 2], [Keyword 3], [Keyword 4], [Keyword 5]
 Categorías Sugeridas: [Categoría KDP 1], [Categoría KDP 2]
 Tono: [TONO DE VOZ DEL LIBRO]
 
-REGLAS DE GENERACIÓN:
-1. TÍTULO: Debe incluir la palabra clave principal, un beneficio claro, y si aplica, un marco de tiempo o número. No uses palabras genéricas.
-2. SUBTÍTULO: Debe expandir la promesa del título y mencionar a quién va dirigido (el dolor).
-3. DESCRIPCIÓN: Usa el modelo AIDA. Empieza con una pregunta dolorosa o estadística, explica el problema, da 3-5 bullet points de lo que descubrirán, y termina con un Call to Action.
-4. KEYWORDS: 7 frases de búsqueda de "cola larga" (long-tail) que usuarios reales escribirían.
-5. CATEGORÍAS: 2 categorías nicho muy específicas donde sea más fácil ser Best Seller.
-6. TARGET AUDIENCE: Define exactamente a quién le duele el problema.
+REGLAS DE GENERACIÓN (Basadas en Motivaciones Reales de Compra en Amazon):
+1. TÍTULO: Debe atacar un dolor ESPECÍFICO y URGENTE, enseñar una habilidad concreta o vender esperanza. Huye de lo genérico (ej. mal: "Consejos de Vida", bien: "Superar la Ansiedad Social en 30 días").
+2. SUBTÍTULO: Debe expandir la promesa del título y mencionar a quién va dirigido. Si el libro tiene potencial para ser un REGALO ideal, insinúalo sutilmente.
+3. DESCRIPCIÓN (AIDA): El lector es el protagonista. Empieza con su dolor/frustración. Explica la transformación (de no saber a saber).
+4. KEYWORDS: 7 frases de "cola larga" centradas en la intención de búsqueda de una solución.
+5. CATEGORÍAS: 2 categorías nicho hiper-específicas.
+6. TARGET AUDIENCE: Define exactamente quién sufre el problema crónico que resolvemos.
 
-Prioriza consejos accionables sobre teoría aburrida y evita introducciones genéricas tipo "En el mundo actual...". El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
+Prioriza soluciones hiper-específicas y evita libros genéricos. El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
 
     case 2:
-      return `You are a professional book outline creator. Create a detailed, comprehensive outline for this ebook:
+      return `Actúa como un Arquitecto Editorial experto en Psicología del Consumidor para Amazon KDP. El objetivo de este esquema no es volcar información, es diseñar un viaje de TRANSFORMACIÓN para el lector.
 
-Title: "${data.selectedIdea?.title}"
-Subtitle: "${data.selectedIdea?.subtitle}"
-Description: "${data.selectedIdea?.description}"
-Target Audience: "${data.selectedIdea?.targetAudience}"
+Título: "${data.selectedIdea?.title}"
+Subtítulo: "${data.selectedIdea?.subtitle}"
+Descripción: "${data.selectedIdea?.description}"
+Audiencia Objetivo (El Cliente): "${data.selectedIdea?.targetAudience}"
 
-Create a complete book outline with:
-- Introduction
-- 7-10 chapters
-- 3-5 subheadings per chapter
-- A conclusion
+Diseña un índice completo con:
+- Introducción (Conectando con el dolor/problema del usuario, sin hablar de ti desde el ego)
+- 7-10 Capítulos (El puente lógico desde su problema actual hasta la solución)
+- 3-5 Subtítulos por capítulo
+- Conclusión (Llamada a la acción final)
 
-Format each chapter like:
-**Chapter [N]: [CHAPTER TITLE]**
-- [Subheading 1]
-- [Subheading 2]
-- [Subheading 3]
+Formatea cada capítulo usando esta estructura exacta:
+**Chapter [N]: [TÍTULO DEL CAPÍTULO QUE PROMETA UN AVANCE]**
+- [Subtítulo accionable 1]
+- [Subtítulo accionable 2]
+- [Subtítulo accionable 3]
 
-Ensure logical flow from introduction to advanced concepts, and problem-to-solution progression. The outline should cover the topic comprehensively.`;
+Regla de oro: No hagas un índice técnico y aburrido. El lector compra "el dejar de sufrir un problema" o "el aprender una habilidad nueva". Cada capítulo debe sentirse como una pequeña victoria para el comprador. Responde exclusivamente con el esquema estructural en español.`;
 
     case 3: {
       const chapterNum = data.currentWritingChapter ?? 1;
       const chapterInfo = data.chapters?.[chapterNum - 1];
-      const chapterTitle = chapterInfo?.title ?? `Chapter ${chapterNum}`;
+      const chapterTitle = chapterInfo?.title ?? `Capítulo ${chapterNum}`;
       const subheadings = chapterInfo?.subheadings?.join(', ') ?? '';
 
-      return `You are a professional ebook writer. Write a complete, detailed chapter for this ebook:
+      return `Actúa como un Escritor Fantasma (Ghostwriter) de élite especializado en libros "Non-Fiction" Best Sellers de Amazon.
 
-Book Title: "${data.selectedIdea?.title}"
-Target Audience: "${data.selectedIdea?.targetAudience}"
+Libro: "${data.selectedIdea?.title}"
+Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudience}"
 
-Chapter ${chapterNum}: ${chapterTitle}
-Subheadings to cover: ${subheadings}
+Capítulo a escribir: ${chapterNum}: ${chapterTitle}
+Subtítulos a cubrir: ${subheadings}
 
-Write approximately 600-800 words for this chapter. Requirements:
-- Use H2 headings (##) for the chapter title
-- Use H3 headings (###) for each subheading
-- Write in a clear, engaging, and informative tone
-- Include practical examples and actionable tips
-- Maintain consistency with the book's theme
-- Add personal insights and real-world applications
-- End with a brief summary or key takeaways
+Escribe aproximadamente 700-1000 palabras para este capítulo. REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR:
+- EVITA el "Yoísmo". No centres la historia en ti. El LECTOR es el protagonista. Haz de espejo para su propia vida y problemas.
+- Si el área es Salud, enfócate en vender "Esperanza", no un ensayo médico denso.
+- Si el área es Dinero o Habilidades, enfócate en lo puramente práctico. Transforma al lector de "no saber" a "saber hacer".
+- Usa encabezados H2 (##) para el título del capítulo.
+- Usa encabezados H3 (###) para los subtítulos.
+- Tono empático, directo, accionable y cero relleno.
+- Idioma: Español neutro y natural (cero lenguaje robótico).
 
-Write the full chapter now:`;
+Escribe el capítulo completo ahora usando formato Markdown:`;
     }
 
     case 4:
