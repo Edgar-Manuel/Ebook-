@@ -3,6 +3,9 @@ export interface BookIdea {
   subtitle: string;
   description: string;
   targetAudience: string;
+  amazonKeywords?: string[];
+  suggestedCategories?: string[];
+  tone?: string;
 }
 
 export interface Chapter {

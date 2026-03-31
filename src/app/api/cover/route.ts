@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       return new Response(
         JSON.stringify({
           error:
-            'GOOGLE_API_KEY not set. Add it to your .env.local file to use Nano Banana Pro.',
+            'GOOGLE_API_KEY not set. Add it to your .env file to use Nano Banana Pro.',
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );

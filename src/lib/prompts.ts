@@ -3,23 +3,29 @@ import type { BookData } from '@/types';
 export function getPrompt(step: number, data: Partial<BookData>): string {
   switch (step) {
     case 1:
-      return `You are an expert ebook strategist. Generate 5 profitable ebook ideas for someone interested in: "${data.niche}" with these interests/skills: "${data.interests}".
+      return `Actúa como un estratega de marketing de contenidos y experto en Amazon Kindle Direct Publishing (KDP) con más de 10 años de experiencia en lanzamientos de "Non-Fiction" Best Sellers.
 
-For each idea, provide:
-- A compelling title
-- A subtitle
-- A 2-sentence description of the book's value
-- Target audience
+Genera 5 ideas de ebooks altamente rentables para alguien interesado en el nicho: "${data.niche}" con estos intereses/habilidades: "${data.interests}".
 
-Focus on high-demand, low-competition niches. Format your response as a numbered list with clear sections for each idea.
+Para cada idea, genera la siguiente estructura de venta y metadatos optimizados (usa exactamente este formato de texto plano):
 
-Structure each idea like:
-**Idea [N]: [TITLE]**
-Subtitle: [SUBTITLE]
-Description: [DESCRIPTION]
-Target Audience: [AUDIENCE]
+**Idea [N]: [TÍTULO MAGNÉTICO]**
+Subtítulo: [SUBTÍTULO ESTRATÉGICO]
+Descripción: [DESCRIPCIÓN CON GANCHO Y BULLET POINTS]
+Target Audience: [AUDIENCIA OBJETIVO ESPECÍFICA]
+Amazon Keywords: [Keyword 1], [Keyword 2], [Keyword 3], [Keyword 4], [Keyword 5], [Keyword 6], [Keyword 7]
+Categorías Sugeridas: [Categoría KDP 1], [Categoría KDP 2]
+Tono: [TONO DE VOZ DEL LIBRO]
 
-Make the ideas specific, actionable, and commercially viable on Amazon Kindle.`;
+REGLAS DE GENERACIÓN:
+1. TÍTULO: Debe incluir la palabra clave principal, un beneficio claro, y si aplica, un marco de tiempo o número. No uses palabras genéricas.
+2. SUBTÍTULO: Debe expandir la promesa del título y mencionar a quién va dirigido (el dolor).
+3. DESCRIPCIÓN: Usa el modelo AIDA. Empieza con una pregunta dolorosa o estadística, explica el problema, da 3-5 bullet points de lo que descubrirán, y termina con un Call to Action.
+4. KEYWORDS: 7 frases de búsqueda de "cola larga" (long-tail) que usuarios reales escribirían.
+5. CATEGORÍAS: 2 categorías nicho muy específicas donde sea más fácil ser Best Seller.
+6. TARGET AUDIENCE: Define exactamente a quién le duele el problema.
+
+Prioriza consejos accionables sobre teoría aburrida y evita introducciones genéricas tipo "En el mundo actual...". El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
 
     case 2:
       return `You are a professional book outline creator. Create a detailed, comprehensive outline for this ebook:
@@ -76,17 +82,20 @@ Book: "${data.selectedIdea?.title}"
 
 Current content summary: The book has ${data.chapters?.length ?? 0} chapters covering ${data.selectedIdea?.description}
 
+Note: This app automatically exports the book as a formatted .docx file ready for Kindle upload. Provide guidance on the content structure itself.
+
 Provide:
-1. **Formatting Guidelines** - Specific formatting rules applied
-2. **Style Consistency Check** - Any tone/style issues to fix
-3. **Kindle Formatting Tips** - H1 for chapters, H2 for subheadings, proper line spacing
+1. **Formatting Guidelines** - Specific formatting rules for a professional ebook (heading hierarchy, paragraph structure)
+2. **Style Consistency Check** - Any tone/style issues to fix across chapters
+3. **Kindle Formatting Tips** - H1 for chapters, H2 for subheadings, proper line spacing (1.15 or 1.5)
 4. **Front Matter** - Draft a title page, copyright page, and table of contents format
 5. **Back Matter** - About the author template and call-to-action suggestions
+6. **Final Review Checklist** - Proofreading, consistency, and quality checks before publishing
 
-Make the formatting recommendations specific and actionable for Google Docs before converting to .docx for Kindle Create.`;
+Make the formatting recommendations specific and actionable. The .docx export is handled automatically by this tool.`;
 
     case 5:
-      return `You are a professional book cover designer and marketing expert. Create a comprehensive cover design brief for:
+      return `You are a professional book cover designer and marketing expert. Create a comprehensive cover design brief for an AI-generated cover using Nano Banana Pro (Google Gemini image generation):
 
 Book Title: "${data.selectedIdea?.title}"
 Subtitle: "${data.selectedIdea?.subtitle}"
@@ -94,16 +103,17 @@ Target Audience: "${data.selectedIdea?.targetAudience}"
 Genre/Niche: "${data.niche}"
 
 Provide:
-1. **Cover Concept** - Detailed visual description (mood, style, imagery)
-2. **Color Palette** - Specific hex colors that work for this niche
-3. **Typography** - Font style recommendations (bold, serif, sans-serif, etc.)
-4. **Canva Template Search Terms** - 5 specific search terms to find ideal templates
-5. **Canva Step-by-Step** - How to create this cover in Canva
-6. **Kindle Dimensions** - Exact specs (1600 x 2560 pixels, 300 DPI)
-7. **Design Do's and Don'ts** - Specific to this book's niche
-8. **Competitor Analysis Prompt** - How to research similar books on Amazon
+1. **Cover Concept** - Detailed visual description (mood, style, imagery, composition) optimized for AI image generation
+2. **Color Palette** - Specific hex colors that work for this niche and evoke the right emotions
+3. **Typography Direction** - Font style recommendations (bold, serif, sans-serif, etc.) and how the title should be displayed
+4. **Art Direction** - Lighting, perspective, depth of field, texture, and visual atmosphere to guide prompt crafting
+5. **Composition Guide** - Where the title, subtitle, and key visual elements should be placed on a portrait 9:16 cover
+6. **Kindle Specs** - Exact dimensions (1600 x 2560 pixels), file format requirements, and DPI for KDP upload
+7. **Design Do's and Don'ts** - Specific to the "${data.niche}" niche and what works on Amazon thumbnails
+8. **Competitor Analysis** - How to research similar bestselling covers on Amazon to refine the concept
+9. **Post-Generation Tweaks** - Tips for minor edits after AI generation (cropping, contrast, text legibility checks)
 
-Make the design advice specific, actionable, and focused on standing out in the "${data.niche}" niche.`;
+Make the design advice specific, actionable, and focused on standing out in the "${data.niche}" niche. Remember: the cover will be generated entirely by AI, so describe the visual concept in vivid, prompt-friendly detail.`;
 
     case 6:
       return `You are an Amazon KDP publishing expert. Provide a complete step-by-step guide to publishing this book on Amazon Kindle Direct Publishing:
@@ -113,6 +123,8 @@ Subtitle: "${data.selectedIdea?.subtitle}"
 Target Audience: "${data.selectedIdea?.targetAudience}"
 Niche: "${data.niche}"
 
+Note: This app automatically generates the manuscript as a .docx file and the cover as a 1600×2560 JPG via Nano Banana Pro — both ready for KDP upload.
+
 Provide:
 1. **KDP Account Setup** - Step-by-step account creation at kdp.amazon.com
 2. **Book Details** - How to fill in title, subtitle, author name
@@ -120,10 +132,11 @@ Provide:
 4. **Keywords Strategy** - 7 high-traffic, low-competition keywords for this book
 5. **Category Selection** - 2 best Amazon categories for this book
 6. **ISBN** - Free ISBN vs. custom ISBN explanation
-7. **Manuscript Upload** - File format requirements and Kindle Create steps
-8. **Preview** - How to use Kindle Previewer
-9. **Pricing Tab** - Royalty options explained (35% vs 70%)
-10. **Publishing Checklist** - Final review before hitting publish
+7. **Manuscript Upload** - Upload the .docx file generated by this tool directly to KDP
+8. **Cover Upload** - Upload the AI-generated cover JPG (1600×2560, already at KDP specs)
+9. **Preview** - How to use Kindle Previewer to check layout on different devices
+10. **Pricing Tab** - Royalty options explained (35% vs 70%)
+11. **Publishing Checklist** - Final review before hitting publish
 
 Make everything specific to "${data.selectedIdea?.title}".`;
 

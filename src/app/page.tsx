@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { BookData, BookIdea, Chapter, Step } from '@/types';
 import CostOptimizer, { type ModelConfig } from '@/components/CostOptimizer';
+import NicheRoulette from '@/components/NicheRoulette';
 
 const STEPS = [
   { number: 1, title: 'Book Ideas', icon: '💡', desc: 'Generate profitable book ideas with AI' },
@@ -46,28 +47,38 @@ function parseIdeasFromText(text: string): BookIdea[] {
       ? titleMatch[1].trim()
       : lines[0].replace(/\*\*/g, '').trim();
 
-    const subtitle =
-      lines
-        .find((l) => l.toLowerCase().startsWith('subtitle:'))
-        ?.replace(/subtitle:\s*/i, '')
-        .replace(/\*\*/g, '') ?? '';
+    const subtitleMatch = lines.find((l) => /subt[ií]tulo:/i.test(l));
+    const subtitle = subtitleMatch
+      ? subtitleMatch.replace(/subt[ií]tulo:\s*/i, '').replace(/\*\*/g, '')
+      : '';
 
-    const descLine = lines.find((l) => l.toLowerCase().startsWith('description:'));
-    const description = descLine
-      ? descLine.replace(/description:\s*/i, '').replace(/\*\*/g, '')
+    const descMatch = lines.find((l) => /descripci[oó]n:/i.test(l));
+    const description = descMatch
+      ? descMatch.replace(/descripci[oó]n:\s*/i, '').replace(/\*\*/g, '')
       : lines.slice(1, 3).join(' ');
 
-    const audienceLine = lines.find(
-      (l) =>
-        l.toLowerCase().startsWith('target audience:') ||
-        l.toLowerCase().startsWith('audience:')
-    );
-    const targetAudience = audienceLine
-      ? audienceLine.replace(/target audience:\s*/i, '').replace(/audience:\s*/i, '').replace(/\*\*/g, '')
-      : 'General readers';
+    const audienceMatch = lines.find((l) => /target audience:|audiencia/i.test(l));
+    const targetAudience = audienceMatch
+      ? audienceMatch.replace(/target audience:\s*/i, '').replace(/audiencia[^:]*:\s*/i, '').replace(/\*\*/g, '')
+      : 'Lectores generales';
+      
+    const keywordsMatch = lines.find((l) => /amazon keywords:/i.test(l));
+    const amazonKeywords = keywordsMatch
+      ? keywordsMatch.replace(/amazon keywords:\s*/i, '').replace(/\*\*/g, '').split(',').map(k => k.trim())
+      : undefined;
+
+    const categoriesMatch = lines.find((l) => /categor[ií]as sugeridas:/i.test(l));
+    const suggestedCategories = categoriesMatch
+      ? categoriesMatch.replace(/categor[ií]as sugeridas:\s*/i, '').replace(/\*\*/g, '').split(',').map(c => c.trim())
+      : undefined;
+
+    const toneMatch = lines.find((l) => /tono:/i.test(l));
+    const tone = toneMatch
+      ? toneMatch.replace(/tono:\s*/i, '').replace(/\*\*/g, '')
+      : undefined;
 
     if (title && title.length > 3) {
-      ideas.push({ title, subtitle, description, targetAudience });
+      ideas.push({ title, subtitle, description, targetAudience, amazonKeywords, suggestedCategories, tone });
     }
   }
 
@@ -81,7 +92,7 @@ function parseIdeasFromText(text: string): BookIdea[] {
           title: firstLine,
           subtitle: '',
           description: block.split('\n').slice(1, 3).join(' '),
-          targetAudience: 'General readers',
+          targetAudience: 'Lectores generales',
         });
       }
     }
@@ -204,17 +215,6 @@ export default function Home() {
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
 
-  if (phase === 'setup') {
-    return (
-      <CostOptimizer
-        onConfirm={(config) => {
-          setModelConfig(config);
-          setPhase('wizard');
-        }}
-      />
-    );
-  }
-
   useEffect(() => {
     contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [streamedText]);
@@ -313,6 +313,17 @@ export default function Home() {
     },
     [step, bookData]
   );
+
+  if (phase === 'setup') {
+    return (
+      <CostOptimizer
+        onConfirm={(config) => {
+          setModelConfig(config);
+          setPhase('wizard');
+        }}
+      />
+    );
+  }
 
   const generateCover = async () => {
     setIsGeneratingCover(true);
@@ -509,6 +520,9 @@ export default function Home() {
               {/* Step-specific inputs */}
               {step === 1 && (
                 <div className="space-y-3">
+                  <NicheRoulette 
+                    onSelectNiche={(niche, hook) => setBookData((p) => ({ ...p, niche, interests: hook }))} 
+                  />
                   <div>
                     <label className="text-slate-300 text-sm font-medium mb-1 block">
                       Niche / Topic
@@ -687,7 +701,7 @@ export default function Home() {
                       <div className="bg-slate-800/60 border border-slate-600/40 rounded-xl p-3 text-xs text-slate-400 space-y-1">
                         <p className="text-slate-300 font-medium">🍌 Nano Banana Pro</p>
                         <p>Generates your cover as a real 1600×2560 JPG — ready for KDP upload.</p>
-                        <p className="text-slate-500">Requires <code className="text-indigo-400">GOOGLE_API_KEY</code> in .env.local</p>
+                        <p className="text-slate-500">Requires <code className="text-indigo-400">GOOGLE_API_KEY</code> in .env</p>
                       </div>
                       <button
                         onClick={generateCover}
@@ -887,6 +901,20 @@ export default function Home() {
                               <p className="text-slate-500 text-xs mt-1.5">
                                 👥 {idea.targetAudience}
                               </p>
+                            )}
+                            {idea.suggestedCategories && idea.suggestedCategories.length > 0 && (
+                              <p className="text-slate-500 text-xs mt-1.5">
+                                📚 {idea.suggestedCategories.join(', ')}
+                              </p>
+                            )}
+                            {idea.amazonKeywords && idea.amazonKeywords.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {idea.amazonKeywords.map((kw, idx) => (
+                                  <span key={idx} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-700/50">
+                                    {kw}
+                                  </span>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
