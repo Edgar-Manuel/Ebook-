@@ -3,8 +3,8 @@ import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/m
 import { getPrompt } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
-// Use Node.js runtime to avoid edge's 30s timeout killing long generations
-export const maxDuration = 300;
+// Edge runtime is required for proper SSE streaming on Vercel
+export const runtime = 'edge';
 
 const client = new Anthropic();
 
@@ -59,11 +59,11 @@ export async function POST(req: Request) {
       const shortId = modelConfig.assignments[step];
       const fullModelId = MODEL_ID_MAP[shortId] ?? shortId;
       const useThinking = SUPPORTS_THINKING.has(shortId) && !!(modelConfig.thinking?.[step]);
-      
+
       let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
-      
-      // Enforce minimum tokens for content-heavy steps
-      const MIN_TOKENS: Record<number, number> = { 2: 16000, 3: 8192, 6: 8192, 7: 8192, 8: 8192 };
+
+      // Enforce minimum tokens for content-heavy steps regardless of CostOptimizer
+      const MIN_TOKENS: Record<number, number> = { 2: 8000, 3: 8192, 6: 8192, 7: 8192, 8: 8192 };
       if (MIN_TOKENS[step] && maxTokens < MIN_TOKENS[step]) {
         maxTokens = MIN_TOKENS[step];
       }

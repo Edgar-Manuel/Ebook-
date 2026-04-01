@@ -449,17 +449,11 @@ export default function Home() {
       const data = overrideData ? { ...latestData, ...overrideData } : latestData;
 
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 min timeout
-
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ step, data, modelConfig }),
-          signal: controller.signal,
         });
-
-        clearTimeout(timeout);
 
         if (!response.ok) {
           const errBody = await response.text().catch(() => '');
@@ -472,34 +466,39 @@ export default function Home() {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n\n');
-          buffer = lines.pop() ?? '';
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop() ?? '';
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const payload = line.slice(6);
-            if (payload === '[DONE]') continue;
+            for (const line of lines) {
+              if (!line.startsWith('data: ')) continue;
+              const payload = line.slice(6);
+              if (payload === '[DONE]') continue;
 
-            try {
-              const parsed = JSON.parse(payload);
-              if (parsed.error) throw new Error(parsed.error);
-              if (parsed.text) {
-                streamRef.current += parsed.text;
-                setStreamedText(streamRef.current);
+              try {
+                const parsed = JSON.parse(payload);
+                if (parsed.error) throw new Error(parsed.error);
+                if (parsed.text) {
+                  streamRef.current += parsed.text;
+                  setStreamedText(streamRef.current);
+                }
+              } catch (e) {
+                if (e instanceof SyntaxError) continue;
+                throw e;
               }
-            } catch (e) {
-              if (e instanceof SyntaxError) continue;
-              throw e;
             }
           }
+        } catch (streamErr) {
+          // If the stream was cut off (e.g. edge timeout), still save partial content
+          console.warn('Stream interrupted:', streamErr);
         }
 
-        // Save to book data
+        // Save to book data (even if stream was partial)
         const finalText = streamRef.current;
         setBookData((prev) => {
           const updated = { ...prev };
