@@ -3,7 +3,8 @@ import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/m
 import { getPrompt } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
-export const runtime = 'edge';
+// Use Node.js runtime to avoid edge's 30s timeout killing long generations
+export const maxDuration = 300;
 
 const client = new Anthropic();
 

@@ -449,13 +449,22 @@ export default function Home() {
       const data = overrideData ? { ...latestData, ...overrideData } : latestData;
 
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 min timeout
+
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ step, data, modelConfig }),
+          signal: controller.signal,
         });
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          const errBody = await response.text().catch(() => '');
+          throw new Error(`HTTP ${response.status}: ${errBody}`);
+        }
 
         const reader = response.body?.getReader();
         if (!reader) throw new Error('No reader');
