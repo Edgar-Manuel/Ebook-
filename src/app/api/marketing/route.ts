@@ -75,7 +75,9 @@ export async function POST(req: Request) {
     
     // Silently sync to InsForge Storage as requested
     try {
-      await insforge.storage.from('ebooks').upload(fileName, aPlusBuffer);
+      const arrayBuffer = new Uint8Array(aPlusBuffer);
+      const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+      await insforge.storage.from('ebooks').upload(fileName, blob);
     } catch (e) {
       console.warn('Sync to Cloud Storage failed:', e);
     }
