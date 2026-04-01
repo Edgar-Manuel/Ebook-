@@ -49,6 +49,9 @@ export interface BookData {
   // Step 8
   marketingContent: string;
   
+  // Marketing Assets (A+ Content)
+  marketingAssets: Record<string, string>; // base64 JPEG from Nano Banana Pro: 'comparison', 'authority', 'method'
+  
   // Library of finished books
   library: BookData[];
 }

@@ -35,6 +35,7 @@ const initialBookData: BookData = {
   kdpSetup: '',
   pricingStrategy: '',
   marketingContent: '',
+  marketingAssets: {},
   library: [],
 };
 
@@ -235,6 +236,8 @@ export default function Home() {
   const [exportSuccess, setExportSuccess] = useState(false);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [coverError, setCoverError] = useState('');
+  const [isGeneratingMarketing, setIsGeneratingMarketing] = useState(false);
+  const [marketingError, setMarketingError] = useState('');
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
 
@@ -288,9 +291,20 @@ export default function Home() {
   useEffect(() => {
     if (!isLoaded) return;
     if (bookData !== initialBookData) {
-      localStorage.setItem('ebook_ai_data', JSON.stringify(bookData));
+      try {
+        // Optimization: Don't save the entire library or large cover images to localStorage
+        // This prevents QuotaExceededError (5MB limit)
+        const dataToSave = { 
+          ...bookData, 
+          library: [], // Keep library only in Cloud/State
+          coverImage: null // Keep images only in Cloud/State
+        };
+        localStorage.setItem('ebook_ai_data', JSON.stringify(dataToSave));
+      } catch (e) {
+        console.warn('LocalStorage quota exceeded, but data is still in memory. Please use "Save to Library" (Cloud).', e);
+      }
     }
-  }, [bookData]);
+  }, [bookData, isLoaded]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -304,7 +318,9 @@ export default function Home() {
   }, [modelConfig]);
 
   useEffect(() => {
-    localStorage.setItem('ebook_ai_phase', phase);
+    try {
+      localStorage.setItem('ebook_ai_phase', phase);
+    } catch (e) {}
   }, [phase]);
 
   const resetProject = () => {
@@ -339,6 +355,7 @@ export default function Home() {
           kdp_setup: bookData.kdpSetup,
           pricing_strategy: bookData.pricingStrategy,
           marketing_content: bookData.marketingContent,
+          marketing_assets: bookData.marketingAssets,
         },
       ]);
 
@@ -392,6 +409,7 @@ export default function Home() {
             kdpSetup: row.kdp_setup,
             pricingStrategy: row.pricing_strategy,
             marketingContent: row.marketing_content,
+            marketingAssets: row.marketing_assets || {},
           }));
 
           setBookData(prev => ({
@@ -549,6 +567,44 @@ export default function Home() {
       setCoverError(err instanceof Error ? err.message : 'Cover generation failed');
     } finally {
       setIsGeneratingCover(false);
+    }
+  };
+
+  const generateMarketingPack = async () => {
+    if (!bookData.coverImage || !bookData.selectedIdea) return;
+    setIsGeneratingMarketing(true);
+    setMarketingError('');
+    
+    try {
+      const types = ['comparison', 'authority', 'method'];
+      const newAssets: Record<string, string> = { ...bookData.marketingAssets };
+      
+      for (const type of types) {
+        const response = await fetch('/api/marketing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: bookData.selectedIdea.title,
+            authorName: bookData.authorName,
+            coverImage: bookData.coverImage,
+            type
+          }),
+        });
+        
+        const result = await response.json();
+        if (!response.ok || result.error) throw new Error(result.error || `Error generating ${type}`);
+        newAssets[type] = result.image;
+        
+        // Update state progressively
+        setBookData(prev => ({
+          ...prev,
+          marketingAssets: { ...newAssets }
+        }));
+      }
+    } catch (err) {
+      setMarketingError(err instanceof Error ? err.message : 'Marketing pack failed');
+    } finally {
+      setIsGeneratingMarketing(false);
     }
   };
 
@@ -1460,9 +1516,72 @@ ${bookData.marketingContent || 'No generado'}
                             </button>
                           </div>
                         ) : null}
+                        {bookData.coverImage && (
+                          <div className="mt-8 border-t border-slate-700/50 pt-8 animate-fade-in">
+                            <div className="flex items-center justify-between mb-6">
+                              <div>
+                                <h4 className="text-white font-bold text-lg mb-1">🚀 Amazon KDP Marketing Pack</h4>
+                                <p className="text-slate-400 text-sm">3 Módulos de Contenido A+ Premium (970x600 px)</p>
+                              </div>
+                              <button
+                                onClick={generateMarketingPack}
+                                disabled={isGeneratingMarketing}
+                                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center gap-2"
+                              >
+                                {isGeneratingMarketing ? <span className="animate-spin text-lg">⟳</span> : <span>✨</span>}
+                                {isGeneratingMarketing ? 'Generando Pack...' : 'Generar Marketing Pack'}
+                              </button>
+                            </div>
+
+                            {marketingError && <p className="text-red-400 text-sm mb-4">❌ {marketingError}</p>}
+
+                            <div className="grid grid-cols-1 gap-6">
+                              {['comparison', 'authority', 'method'].map((type) => (
+                                <div key={type} className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 transition-all hover:bg-slate-800/60 overflow-hidden">
+                                  <div className="flex items-center justify-between mb-4">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                                      {type === 'comparison' ? 'Módulo 1: Transformación' : type === 'authority' ? 'Módulo 2: Autoridad' : 'Módulo 3: Metodología'}
+                                    </span>
+                                    {bookData.marketingAssets[type] && (
+                                      <button 
+                                        onClick={() => {
+                                          const blob = new Blob([Buffer.from(bookData.marketingAssets[type], 'base64')], { type: 'image/jpeg' });
+                                          const url = URL.createObjectURL(blob);
+                                          const link = document.createElement('a');
+                                          link.href = url;
+                                          link.download = `${bookData.selectedIdea?.title}-Aplus-${type}.jpg`;
+                                          link.click();
+                                        }}
+                                        className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-lg text-slate-300"
+                                      >
+                                        📥 Descargar Jpg
+                                      </button>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="aspect-[970/600] w-full bg-slate-900/80 rounded-xl overflow-hidden border border-slate-700/50 flex items-center justify-center relative">
+                                    {bookData.marketingAssets[type] ? (
+                                      <img src={`data:image/jpeg;base64,${bookData.marketingAssets[type]}`} alt={type} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="text-slate-700 flex flex-col items-center gap-2">
+                                        <div className="text-3xl">🖼️</div>
+                                        <span className="text-xs">Sin generar</span>
+                                      </div>
+                                    )}
+                                    {isGeneratingMarketing && !bookData.marketingAssets[type] && (
+                                      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center">
+                                        <div className="animate-pulse text-indigo-400 font-bold">Generando pieza...</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                         {(completedText || streamedText) && (
-                          <div className="mt-6 border-t border-slate-700/50 pt-4">
-                            <p className="text-slate-400 text-xs font-medium mb-3">Design Tips & Notes</p>
+                          <div className="mt-8 border-t border-slate-700/50 pt-6">
+                            <p className="text-slate-400 text-xs font-medium mb-3">Guía de Diseño para Amazon</p>
                           </div>
                         )}
                       </div>
