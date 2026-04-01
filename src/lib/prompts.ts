@@ -24,8 +24,9 @@ REGLAS DE GENERACIÓN (Basadas en Motivaciones Reales de Compra en Amazon):
 4. KEYWORDS: 7 frases de "cola larga" centradas en la intención de búsqueda de una solución.
 5. CATEGORÍAS: 2 categorías nicho hiper-específicas.
 6. TARGET AUDIENCE: Define exactamente quién sufre el problema crónico que resolvemos.
+7. ANÁLISIS DE COMPETENCIA: Menciona un "hueco" común que la competencia no cubre (basado en quejas típicas en reseñas) y cómo este libro lo aprovechará.
 
-Prioriza soluciones hiper-específicas y evita libros genéricos. El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
+Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de valor real) y rechaza categóricamente ideas orientadas a bajo/medio contenido (nada de agendas, diarios o sudokus, ya que están sobresaturados). El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
 
     case 2:
       return `Actúa como un Arquitecto Editorial experto en Psicología del Consumidor para Amazon KDP. El objetivo de este esquema no es volcar información, es diseñar un viaje de TRANSFORMACIÓN para el lector.
@@ -49,7 +50,9 @@ Formatea cada capítulo usando esta estructura exacta:
 - [Subtítulo accionable 2]
 - [Subtítulo accionable 3]
 
-Regla de oro: No hagas un índice técnico y aburrido. El lector compra "el dejar de sufrir un problema" o "el aprender una habilidad nueva". Cada capítulo debe sentirse como una pequeña victoria para el comprador. Responde exclusivamente con el esquema estructural en español.`;
+- [Subtítulo accionable 3]
+
+Regla de oro: No hagas un índice técnico y aburrido. El lector compra "el dejar de sufrir un problema" o "el aprender una habilidad nueva". Cada capítulo debe sentirse como una pequeña victoria para el comprador. Este esquema servirá de base para un libro de "Alto Contenido", debe ser profundo y llenar los vacíos que la competencia no toca. Responde exclusivamente con el esquema estructural en español.`;
 
     case 3: {
       const chapterNum = data.currentWritingChapter ?? 1;
@@ -75,6 +78,7 @@ REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR Y REDACCIÓN:
 - Usa encabezados H2 (##) para el título del capítulo.
 - Usa encabezados H3 (###) para los subtítulos planteados.
 - Tono empático, directo, accionable y cero relleno. Cada palabra debe empujar al lector hacia la solución.
+- ORIGINALIDAD Y VALOR 100%: Amazon cierra cuentas por contenido duplicado o derechos de autor. Todo el contenido generado debe ser completamente único, original y aportar tanto valor real que las reseñas orgánicas positivas lleguen solas. Cero plagio, cero relleno.
 - Idioma: Español neutro y natural (cero lenguaje robótico o traducciones literales del inglés).
 
 Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
@@ -96,7 +100,7 @@ Proporciona:
 3. **Consejos de Formato para Kindle** - Uso de H1 para capítulos, H2 para subtítulos, espaciado correcto (1.15 o 1.5)
 4. **Páginas Iniciales (Front Matter)** - Redacta una página de título (Título, Subtítulo, Autor: ${data.authorName}), página de derechos de autor, y formato del índice
 5. **Páginas Finales (Back Matter)** - Plantilla "Acerca del Autor" (${data.authorName}) y sugerencias de llamadas a la acción (Call to Action). IMPORTANTE: NO incluyas ni sugieras poner el correo electrónico (email) del autor en ninguna parte del libro (ni en derechos de autor, ni en contacto, nada).
-6. **Checklist de Revisión Final** - Comprobaciones de calidad, corrección y coherencia antes de publicar
+6. **Checklist de Calidad y Experiencia de Lectura** - Comprobaciones antes de publicar para asegurar que este libro de "Alto Contenido" mantenga al lector enganchado en Kindle o en versión impresa (Tapablanda).
 
 Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.`;
 
@@ -110,7 +114,7 @@ Target Audience: "${data.selectedIdea?.targetAudience}"
 Genre/Niche: "${data.niche}"
 
 Proporciona:
-1. **Concepto de la Portada** - Descripción visual detallada (estado de ánimo, estilo, imágenes, composición) optimizada para la generación de imágenes por IA
+1. **Concepto de la Portada (Empaque Fuerte)** - Descripción visual detallada (estado de ánimo, estilo, imágenes, composición) optimizada para IA. En Amazon la gente SÍ juzga el libro por su portada; el diseño debe ser de élite para destacar entre miles de búsquedas.
 2. **Paleta de Colores** - Colores hexadecimales específicos que funcionen para este nicho y evoquen las emociones correctas
 3. **Dirección Tipográfica** - Recomendaciones de estilo de fuente para "${data.selectedIdea?.title}" y "${data.authorName}"
 4. **Dirección de Arte** - Iluminación, perspectiva, profundidad de campo, textura y atmósfera visual para guiar la creación del prompt
@@ -133,16 +137,16 @@ Autor: "${data.authorName}"
 Audiencia Objetivo (El cliente): "${data.selectedIdea?.targetAudience}"
 Nicho: "${data.niche}"
 
-Nota: La app ya ha autogenerado el documento .docx maquetado y la portada 1600x2560 JPG. Tu trabajo ahora es dominar el marketplace.
+Nota: La app ya ha autogenerado el documento .docx maquetado y la portada 1600x2560 JPG. Es decir, hemos creado un libro de "Alto Contenido" (no ficción), huyendo de la alta competencia de los libros de bajo contenido. Tu trabajo ahora es ayudarle a dominar el marketplace con lo que llamamos un "Empaque Fuerte".
 
 Genera una guía maestra y estratégica (NO un manual técnico aburrido) con este esquema:
 
-1. **Mentalidad de Venta KDP:** Breve recordatorio de que en Amazon vendemos soluciones, no libros. El comprador es el protagonista, no el ego del autor. No obstante, firma este activo como "${data.authorName}".
-2. **Optimización Extrema de Metadatos:** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, Autor: "${data.authorName}", backend KDP).
-3. **El Gancho de la Descripción (HTML):** Crea una descripción de venta KDP en formato HTML (con <b>, <h2>). Usa AIDA, céntrate en el dolor del usuario y no en lo bonito que es el libro.
+1. **Mentalidad de Venta KDP y Alto Contenido:** Breve recordatorio de que en Amazon vendemos soluciones de alto contenido. El comprador es el protagonista, no el ego del autor. Firma este activo como "${data.authorName}".
+2. **El Empaque Fuerte (Optimización Extrema de Metadatos):** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, Autor, y en las 7 casillas de backend KDP). Menciona el uso de herramientas de SEO.
+3. **El Gancho de la Descripción (Embudo de Ventas HTML):** Crea una descripción de venta KDP en formato HTML (con <b>, <h2>). Usa formato de EMBUDO DE VENTAS (AIDA), céntrate en el dolor del usuario y no en lo bonito que es el libro.
 4. **Elección Estratégica de Categorías:** Cómo elegir categorías donde es matemáticamente más fácil conseguir la etiqueta de "Best Seller".
 5. **Contenido A+ (El factor "Excelencia"):** Por qué hoy en día ser amateur no funciona. Describe exactamente qué 3 módulos de Contenido A+ debe añadir para aumentar el valor percibido.
-6. **Checklist Anti-Fracaso antes de Publicar:** Las 3 cosas que debe comprobar con visión de "comprador" antes de darle al botón de publicar. Asegúrate de que el nombre del autor "${data.authorName}" esté bien escrito en todos los campos.
+6. **Checklist Anti-Fracaso antes de Publicar:** Las 3 cosas que debe comprobar con visión de "comprador" antes de darle al botón de publicar.
 
 Mantén un tono directo, profesional y enfocado al 100% en la rentabilidad y psicología de compra.`;
 
@@ -159,14 +163,14 @@ Desarrolla una Estrategia de Pricing enfocada en el valor percibido y el comprom
 
 1. **La Psicología del Precio:** Por qué regalar el libro (0.00€) atrae a curiosos sin compromiso, mientras que un precio premium atrae a compradores dispuestos a aplicar la solución.
 2. **El Precio Óptimo (Valor Percibido):** Recomienda el precio de lanzamiento y el precio final (ej. 2.99€ -> 7.99€ o 9.99€) justificando por qué este libro soluciona un problema que vale ese dinero.
-3. **Cálculo de Royalties Realista:** Desglose matemático. ¿Cuántas ventas a X€ necesitas para ganar 1.000€/mes? (Explica el tramo del 70% vs 35% de Amazon).
+3. **Cálculo de Royalties y Retorno (ROI):** Desglose matemático. ¿Cuántas ventas a X€ necesitas para ganar 1.000€/mes? (Explica el tramo del 70% vs 35% y cómo 1 solo libro puede generar miles al año).
 4. **Estrategia KDP Select (Kindle Unlimited):** ¿Debe ser exclusivo de Amazon o ir "Wide"? Explica cómo las páginas leídas (KENP) también son ventas.
-5. **Inversión Mínima Viable:** Un presupuesto hiper-realista. Si va a gastar 50€-100€ en Amazon Ads para iniciar la rueda del algoritmo, ¿cómo calcular el ACOS y el punto de equilibrio?
+5. **Inversión Mínima Viable (Nuestra Ventaja Injusta):** Explica que la inversión base para lanzar un buen libro suele ser de $1,000 ($400 escritor, $100 portada, $400 Amazon Ads, $100 herramientas clave). PERO gracias a que nuestro sistema ya le ha creado los textos y la portada gratis 100% original, el autor NO necesita invertir esos $500. Por lo tanto, DEBE usar ese ahorro directamente en destinar ~$400 dólares a Amazon Ads (repartido en varios meses para potenciar ventas) y ~$100 en herramientas (como Helium 10). En Amazon los libros no se venden solos; sin publicidad, no hay escalabilidad.
 
-Sé claro, emplea números reales y quita la falsa idea de que se puede hacer riqueza de la noche a la mañana sin gastar un centavo.`;
+Sé claro, emplea números reales y quita la falsa idea de que se puede generar riqueza sin invertir nada en Ads.`;
 
     case 8:
-      return `Actúa como un Director de Marketing y Tráfico experto en escalar Libros a Top 100 de Amazon.
+      return `Actúa como un Director de Marketing y Tráfico experto en escalar Libros a Top 100 de Amazon, apoyado en los "4 Pilares del Éxito en KDP".
       
 Recuerda tu mantra: "Publicar es un evento aislado. Vender es un sistema. El libro empieza a vivir el día que le das a publicar, no termina ahí".
 
@@ -177,14 +181,14 @@ Nicho: "${data.niche}"
 
 Diseña la Arquitectura del Sistema de Ventas (El plan para dejar de ser un creador pasivo y ser un vendedor activo):
 
-1. **La Mentalidad Post-Lanzamiento:** Analiza y no supongas. Explica cómo interpretar si el problema de que no haya ventas es "Falta de Tráfico" (no lo ve nadie) o "Falta de Conversión" (lo ven pero no compran por mala portada/precio).
-2. **Sistema de Tráfico 1: Amazon Ads (El combustible):** Cómo crear la primera campaña de Sponsored Products automática y una manual targeting a los ASINs de 3 competidores directos.
+1. **La Mentalidad Post-Lanzamiento y los 4 Pilares:** Menciona brevemente los 4 pilares: 1. Nicho rentable, 2. Empaque fuerte, 3. Visibilidad (Ads), 4. Escalabilidad. Analiza y no supongas si el problema de que no haya ventas es "Falta de Tráfico" o "Falta de Conversión".
+2. **El Pilar de la Visibilidad: Amazon Ads (OBLIGATORIO):** Aprovechando lo que ahorró en diseño y escritura, cómo invertir su presupuesto inteligentemente en Ads. Cómo crear la primera campaña de Sponsored Products automática y una manual targeting a palabras clave (usando herramientas) y ASINs de competidores.
 3. **Estandarizar la Excelencia:** Qué debe revisar y modificar a los 14 días si no hay ventas (Test A/B de portada, ajuste de título/subtítulo, mejora de la descripción).
 4. **El Funnel Externo (Opcional pero escalable):** Cómo usar TikTok, Reels o Shorts hablando *solo de los problemas del cliente* (NO hablando del libro) y mandándolos al link de Amazon.
-5. **La Regla de Oro de las Reviews:** Una estrategia ética pero agresiva para conseguir las primeras 5-10 reseñas (que son la barrera mágica para activar el algoritmo orgánico de KDP).
-6. **Construyendo tu Propiedad Editorial:** Cómo este libro debe llevar a un Lead Magnet o a comprar tu siguiente libro dentro de la misma categoría.
+5. **La Regla de Oro de las Reviews:** Una estrategia ética pero agresiva para conseguir reseñas de forma sólida (la calidad del libro en sí trae reseñas, pero hay que incentivar la acción).
+6. **El Pilar de la Escalabilidad:** Cómo este libro debe llevar a un Lead Magnet o a comprar tu siguiente libro dentro de la misma categoría, y mencionar opciones futuras como audiolibros vía ACX o traducciones, aprovechando que el autor conserva el 100% de sus derechos.
 
-Proporciona ejemplos de posts reales y accionables orientados a que el comprador sienta que el libro de la competencia no es tan bueno como este.`;
+Proporciona ejemplos de estrategias reales y accionables orientadas a dominar el algoritmo y lograr ingresos pasivos masivos.`;
 
     default:
       return 'Please provide a valid step number.';
