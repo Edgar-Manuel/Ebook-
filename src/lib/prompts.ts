@@ -92,7 +92,7 @@ Autor: "${data.authorName}"
 
 Resumen del contenido actual: El libro tiene ${data.chapters?.length ?? 0} capítulos que cubren ${data.selectedIdea?.description}
 
-Nota: Esta aplicación exporta automáticamente el libro como un archivo .docx formateado listo para subir a Kindle. Tu tarea es proporcionar una guía sobre la estructura del contenido y estilo.
+Nota: Esta aplicación exporta automáticamente el libro como un archivo .docx formateado. Basándonos en los requisitos oficiales de Amazon KDP, el formato .docx (Word) es el IDEAL y RECOMENDADO para publicar como "Libro Electrónico (eBook Kindle)", ya que permite que el texto sea "texto ajustable" y se adapte perfectamente a diferentes tamaños de pantalla (a diferencia del PDF, que solo se recomienda si fuera para imprimir en versión "Tapa Blanda"). Tu tarea es proporcionar una guía sobre la estructura visual y de estilo para la versión eBook Kindle.
 
 Proporciona:
 1. **Guía de Formato** - Reglas de formato específicas para un ebook profesional (jerarquía de encabezados, estructura de párrafos)

@@ -22,6 +22,8 @@ async function buildImagePrompt(bookData: Partial<BookData>): Promise<string> {
   const niche = bookData.niche ?? 'self-help';
   const audience = bookData.selectedIdea?.targetAudience ?? 'general readers';
 
+  const authorName = bookData.authorName ?? 'Edgar Manchón';
+
   const response = await claudeClient.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 600,
@@ -33,12 +35,14 @@ async function buildImagePrompt(bookData: Partial<BookData>): Promise<string> {
 Book details:
 - Title: "${title}"
 - Subtitle: "${subtitle}"
+- Author Name: "${authorName}"
 - Genre / Niche: "${niche}"
 - Target Audience: "${audience}"
 
 Rules:
 - The prompt MUST include the exact title text "${title}" to be displayed prominently on the cover
 - Subtitle text "${subtitle}" should appear below the title in a smaller font
+- At the bottom center of the cover, the author name text "${authorName}" MUST be clearly written
 - Style must suit the "${niche}" genre
 - High production quality, KDP-ready, portrait 9:16 ratio
 - No watermarks, no borders, no extra UI elements
