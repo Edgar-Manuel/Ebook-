@@ -62,9 +62,10 @@ export async function POST(req: Request) {
       
       let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
       
-      // Override for strategic steps to prevent cutting off
-      if (step >= 6 && maxTokens < 8192) {
-        maxTokens = 8192;
+      // Enforce minimum tokens for content-heavy steps
+      const MIN_TOKENS: Record<number, number> = { 2: 16000, 3: 8192, 6: 8192, 7: 8192, 8: 8192 };
+      if (MIN_TOKENS[step] && maxTokens < MIN_TOKENS[step]) {
+        maxTokens = MIN_TOKENS[step];
       }
 
       config = {

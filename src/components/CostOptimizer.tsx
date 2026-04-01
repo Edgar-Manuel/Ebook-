@@ -87,7 +87,7 @@ const STRATEGIES: StrategyDef[] = [
     icon: '⚖️',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
-      2: { model: 'sonnet-4.6', thinking: true,  maxTokens: 3000 },
+      2: { model: 'sonnet-4.6', thinking: false, maxTokens: 16000 },
       3: { model: 'opus-4.6',   thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
@@ -105,7 +105,7 @@ const STRATEGIES: StrategyDef[] = [
     badgeColor: 'text-green-400 bg-green-950/50 border-green-700/30',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
-      2: { model: 'sonnet-4.5', thinking: false, maxTokens: 3000 },
+      2: { model: 'sonnet-4.5', thinking: false, maxTokens: 16000 },
       3: { model: 'sonnet-4.6', thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
@@ -166,7 +166,7 @@ const STEP_LABELS: Record<number, string> = {
 // Rough token estimates per step (input + output combined)
 const STEP_TOKEN_ESTIMATES: Record<number, { input: number; output: number }> = {
   1: { input: 500,  output: 1800 },
-  2: { input: 800,  output: 2500 },
+  2: { input: 800,  output: 10000 },
   3: { input: 1200, output: 5500 }, // per chapter, multiplied by chapters
   4: { input: 2000, output: 2000 },
   5: { input: 1000, output: 2500 },
