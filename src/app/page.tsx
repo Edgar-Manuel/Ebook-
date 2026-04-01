@@ -455,10 +455,7 @@ export default function Home() {
           body: JSON.stringify({ step, data, modelConfig }),
         });
 
-        if (!response.ok) {
-          const errBody = await response.text().catch(() => '');
-          throw new Error(`HTTP ${response.status}: ${errBody}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const reader = response.body?.getReader();
         if (!reader) throw new Error('No reader');
@@ -466,39 +463,34 @@ export default function Home() {
         const decoder = new TextDecoder();
         let buffer = '';
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n\n');
-            buffer = lines.pop() ?? '';
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n\n');
+          buffer = lines.pop() ?? '';
 
-            for (const line of lines) {
-              if (!line.startsWith('data: ')) continue;
-              const payload = line.slice(6);
-              if (payload === '[DONE]') continue;
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const payload = line.slice(6);
+            if (payload === '[DONE]') continue;
 
-              try {
-                const parsed = JSON.parse(payload);
-                if (parsed.error) throw new Error(parsed.error);
-                if (parsed.text) {
-                  streamRef.current += parsed.text;
-                  setStreamedText(streamRef.current);
-                }
-              } catch (e) {
-                if (e instanceof SyntaxError) continue;
-                throw e;
+            try {
+              const parsed = JSON.parse(payload);
+              if (parsed.error) throw new Error(parsed.error);
+              if (parsed.text) {
+                streamRef.current += parsed.text;
+                setStreamedText(streamRef.current);
               }
+            } catch (e) {
+              if (e instanceof SyntaxError) continue;
+              throw e;
             }
           }
-        } catch (streamErr) {
-          // If the stream was cut off (e.g. edge timeout), still save partial content
-          console.warn('Stream interrupted:', streamErr);
         }
 
-        // Save to book data (even if stream was partial)
+        // Save to book data
         const finalText = streamRef.current;
         setBookData((prev) => {
           const updated = { ...prev };

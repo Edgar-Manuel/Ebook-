@@ -74,6 +74,13 @@ export async function POST(req: Request) {
         useThinking,
       };
     }
+
+    // Step 2 (outline): NEVER use thinking — it delays first visible token
+    // and wastes the edge runtime's 30s budget on invisible thinking tokens
+    if (step === 2) {
+      config = { ...config, useThinking: false };
+    }
+
     if (!config) {
       return new Response(JSON.stringify({ error: 'Invalid step (1-8)' }), {
         status: 400,
