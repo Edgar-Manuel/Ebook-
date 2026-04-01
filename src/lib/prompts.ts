@@ -38,7 +38,7 @@ Audiencia Objetivo (El Cliente): "${data.selectedIdea?.targetAudience}"
 
 Diseña un índice completo con:
 - Introducción (Conectando de inmediato con el dolor del usuario. Además asume que el autor es ${data.authorName || 'el autor'}. Usa esta sección para construir una Fuerte Introducción Personal: cuenta una historia experta y vulnerable que justifique por qué el lector debe confiar ciegamente en este libro. Debes mostrar credibilidad experiencial).
-- 7-10 Capítulos (El puente lógico desde su problema actual hasta la solución)
+- 9-12 Capítulos MÍNIMO (El objetivo es crear un libro de "Alto Contenido" de valor masivo. Si el título o subtítulo promete una cantidad de elementos, ej: "12 juegos", "7 pasos", el índice DEBE cubrirlos todos obligatoriamente de forma desglosada)
 - 3-5 Subtítulos por capítulo
 - Conclusión (Llamada a la acción final)
 
