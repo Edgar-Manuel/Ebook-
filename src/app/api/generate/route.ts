@@ -27,9 +27,9 @@ const STEP_CONFIG: Record<
   3: { model: 'claude-opus-4-6', maxTokens: 6000, useThinking: true },
   4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
-  6: { model: 'claude-haiku-4-5-20251001', maxTokens: 3500, useThinking: false },
-  7: { model: 'claude-sonnet-4-6', maxTokens: 3000, useThinking: false },
-  8: { model: 'claude-sonnet-4-6', maxTokens: 5000, useThinking: false },
+  6: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
+  7: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
+  8: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
 };
 
 interface ModelConfig {
@@ -56,9 +56,17 @@ export async function POST(req: Request) {
       const shortId = modelConfig.assignments[step];
       const fullModelId = MODEL_ID_MAP[shortId] ?? shortId;
       const useThinking = SUPPORTS_THINKING.has(shortId) && !!(modelConfig.thinking?.[step]);
+      
+      let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
+      
+      // Override for strategic steps to prevent cutting off
+      if (step >= 6 && maxTokens < 8192) {
+        maxTokens = 8192;
+      }
+
       config = {
         model: fullModelId,
-        maxTokens: modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000,
+        maxTokens,
         useThinking,
       };
     }

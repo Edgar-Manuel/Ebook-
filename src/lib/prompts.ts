@@ -36,10 +36,12 @@ Descripción: "${data.selectedIdea?.description}"
 Audiencia Objetivo (El Cliente): "${data.selectedIdea?.targetAudience}"
 
 Diseña un índice completo con:
-- Introducción (Conectando con el dolor/problema del usuario, sin hablar de ti desde el ego)
+- Introducción (Conectando de inmediato con el dolor del usuario. Además asume que el autor es ${data.authorName || 'el autor'}. Usa esta sección para construir una Fuerte Introducción Personal: cuenta una historia experta y vulnerable que justifique por qué el lector debe confiar ciegamente en este libro. Debes mostrar credibilidad experiencial).
 - 7-10 Capítulos (El puente lógico desde su problema actual hasta la solución)
 - 3-5 Subtítulos por capítulo
 - Conclusión (Llamada a la acción final)
+
+REGLA: NUNCA uses Spanglish en los títulos o subtítulos (ej: "Róbale Todo Su Power"). Si el libro es en español, todo de forma pulcra en español.
 
 Formatea cada capítulo usando esta estructura exacta:
 **Chapter [N]: [TÍTULO DEL CAPÍTULO QUE PROMETA UN AVANCE]**
@@ -63,57 +65,62 @@ Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudi
 Capítulo a escribir: ${chapterNum}: ${chapterTitle}
 Subtítulos a cubrir: ${subheadings}
 
-Escribe aproximadamente 700-1000 palabras para este capítulo. REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR:
-- EVITA el "Yoísmo". No centres la historia en ti. El LECTOR es el protagonista. Haz de espejo para su propia vida y problemas.
-- Si el área es Salud, enfócate en vender "Esperanza", no un ensayo médico denso.
+Escribe AL MENOS 1500 - 2000 palabras para este capítulo. Desarrolla los conceptos con muchísima profundidad.
+REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR Y REDACCIÓN:
+- PROFUNDIDAD EXTREMA: No seas superficial. Desarrolla herramientas prácticas, guiones de diálogo interno y escenarios detallados.
+- NUNCA uses "Casos Reales" falsos con nombres como "Roberto" o "Camila". Narra historias y simulaciones directas a la acción de la oficina. NO añadas etiquetas prefabricadas como "Ejemplo Representativo:" o "Escenario Práctico:" a las viñetas, eso suena a un disclaimer legal robótico que rompe la magia. Solo intercala y cuenta la historia naturalmente.
+- CERO SPANGLISH: No mezclas anglicismos innecesarios si la palabra existe en español (Cero "Róbale su power"). Todo español limpio.
+- CERO "YOÍSMO" (Salvo en la Introducción): Si estás escribiendo los capítulos, el LECTOR es el gran protagonista. Haz de espejo para su propia vida.
 - Si el área es Dinero o Habilidades, enfócate en lo puramente práctico. Transforma al lector de "no saber" a "saber hacer".
 - Usa encabezados H2 (##) para el título del capítulo.
-- Usa encabezados H3 (###) para los subtítulos.
-- Tono empático, directo, accionable y cero relleno.
-- Idioma: Español neutro y natural (cero lenguaje robótico).
+- Usa encabezados H3 (###) para los subtítulos planteados.
+- Tono empático, directo, accionable y cero relleno. Cada palabra debe empujar al lector hacia la solución.
+- Idioma: Español neutro y natural (cero lenguaje robótico o traducciones literales del inglés).
 
-Escribe el capítulo completo ahora usando formato Markdown:`;
+Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
     }
 
     case 4:
-      return `You are a professional ebook formatter. Review and format this ebook content for Amazon Kindle publishing.
+      return `Actúa como un maquetador profesional de ebooks. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
 
-Book: "${data.selectedIdea?.title}"
+Libro: "${data.selectedIdea?.title}"
+Autor: "${data.authorName}"
 
-Current content summary: The book has ${data.chapters?.length ?? 0} chapters covering ${data.selectedIdea?.description}
+Resumen del contenido actual: El libro tiene ${data.chapters?.length ?? 0} capítulos que cubren ${data.selectedIdea?.description}
 
-Note: This app automatically exports the book as a formatted .docx file ready for Kindle upload. Provide guidance on the content structure itself.
+Nota: Esta aplicación exporta automáticamente el libro como un archivo .docx formateado listo para subir a Kindle. Tu tarea es proporcionar una guía sobre la estructura del contenido y estilo.
 
-Provide:
-1. **Formatting Guidelines** - Specific formatting rules for a professional ebook (heading hierarchy, paragraph structure)
-2. **Style Consistency Check** - Any tone/style issues to fix across chapters
-3. **Kindle Formatting Tips** - H1 for chapters, H2 for subheadings, proper line spacing (1.15 or 1.5)
-4. **Front Matter** - Draft a title page, copyright page, and table of contents format
-5. **Back Matter** - About the author template and call-to-action suggestions
-6. **Final Review Checklist** - Proofreading, consistency, and quality checks before publishing
+Proporciona:
+1. **Guía de Formato** - Reglas de formato específicas para un ebook profesional (jerarquía de encabezados, estructura de párrafos)
+2. **Revisión de Coherencia de Estilo** - Cualquier problema de tono o estilo a corregir en los capítulos
+3. **Consejos de Formato para Kindle** - Uso de H1 para capítulos, H2 para subtítulos, espaciado correcto (1.15 o 1.5)
+4. **Páginas Iniciales (Front Matter)** - Redacta una página de título (Título, Subtítulo, Autor: ${data.authorName}), página de derechos de autor, y formato del índice
+5. **Páginas Finales (Back Matter)** - Plantilla "Acerca del Autor" (${data.authorName}) y sugerencias de llamadas a la acción (Call to Action). IMPORTANTE: NO incluyas ni sugieras poner el correo electrónico (email) del autor en ninguna parte del libro (ni en derechos de autor, ni en contacto, nada).
+6. **Checklist de Revisión Final** - Comprobaciones de calidad, corrección y coherencia antes de publicar
 
-Make the formatting recommendations specific and actionable. The .docx export is handled automatically by this tool.`;
+Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.`;
 
     case 5:
-      return `You are a professional book cover designer and marketing expert. Create a comprehensive cover design brief for an AI-generated cover using Nano Banana Pro (Google Gemini image generation):
+      return `Actúa como un diseñador profesional de portadas de libros y experto en marketing. Crea un documento detallado (Brief) para diseñar una portada generada por IA usando Nano Banana Pro (generación de imágenes con Google Gemini):
 
 Book Title: "${data.selectedIdea?.title}"
 Subtitle: "${data.selectedIdea?.subtitle}"
+Author: "${data.authorName}"
 Target Audience: "${data.selectedIdea?.targetAudience}"
 Genre/Niche: "${data.niche}"
 
-Provide:
-1. **Cover Concept** - Detailed visual description (mood, style, imagery, composition) optimized for AI image generation
-2. **Color Palette** - Specific hex colors that work for this niche and evoke the right emotions
-3. **Typography Direction** - Font style recommendations (bold, serif, sans-serif, etc.) and how the title should be displayed
-4. **Art Direction** - Lighting, perspective, depth of field, texture, and visual atmosphere to guide prompt crafting
-5. **Composition Guide** - Where the title, subtitle, and key visual elements should be placed on a portrait 9:16 cover
-6. **Kindle Specs** - Exact dimensions (1600 x 2560 pixels), file format requirements, and DPI for KDP upload
-7. **Design Do's and Don'ts** - Specific to the "${data.niche}" niche and what works on Amazon thumbnails
-8. **Competitor Analysis** - How to research similar bestselling covers on Amazon to refine the concept
-9. **Post-Generation Tweaks** - Tips for minor edits after AI generation (cropping, contrast, text legibility checks)
+Proporciona:
+1. **Concepto de la Portada** - Descripción visual detallada (estado de ánimo, estilo, imágenes, composición) optimizada para la generación de imágenes por IA
+2. **Paleta de Colores** - Colores hexadecimales específicos que funcionen para este nicho y evoquen las emociones correctas
+3. **Dirección Tipográfica** - Recomendaciones de estilo de fuente para "${data.selectedIdea?.title}" y "${data.authorName}"
+4. **Dirección de Arte** - Iluminación, perspectiva, profundidad de campo, textura y atmósfera visual para guiar la creación del prompt
+5. **Guía de Composición** - Dónde colocar el título, subtítulo y nombre del autor ("${data.authorName}") en una portada vertical 9:16
+6. **Especificaciones para Kindle** - Dimensiones exactas (1600 x 2560 píxeles), requisitos de formato de archivo y DPI para subir a KDP
+7. **Qué Hacer y Qué No Hacer** - Específico para el nicho "${data.niche}" y lo que funciona en las miniaturas de Amazon
+8. **Análisis de la Competencia** - Cómo investigar portadas similares de los más vendidos en Amazon para refinar el concepto
+9. **Ajustes Post-Generación** - Consejos para ediciones menores después de la generación por IA (recorte, contraste, comprobación de legibilidad del texto)
 
-Make the design advice specific, actionable, and focused on standing out in the "${data.niche}" niche. Remember: the cover will be generated entirely by AI, so describe the visual concept in vivid, prompt-friendly detail.`;
+Haz que los consejos de diseño sean específicos, procesables y enfocados en destacar en el nicho "${data.niche}". Recuerda: la portada será generada completamente por IA, así que describe el concepto visual con mucho detalle para facilitar la creación del prompt. IMPRESCINDIBLE: ESCRIBE TODO EN ESPAÑOL.`;
 
     case 6:
       return `Actúa como un Estratega Experto en el Algoritmo de Amazon KDP y Posicionamiento SEO. Tu objetivo no es enseñar a "subir un libro", sino enseñar a "vender una solución".
@@ -122,6 +129,7 @@ Recuerda esta premisa vital: "Publicar es algo técnico (darle a un botón), Ven
 
 Libro: "${data.selectedIdea?.title}"
 Subtítulo: "${data.selectedIdea?.subtitle}"
+Autor: "${data.authorName}"
 Audiencia Objetivo (El cliente): "${data.selectedIdea?.targetAudience}"
 Nicho: "${data.niche}"
 
@@ -129,12 +137,12 @@ Nota: La app ya ha autogenerado el documento .docx maquetado y la portada 1600x2
 
 Genera una guía maestra y estratégica (NO un manual técnico aburrido) con este esquema:
 
-1. **Mentalidad de Venta KDP:** Breve recordatorio de que en Amazon vendemos soluciones, no libros. El comprador es el protagonista, no el ego del autor.
-2. **Optimización Extrema de Metadatos:** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, backend KDP).
+1. **Mentalidad de Venta KDP:** Breve recordatorio de que en Amazon vendemos soluciones, no libros. El comprador es el protagonista, no el ego del autor. No obstante, firma este activo como "${data.authorName}".
+2. **Optimización Extrema de Metadatos:** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, Autor: "${data.authorName}", backend KDP).
 3. **El Gancho de la Descripción (HTML):** Crea una descripción de venta KDP en formato HTML (con <b>, <h2>). Usa AIDA, céntrate en el dolor del usuario y no en lo bonito que es el libro.
 4. **Elección Estratégica de Categorías:** Cómo elegir categorías donde es matemáticamente más fácil conseguir la etiqueta de "Best Seller".
 5. **Contenido A+ (El factor "Excelencia"):** Por qué hoy en día ser amateur no funciona. Describe exactamente qué 3 módulos de Contenido A+ debe añadir para aumentar el valor percibido.
-6. **Checklist Anti-Fracaso antes de Publicar:** Las 3 cosas que debe comprobar con visión de "comprador" antes de darle al botón de publicar.
+6. **Checklist Anti-Fracaso antes de Publicar:** Las 3 cosas que debe comprobar con visión de "comprador" antes de darle al botón de publicar. Asegúrate de que el nombre del autor "${data.authorName}" esté bien escrito en todos los campos.
 
 Mantén un tono directo, profesional y enfocado al 100% en la rentabilidad y psicología de compra.`;
 

@@ -19,8 +19,10 @@ export interface BookData {
   // Step 1
   niche: string;
   interests: string;
+  authorName: string;
   ideas: BookIdea[];
   selectedIdea: BookIdea | null;
+  savedIdeas: BookIdea[];
 
   // Step 2
   outline: string;
@@ -46,6 +48,9 @@ export interface BookData {
 
   // Step 8
   marketingContent: string;
+  
+  // Library of finished books
+  library: BookData[];
 }
 
 export type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;

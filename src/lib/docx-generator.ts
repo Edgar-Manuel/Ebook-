@@ -9,12 +9,33 @@ import {
   PageBreak,
   TableOfContents,
   StyleLevel,
+  ImageRun,
 } from 'docx';
 import type { BookData } from '@/types';
 
+function parseInlineMarkdown(text: string): TextRun[] {
+  const result: TextRun[] = [];
+  // Match bold (**bold**) or italic (*italic*)
+  // This is a simplified regex-based parser
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+
+  for (const part of parts) {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      result.push(new TextRun({ text: part.slice(2, -2), bold: true }));
+    } else if (part.startsWith('*') && part.endsWith('*')) {
+      result.push(new TextRun({ text: part.slice(1, -1), italics: true }));
+    } else {
+      result.push(new TextRun({ text: part }));
+    }
+  }
+
+  return result;
+}
+
 function parseMarkdownToParagraphs(text: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
-  const lines = text.split('\n');
+  const sanitizedText = text.replace(/—/g, '-').replace(/--/g, '-');
+  const lines = sanitizedText.split('\n');
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -23,12 +44,13 @@ function parseMarkdownToParagraphs(text: string): Paragraph[] {
       continue;
     }
 
-    if (trimmed.startsWith('## ')) {
+    if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
       paragraphs.push(
         new Paragraph({
-          text: trimmed.slice(3),
+          text: trimmed.replace(/^#+\s/, ''),
           heading: HeadingLevel.HEADING_1,
           spacing: { before: 400, after: 200 },
+          pageBreakBefore: true,
         })
       );
     } else if (trimmed.startsWith('### ')) {
@@ -47,40 +69,18 @@ function parseMarkdownToParagraphs(text: string): Paragraph[] {
           spacing: { before: 200, after: 100 },
         })
       );
-    } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-      paragraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: trimmed.slice(2, -2),
-              bold: true,
-            }),
-          ],
-          spacing: { before: 120, after: 120 },
-        })
-      );
-    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      paragraphs.push(
-        new Paragraph({
-          text: trimmed.slice(2),
-          bullet: { level: 0 },
-          spacing: { before: 60, after: 60 },
-        })
-      );
     } else {
-      // Process inline bold within paragraph
-      const parts = trimmed.split(/(\*\*.*?\*\*)/g);
-      const runs: TextRun[] = parts.map((part) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return new TextRun({ text: part.slice(2, -2), bold: true });
-        }
-        return new TextRun({ text: part });
-      });
+      // Check for bullet points
+      const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+      const cleanText = isBullet ? trimmed.slice(2) : trimmed;
+      
       paragraphs.push(
         new Paragraph({
-          children: runs,
-          spacing: { before: 120, after: 120 },
+          children: parseInlineMarkdown(cleanText),
+          bullet: isBullet ? { level: 0 } : undefined,
+          spacing: { before: 60, after: 120 },
           alignment: AlignmentType.JUSTIFIED,
+          indent: isBullet ? undefined : { firstLine: 720 },
         })
       );
     }
@@ -93,6 +93,32 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
   const children: (Paragraph | TableOfContents)[] = [];
 
   // Title Page
+  
+  // ── Cover Image (Full Page) ───────────────────────────────────────────
+  if (bookData.coverImage) {
+    try {
+      const coverBuffer = Buffer.from(bookData.coverImage, 'base64');
+      children.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              data: coverBuffer,
+              transformation: {
+                width: 595,  // Full width of A4 in points approx
+                height: 952, // Maintaining KDP 9:16 aspect ratio
+              },
+            }),
+          ],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 0 },
+        }),
+        new Paragraph({ children: [new PageBreak()] })
+      );
+    } catch (e) {
+      console.error('Failed to embed cover in docx', e);
+    }
+  }
+
   children.push(
     new Paragraph({
       children: [new TextRun({ text: '', break: 1 }), new TextRun({ text: '', break: 1 })],
@@ -101,10 +127,9 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
       text: bookData.selectedIdea?.title ?? 'My Ebook',
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
-      spacing: { before: 1200, after: 400 },
+      spacing: { before: 800, after: 400 },
     }),
     new Paragraph({
-      text: bookData.selectedIdea?.subtitle ?? '',
       alignment: AlignmentType.CENTER,
       spacing: { after: 800 },
       children: [
@@ -117,14 +142,14 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
       ],
     }),
     new Paragraph({
-      text: `Target Audience: ${bookData.selectedIdea?.targetAudience ?? ''}`,
       alignment: AlignmentType.CENTER,
-      spacing: { after: 400 },
+      spacing: { before: 800, after: 800 },
       children: [
         new TextRun({
-          text: `Target Audience: ${bookData.selectedIdea?.targetAudience ?? ''}`,
-          size: 24,
-          color: '777777',
+          text: `Escrito por: ${bookData.authorName || 'Autor'}`,
+          bold: true,
+          size: 32,
+          color: '333333',
         }),
       ],
     }),
@@ -133,10 +158,41 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
     })
   );
 
+  // --- COPYRIGHT PAGE ---
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 800, after: 400 },
+      children: [
+        new TextRun({
+          text: bookData.selectedIdea?.title ?? 'My Ebook',
+          bold: true,
+          size: 28,
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: 360, before: 400, after: 800 },
+      children: [
+        new TextRun({ text: `Copyright © ${new Date().getFullYear()} ${bookData.authorName || 'Autor'}`, size: 24, break: 1 }),
+        new TextRun({ text: 'Todos los derechos reservados.', size: 24, break: 1 }),
+        new TextRun({ text: '', size: 24, break: 1 }),
+        new TextRun({ text: 'Esta obra ha sido publicada bajo licencia de contenido exclusivo para Amazon Kindle Direct Publishing.', size: 24, break: 1 }),
+        new TextRun({ text: 'Se prohíbe la reproducción total o parcial de este libro sin permiso escrito del autor, salvo para citas breves en artículos, reseñas y otros usos permitidos por la ley de derechos de autor.', size: 24, break: 1 }),
+        new TextRun({ text: '', size: 24, break: 1 }),
+        new TextRun({ text: 'Versión 1.0 - Edición Kindle', size: 24, italics: true, break: 1 })
+      ],
+    }),
+    new Paragraph({ children: [new PageBreak()] })
+  );
+
+
+
   // Table of Contents placeholder
   children.push(
     new Paragraph({
-      text: 'Table of Contents',
+      text: 'Índice',
       heading: HeadingLevel.HEADING_1,
       alignment: AlignmentType.CENTER,
       spacing: { before: 400, after: 400 },
@@ -148,7 +204,7 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
       children.push(
         new Paragraph({
           children: [
-            new TextRun({ text: `Chapter ${chapter.number}: `, bold: true }),
+            new TextRun({ text: `Capítulo ${chapter.number}: `, bold: true }),
             new TextRun({ text: chapter.title }),
           ],
           spacing: { before: 100, after: 100 },
@@ -158,7 +214,6 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
         for (const sub of chapter.subheadings) {
           children.push(
             new Paragraph({
-              text: `    ${sub}`,
               spacing: { before: 40, after: 40 },
               children: [new TextRun({ text: `    ${sub}`, color: '555555', size: 20 })],
             })
@@ -170,29 +225,6 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
 
   children.push(new Paragraph({ children: [new PageBreak()] }));
 
-  // Introduction (from outline if available)
-  if (bookData.outline) {
-    children.push(
-      new Paragraph({
-        text: 'Introduction',
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 200 },
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `This book, "${bookData.selectedIdea?.title}", is designed for ${bookData.selectedIdea?.targetAudience}. `,
-          }),
-          new TextRun({
-            text: bookData.selectedIdea?.description ?? '',
-          }),
-        ],
-        spacing: { before: 200, after: 200 },
-        alignment: AlignmentType.JUSTIFIED,
-      }),
-      new Paragraph({ children: [new PageBreak()] })
-    );
-  }
 
   // Chapters with written content
   const writtenChapters = bookData.writtenChapters ?? {};
@@ -209,7 +241,7 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
         // Add chapter structure from outline
         children.push(
           new Paragraph({
-            text: `Chapter ${chapter.number}: ${chapter.title}`,
+            text: `Capítulo ${chapter.number}: ${chapter.title}`,
             heading: HeadingLevel.HEADING_1,
             spacing: { before: 400, after: 200 },
           })
@@ -224,7 +256,7 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
                 spacing: { before: 300, after: 150 },
               }),
               new Paragraph({
-                children: [new TextRun({ text: '[Content to be written]', italics: true, color: '999999' })],
+                children: [new TextRun({ text: '[Contenido por escribir]', italics: true, color: '999999' })],
                 spacing: { before: 120, after: 120 },
               })
             );
@@ -236,61 +268,48 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
     }
   }
 
-  // Conclusion
+  // --- CTA FINAL DE RESEÑA (KDP OPTIMIZATION) ---
   children.push(
     new Paragraph({
-      text: 'Conclusion',
+      text: 'Tu Opinión Importa',
       heading: HeadingLevel.HEADING_1,
-      spacing: { before: 400, after: 200 },
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 800, after: 400 },
     }),
     new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: 360, before: 400 },
       children: [
         new TextRun({
-          text: `Thank you for reading "${bookData.selectedIdea?.title}". `,
-        }),
-        new TextRun({
-          text:
-            'We hope this book has provided you with valuable insights and actionable strategies that you can implement immediately. ',
-        }),
-        new TextRun({
-          text:
-            'Remember, success comes from consistent application of the knowledge you have gained. Take action today and start your journey!',
+          text: 'Si este libro te ha sido de utilidad y te ha aportado el valor o las herramientas que buscabas, te pido un pequeño favor.',
+          size: 24,
         }),
       ],
-      spacing: { before: 200, after: 200 },
-      alignment: AlignmentType.JUSTIFIED,
-    }),
-    new Paragraph({ children: [new PageBreak()] })
-  );
-
-  // About the Author
-  children.push(
-    new Paragraph({
-      text: 'About the Author',
-      heading: HeadingLevel.HEADING_1,
-      spacing: { before: 400, after: 200 },
     }),
     new Paragraph({
-      children: [new TextRun({ text: '[Write your author bio here. Include your background, expertise, and why you wrote this book.]', italics: true, color: '777777' })],
-      spacing: { before: 200, after: 200 },
+      alignment: AlignmentType.CENTER,
+      spacing: { line: 360, before: 200 },
+      children: [
+        new TextRun({
+          text: 'Por favor, tómate menos de un minuto para dejar una reseña honesta en Amazon. Tus palabras ayudan enormemente a que este conocimiento llegue a otras personas que, como tú, necesitan este sistema para recuperar su paz mental y su foco.',
+          size: 24,
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: 360, before: 300 },
+      children: [
+        new TextRun({
+          text: '¡Muchas gracias por acompañarme en este proyecto!',
+          bold: true,
+          size: 24,
+        }),
+      ],
     })
   );
 
-  // Marketing Appendix (if available)
-  if (bookData.marketingContent) {
-    children.push(
-      new Paragraph({ children: [new PageBreak()] }),
-      new Paragraph({
-        text: 'Appendix: Marketing & Publishing Notes',
-        heading: HeadingLevel.HEADING_1,
-        spacing: { before: 400, after: 200 },
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: bookData.marketingContent.slice(0, 1000) + '...', color: '555555', italics: true })],
-        spacing: { before: 200, after: 200 },
-      })
-    );
-  }
+
 
   const doc = new Document({
     title: bookData.selectedIdea?.title ?? 'My Ebook',
@@ -326,6 +345,9 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
             bold: true,
             font: 'Calibri',
             color: '16213e',
+          },
+          paragraph: {
+            pageBreakBefore: true,
           },
         },
         {

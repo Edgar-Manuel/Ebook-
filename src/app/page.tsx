@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { insforge } from '@/lib/insforge';
 import type { BookData, BookIdea, Chapter, Step } from '@/types';
 import CostOptimizer, { type ModelConfig } from '@/components/CostOptimizer';
 import NicheRoulette from '@/components/NicheRoulette';
@@ -19,8 +20,10 @@ const STEPS = [
 const initialBookData: BookData = {
   niche: '',
   interests: '',
+  authorName: 'Edgar Manchón',
   ideas: [],
   selectedIdea: null,
+  savedIdeas: [],
   outline: '',
   chapters: [],
   writtenChapters: {},
@@ -32,6 +35,7 @@ const initialBookData: BookData = {
   kdpSetup: '',
   pricingStrategy: '',
   marketingContent: '',
+  library: [],
 };
 
 function parseIdeasFromText(text: string): BookIdea[] {
@@ -109,14 +113,16 @@ function parseOutlineFromText(text: string): Chapter[] {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Match chapter headings like "**Chapter 1: Title**" or "Chapter 1: Title"
+    // Match chapter headings like "**Chapter 1: Title**", "**Capítulo 1: Título**", "Chapter 1: Title", etc.
     const chapterMatch =
-      trimmed.match(/\*?\*?Chapter\s+(\d+):\s*(.+?)\*?\*?$/i) ??
-      trimmed.match(/^#{1,2}\s+Chapter\s+(\d+):\s*(.+)$/i) ??
+      trimmed.match(/\*?\*?(?:Chapter|Cap[ií]tulo)\s+(\d+)[:.]?\s*(.+?)\*?\*?$/i) ??
+      trimmed.match(/^#{1,3}\s+(?:Chapter|Cap[ií]tulo)\s+(\d+)[:.]?\s*(.+)$/i) ??
       trimmed.match(/^(\d+)\.\s+(.+)$/);
 
     if (chapterMatch) {
+      // If we found a new chapter, push the previous one
       if (currentChapter) chapters.push(currentChapter);
+      
       currentChapter = {
         number: parseInt(chapterMatch[1]),
         title: chapterMatch[2].replace(/\*\*/g, '').trim(),
@@ -125,22 +131,39 @@ function parseOutlineFromText(text: string): Chapter[] {
       continue;
     }
 
-    // Match subheadings: lines starting with "- " or "* "
-    if (currentChapter && (trimmed.startsWith('- ') || trimmed.startsWith('* '))) {
+    // Match subheadings: lines starting with "- ", "* ", "  -", etc.
+    if (currentChapter && (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• '))) {
       const sub = trimmed.slice(2).replace(/\*\*/g, '').trim();
-      if (sub) currentChapter.subheadings.push(sub);
+      if (sub && sub.length > 2) {
+        currentChapter.subheadings.push(sub);
+      }
     }
   }
 
   if (currentChapter) chapters.push(currentChapter);
 
-  // If no chapters parsed, create placeholder chapters
+  // If no chapters parsed, try a simpler numbered list split
   if (chapters.length === 0) {
-    for (let i = 1; i <= 5; i++) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      const numMatch = line.match(/^(\d+)[\.\)]\s+(.+)$/);
+      if (numMatch) {
+        chapters.push({
+          number: parseInt(numMatch[1]),
+          title: numMatch[2].replace(/\*\*/g, '').trim(),
+          subheadings: ['Introducción', 'Desarrollo del tema', 'Puntos clave'],
+        });
+      }
+    }
+  }
+
+  // Final fallback: if still zero, create 10 placeholder chapters (since the prompt asks for 7-10)
+  if (chapters.length === 0) {
+    for (let i = 1; i <= 10; i++) {
       chapters.push({
         number: i,
-        title: `Chapter ${i}`,
-        subheadings: ['Overview', 'Key Points', 'Practical Application'],
+        title: `Capítulo ${i}`,
+        subheadings: ['Introducción', 'Contenido estratégico', 'Resumen práctico'],
       });
     }
   }
@@ -215,6 +238,177 @@ export default function Home() {
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Persistence: Load from localStorage
+  useEffect(() => {
+    if (isLoaded) return;
+
+    const savedData = localStorage.getItem('ebook_ai_data');
+    const savedStep = localStorage.getItem('ebook_ai_step');
+    const savedConfig = localStorage.getItem('ebook_ai_config');
+    const savedPhase = localStorage.getItem('ebook_ai_phase');
+
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        // Merge with initialBookData to ensure new properties like 'library' exist
+        setBookData({
+          ...initialBookData,
+          ...parsed,
+          // Ensure arrays are initialized if missing
+          library: parsed.library || [],
+          savedIdeas: parsed.savedIdeas || [],
+          writtenChapters: parsed.writtenChapters || {},
+        });
+      } catch (e) {
+        console.error('Failed to load book data', e);
+      }
+    }
+    
+    if (savedStep) {
+      const s = parseInt(savedStep);
+      console.log('Restoring step:', s);
+      setStep(s as Step);
+    }
+
+    if (savedConfig) {
+      try {
+        setModelConfig(JSON.parse(savedConfig));
+      } catch (e) {
+        console.error('Failed to load config', e);
+      }
+    }
+    if (savedPhase === 'wizard') setPhase('wizard');
+    
+    setIsLoaded(true);
+  }, [isLoaded]);
+
+  // Persistence: Save to localStorage (only after initialized)
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (bookData !== initialBookData) {
+      localStorage.setItem('ebook_ai_data', JSON.stringify(bookData));
+    }
+  }, [bookData]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem('ebook_ai_step', step.toString());
+  }, [step]);
+
+  useEffect(() => {
+    if (modelConfig) {
+      localStorage.setItem('ebook_ai_config', JSON.stringify(modelConfig));
+    }
+  }, [modelConfig]);
+
+  useEffect(() => {
+    localStorage.setItem('ebook_ai_phase', phase);
+  }, [phase]);
+
+  const resetProject = () => {
+    if (confirm('¿Estás seguro de que quieres borrar este proyecto y empezar de cero? Se mantendrá tu Biblioteca de libros finalizados pero perderás el progreso del libro actual.')) {
+      const library = bookData.library;
+      const savedIdeas = bookData.savedIdeas;
+      setBookData({ ...initialBookData, library, savedIdeas });
+      setStep(1);
+      setStreamedText('');
+      localStorage.removeItem('ebook_ai_data');
+      localStorage.removeItem('ebook_ai_step');
+    }
+  };
+
+  const saveToLibrary = async () => {
+    if (!bookData.selectedIdea) return;
+    
+    // 1. Save to cloud (InsForge)
+    try {
+      const { error } = await insforge.database.from('books').insert([
+        {
+          niche: bookData.niche,
+          interests: bookData.interests,
+          author_name: bookData.authorName,
+          selected_idea: bookData.selectedIdea,
+          outline: bookData.outline,
+          chapters: bookData.chapters,
+          written_chapters: bookData.writtenChapters,
+          cover_design: bookData.coverDesign,
+          cover_image: bookData.coverImage,
+          cover_prompt: bookData.coverPrompt,
+          kdp_setup: bookData.kdpSetup,
+          pricing_strategy: bookData.pricingStrategy,
+          marketing_content: bookData.marketingContent,
+        },
+      ]);
+
+      if (error) throw error;
+      
+      // 2. Update local state
+      setBookData(prev => ({
+        ...prev,
+        library: [...prev.library, { ...prev, library: [] }]
+      }));
+
+      alert('¡Libro guardado en tu Biblioteca Cloud de InsForge! Ya es permanente y seguro.');
+    } catch (err) {
+      console.error('Cloud save failed', err);
+      alert('Error guardando en la nube. Se guardará localmente.');
+      
+      // Fallback local save
+      setBookData(prev => ({
+        ...prev,
+        library: [...prev.library, { ...prev, library: [] }]
+      }));
+    }
+  };
+
+  const [viewingLibraryBook, setViewingLibraryBook] = useState<BookData | null>(null);
+
+  // Cloud Sync: Fetch library from InsForge
+  useEffect(() => {
+    const fetchLibraryFromCloud = async () => {
+      try {
+        const { data, error } = await insforge.database
+          .from('books')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const cloudBooks = data.map(row => ({
+            ...initialBookData,
+            niche: row.niche,
+            interests: row.interests,
+            authorName: row.author_name,
+            selectedIdea: row.selected_idea,
+            outline: row.outline,
+            chapters: row.chapters,
+            writtenChapters: row.written_chapters,
+            coverDesign: row.cover_design,
+            coverImage: row.cover_image,
+            coverPrompt: row.cover_prompt,
+            kdpSetup: row.kdp_setup,
+            pricingStrategy: row.pricing_strategy,
+            marketingContent: row.marketing_content,
+          }));
+
+          setBookData(prev => ({
+            ...prev,
+            library: cloudBooks
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch from InsForge', err);
+      }
+    };
+
+    if (isLoaded) {
+      fetchLibraryFromCloud();
+    }
+  }, [isLoaded]);
+
   useEffect(() => {
     contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [streamedText]);
@@ -226,7 +420,15 @@ export default function Home() {
       setError('');
       streamRef.current = '';
 
-      const data = overrideData ? { ...bookData, ...overrideData } : bookData;
+      // Hack para obtener el estado MÁS RECIENTE de React en closures en bucle
+      const latestData = await new Promise<BookData>((resolve) => {
+        setBookData((prev) => {
+          resolve(prev);
+          return prev;
+        });
+      });
+
+      const data = overrideData ? { ...latestData, ...overrideData } : latestData;
 
       try {
         const response = await fetch('/api/generate', {
@@ -283,7 +485,7 @@ export default function Home() {
               updated.chapters = parseOutlineFromText(finalText);
               break;
             case 3: {
-              const chNum = prev.currentWritingChapter;
+              const chNum = overrideData?.currentWritingChapter ?? prev.currentWritingChapter;
               updated.writtenChapters = { ...prev.writtenChapters, [chNum]: finalText };
               break;
             }
@@ -350,13 +552,67 @@ export default function Home() {
     }
   };
 
-  const downloadCover = () => {
+  const downloadCover = async () => {
     if (!bookData.coverImage) return;
-    const link = document.createElement('a');
-    const title = bookData.selectedIdea?.title ?? 'cover';
-    link.href = `data:image/jpeg;base64,${bookData.coverImage}`;
-    link.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-cover.jpg`;
-    link.click();
+    
+    try {
+      // Robust strip of data URL prefixes if they exist
+      const base64Data = bookData.coverImage.replace(/^data:image\/[a-z]+;base64,/, '');
+      
+      // Use a more modern and safer conversion
+      const sliceSize = 512;
+      const byteCharacters = atob(base64Data);
+      const byteArrays = [];
+
+      for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        const slice = byteCharacters.slice(offset, offset + sliceSize);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+      }
+      
+      const blob = new Blob(byteArrays, { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const title = bookData.selectedIdea?.title ?? 'cover';
+      const safeTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const fileName = `${safeTitle}-portada.jpg`;
+      
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      // Guardado silencioso de la portada en InsForge Storage
+      try {
+        const { error: storageError } = await insforge.storage
+          .from('ebooks')
+          .upload(fileName, blob, {
+            upsert: true,
+            contentType: 'image/jpeg',
+          });
+          
+        if (storageError) {
+          console.error('Storage upload error (cover):', storageError.message);
+        } else {
+          console.log(`Portada ${fileName} guardada permanentemente en la nube.`);
+        }
+      } catch (uploadErr) {
+        console.error('Failed to sync cover to InsForge Storage', uploadErr);
+      }
+    } catch (err) {
+      console.error('Download failed', err);
+      setCoverError('Failed to prepare download. Please try again.');
+    }
   };
 
   const exportDocx = async () => {
@@ -375,11 +631,40 @@ export default function Home() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const title = bookData.selectedIdea?.title ?? 'ebook';
+      // Limpia acentos y caracteres raros para asegurar el nombre correcto
+      const safeTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const fileName = `${safeTitle}.docx`;
+      
       a.href = url;
-      a.download = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.docx`;
+      a.setAttribute('download', fileName);
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
       setExportSuccess(true);
+
+      // Guardado silencioso de la copia del libro completo en InsForge Storage
+      try {
+        const { error: storageError } = await insforge.storage
+          .from('ebooks')
+          .upload(fileName, blob, {
+            upsert: true,
+            contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          });
+          
+        if (storageError) {
+          console.error('Storage upload error:', storageError.message);
+        } else {
+          console.log(`Documento ${fileName} guardado permanentemente en la nube.`);
+        }
+      } catch (uploadErr) {
+        console.error('Failed to sync to InsForge Storage', uploadErr);
+      }
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed');
     } finally {
@@ -395,7 +680,7 @@ export default function Home() {
       : step === 2
       ? bookData.outline || streamedText
       : step === 3
-      ? bookData.writtenChapters[bookData.currentWritingChapter] || streamedText
+      ? bookData.writtenChapters[bookData.currentWritingChapter] || streamedText || bookData.outline
       : step === 4
       ? bookData.formattedContent || streamedText
       : step === 5
@@ -406,7 +691,12 @@ export default function Home() {
       ? bookData.pricingStrategy || streamedText
       : bookData.marketingContent || streamedText;
 
-  const canProceed = !isGenerating && completedText.length > 100;
+  const canProceed =
+    !isGenerating &&
+    (step >= 6 ||
+    (step === 5
+      ? !!bookData.coverImage || (bookData.coverDesign && bookData.coverDesign.length > 50)
+      : completedText && completedText.length > 100));
 
   const goNext = () => {
     if (step < 8) {
@@ -448,6 +738,14 @@ export default function Home() {
             </div>
           )}
           <div className="flex items-center gap-3">
+            <button
+              onClick={resetProject}
+              title="New Project"
+              className="bg-slate-800/50 hover:bg-red-900/30 hover:text-red-400 rounded-xl px-3 py-1.5 text-xs text-slate-400 transition-all border border-transparent hover:border-red-900/50"
+            >
+              <span>🗑️</span>
+              <span className="hidden sm:inline"> Reset</span>
+            </button>
             {modelConfig && (
               <button
                 onClick={() => setPhase('setup')}
@@ -547,6 +845,18 @@ export default function Home() {
                       placeholder="e.g., I know about budgeting, investing basics, side hustles..."
                       rows={3}
                       className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-300 text-sm font-medium mb-1 block">
+                      Autor / Seudónimo
+                    </label>
+                    <input
+                      type="text"
+                      value={bookData.authorName || ''}
+                      onChange={(e) => setBookData((p) => ({ ...p, authorName: e.target.value }))}
+                      placeholder="e.g., Edgar Manchón"
+                      className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
                   <button
@@ -668,8 +978,10 @@ export default function Home() {
                   {bookData.chapters.length > 0 && chaptersWritten < bookData.chapters.length && (
                     <button
                       onClick={async () => {
-                        for (const ch of bookData.chapters) {
-                          if (!bookData.writtenChapters[ch.number]) {
+                        let freshData = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
+                        for (const ch of freshData.chapters) {
+                          freshData = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
+                          if (!freshData.writtenChapters[ch.number]) {
                             setBookData((p) => ({ ...p, currentWritingChapter: ch.number }));
                             await generate({ currentWritingChapter: ch.number });
                             await new Promise((r) => setTimeout(r, 500));
@@ -791,32 +1103,102 @@ export default function Home() {
             {/* Book Summary Card */}
             {bookData.selectedIdea && (
               <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5">
-                <h3 className="text-slate-300 font-semibold text-sm mb-3">📖 Book Summary</h3>
+                <h3 className="text-slate-300 font-semibold text-sm mb-3">📖 Resumen Actual</h3>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-slate-500">Title</p>
+                    <p className="text-xs text-slate-500">Título</p>
                     <p className="text-white text-sm font-medium">{bookData.selectedIdea.title}</p>
                   </div>
                   {bookData.selectedIdea.subtitle && (
                     <div>
-                      <p className="text-xs text-slate-500">Subtitle</p>
+                      <p className="text-xs text-slate-500">Subtítulo</p>
                       <p className="text-slate-300 text-sm">{bookData.selectedIdea.subtitle}</p>
                     </div>
                   )}
                   {bookData.chapters.length > 0 && (
                     <div>
-                      <p className="text-xs text-slate-500">Chapters</p>
-                      <p className="text-indigo-400 text-sm">{bookData.chapters.length} chapters</p>
+                      <p className="text-xs text-slate-500">Capítulos</p>
+                      <p className="text-indigo-400 text-sm">{bookData.chapters.length} capítulos</p>
                     </div>
                   )}
                   {chaptersWritten > 0 && (
                     <div>
-                      <p className="text-xs text-slate-500">Written</p>
+                      <p className="text-xs text-slate-500">Escritos</p>
                       <p className="text-green-400 text-sm">
-                        {chaptersWritten}/{bookData.chapters.length} chapters ✓
+                        {chaptersWritten}/{bookData.chapters.length} capítulos ✓
                       </p>
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Library / Created Books Card */}
+            {bookData.library.length > 0 && (
+              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 animate-fade-in mt-4">
+                <h3 className="text-green-400 font-semibold text-sm mb-3 flex items-center gap-2">
+                  <span>🏛️</span> Biblioteca de Libros
+                </h3>
+                <div className="space-y-3">
+                  {bookData.library.map((libBook, idx) => (
+                    <div key={idx} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-3 relative group transition-all hover:bg-slate-800/60 cursor-pointer"
+                         onClick={() => setViewingLibraryBook(libBook)}>
+                      <p className="text-white text-xs font-semibold pr-6 line-clamp-1">{libBook.selectedIdea?.title}</p>
+                      <p className="text-slate-500 text-[10px] mt-1">{libBook.authorName}</p>
+                      <div className="absolute top-2 right-2 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        👁️
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Saved Ideas Card */}
+            {bookData.savedIdeas.length > 0 && (
+              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 animate-fade-in">
+                <h3 className="text-indigo-400 font-semibold text-sm mb-3 flex items-center gap-2">
+                  <span>📚</span> Próximos Libros
+                </h3>
+                <div className="space-y-3">
+                  {bookData.savedIdeas.map((idea, idx) => (
+                    <div key={idx} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-3 relative group transition-all hover:bg-slate-800/60">
+                      <p className="text-white text-xs font-semibold pr-6">{idea.title}</p>
+                      <p className="text-slate-500 text-[10px] mt-1 line-clamp-2">{idea.description}</p>
+                      <button
+                        onClick={() => setBookData(p => ({
+                          ...p,
+                          savedIdeas: p.savedIdeas.filter((_, i) => i !== idx)
+                        }))}
+                        className="absolute top-2 right-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          onClick={() => {
+                            setStep(2);
+                            setStreamedText('');
+                            setBookData(prev => ({
+                              ...initialBookData,
+                              niche: prev.niche,
+                              interests: prev.interests,
+                              authorName: prev.authorName,
+                              library: prev.library,
+                              savedIdeas: prev.savedIdeas.filter((_, i) => i !== idx),
+                              selectedIdea: idea,
+                            }));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="text-[10px] bg-indigo-600/20 hover:bg-indigo-600 hover:border-indigo-500 border border-indigo-500/30 text-indigo-300 hover:text-white px-3 py-1 rounded-md transition-all font-medium flex items-center gap-1"
+                          title="Empieza a escribir este libro ahora mismo"
+                        >
+                          <span>🚀</span> Empezar Libro
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -835,7 +1217,7 @@ export default function Home() {
                 disabled={step === 8 || !canProceed}
                 className="flex-1 bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-600 hover:to-purple-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-all"
               >
-                Next →
+                {step >= 6 && (!completedText || completedText.length < 50) ? 'Skip Step →' : 'Next →'}
               </button>
             </div>
           </div>
@@ -873,23 +1255,40 @@ export default function Home() {
                     {bookData.ideas.map((idea, i) => (
                       <div
                         key={i}
-                        onClick={() =>
-                          setBookData((p) => ({ ...p, selectedIdea: idea }))
-                        }
-                        className={`idea-card border rounded-xl p-4 ${
+                        className={`idea-card border rounded-xl p-4 transition-all relative ${
                           bookData.selectedIdea?.title === idea.title
-                            ? 'selected border-indigo-500'
+                            ? 'selected border-indigo-500 bg-indigo-950/20'
                             : 'border-slate-700/50 bg-slate-800/30'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
+                          <div className="flex-1 cursor-pointer" onClick={() => {
+                            if (bookData.selectedIdea?.title !== idea.title) {
+                              setBookData((p) => ({ 
+                                ...p, 
+                                selectedIdea: idea,
+                                outline: '',
+                                chapters: [],
+                                writtenChapters: {},
+                                formattedContent: '',
+                                coverDesign: '',
+                                coverImage: null,
+                                coverPrompt: '',
+                                kdpSetup: '',
+                                pricingStrategy: '',
+                                marketingContent: ''
+                              }));
+                            }
+                          }}>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-xs text-indigo-400 font-medium bg-indigo-950/50 px-2 py-0.5 rounded-full">
                                 Idea {i + 1}
                               </span>
                               {bookData.selectedIdea?.title === idea.title && (
-                                <span className="text-xs text-green-400">✓ Selected</span>
+                                <span className="text-xs text-green-400">✓ Seleccionada para ahora</span>
+                              )}
+                              {bookData.savedIdeas.some(s => s.title === idea.title) && (
+                                <span className="text-xs text-purple-400">★ En la lista "Próximo Libro"</span>
                               )}
                             </div>
                             <h3 className="text-white font-semibold">{idea.title}</h3>
@@ -909,16 +1308,60 @@ export default function Home() {
                             )}
                             {idea.amazonKeywords && idea.amazonKeywords.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-1">
-                                {idea.amazonKeywords.map((kw, idx) => (
-                                  <span key={idx} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-700/50">
-                                    {kw}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          {idea.amazonKeywords.map((kw, idx) => (
+                                <span key={idx} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-700/50">
+                                  {kw}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Save button or selected indicator */}
+                        <div className="flex flex-col gap-2">
+                          {bookData.selectedIdea?.title !== idea.title && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBookData((p) => ({ 
+                                  ...p, 
+                                  selectedIdea: idea,
+                                  outline: '',
+                                  chapters: [],
+                                  writtenChapters: {},
+                                  formattedContent: '',
+                                  coverDesign: '',
+                                  coverImage: null,
+                                  coverPrompt: '',
+                                  kdpSetup: '',
+                                  pricingStrategy: '',
+                                  marketingContent: ''
+                                }));
+                              }}
+                              className="text-[10px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                            >
+                              ESTE AHORA
+                            </button>
+                          )}
+                          
+                          {!bookData.savedIdeas.some(s => s.title === idea.title) ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBookData((p) => ({ ...p, savedIdeas: [...p.savedIdeas, idea] }));
+                              }}
+                              className="text-[10px] font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                            >
+                              METER EN PRÓXIMO LIBRO
+                            </button>
+                          ) : (
+                            <span className="text-[10px] font-bold text-center text-purple-400 bg-purple-950/30 border border-purple-900/50 px-3 py-1.5 rounded-lg">
+                              GUARDADO✓
+                            </span>
+                          )}
                         </div>
                       </div>
+                    </div>
                     ))}
                     {bookData.selectedIdea && (
                       <button
@@ -945,13 +1388,13 @@ export default function Home() {
                           )}
                         </div>
                         {isGeneratingCover ? (
-                          <div className="flex flex-col items-center justify-center h-64 bg-slate-800/50 rounded-xl border border-yellow-700/30">
+                          <div key="cover-loading" className="flex flex-col items-center justify-center h-64 bg-slate-800/50 rounded-xl border border-yellow-700/30">
                             <div className="text-5xl mb-3 animate-pulse">🍌</div>
                             <p className="text-yellow-400 font-medium">Generating your cover...</p>
                             <p className="text-slate-500 text-sm mt-1">Nano Banana Pro is working its magic</p>
                           </div>
                         ) : bookData.coverImage ? (
-                          <div className="flex flex-col items-center gap-3">
+                          <div key="cover-display" className="flex flex-col items-center gap-3">
                             {/* Aspect-ratio preview (9:16 portrait) */}
                             <div className="relative w-full max-w-[220px] mx-auto">
                               <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl shadow-yellow-900/30 border border-yellow-700/20">
@@ -989,29 +1432,50 @@ export default function Home() {
                       </div>
                     )}
 
-                    {completedText || streamedText ? (
-                      <div className={isGenerating ? 'streaming-cursor' : ''}>
-                        {renderAIContent(isGenerating ? streamedText : completedText)}
-                      </div>
-                    ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
-                      <div className="flex flex-col items-center justify-center h-64 text-center">
-                        <div className="text-6xl mb-4 opacity-30">{STEPS[step - 1].icon}</div>
-                        <p className="text-slate-500 text-lg font-medium">
-                          {STEPS[step - 1].title}
-                        </p>
-                        <p className="text-slate-600 text-sm mt-2">
-                          {step === 1
-                            ? 'Enter your niche and click "Generate Book Ideas" to start'
-                            : step === 2
-                            ? 'Click "Generate Outline" to create your book structure'
-                            : step === 3
-                            ? 'Select a chapter and click "Write Chapter" to generate content'
-                            : step === 5
-                            ? 'Click "Generate Cover" to create your cover with Nano Banana Pro'
-                            : `Click "Generate ${STEPS[step - 1].title}" to continue`}
-                        </p>
-                      </div>
-                    ) : null}
+                    {/* Step 8 Content Rendering (Same as default) */}
+                    {step === 8 ? (
+                      isGenerating ? (
+                        <div className="streaming-cursor">
+                          {renderAIContent(streamedText)}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex justify-end gap-3 mb-4">
+                            <button
+                              onClick={saveToLibrary}
+                              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-xl transition-all shadow-lg shadow-green-900/20 flex items-center gap-2"
+                            >
+                              <span>🏛️</span> Finalizar y Guardar en Biblioteca
+                            </button>
+                          </div>
+                          {renderAIContent(completedText)}
+                        </div>
+                      )
+                    ) : (
+                      completedText || streamedText ? (
+                        <div key="ai-content-area" className={isGenerating ? 'streaming-cursor' : ''}>
+                          {renderAIContent(isGenerating ? streamedText : completedText)}
+                        </div>
+                      ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
+                        <div className="flex flex-col items-center justify-center h-64 text-center">
+                          <div className="text-6xl mb-4 opacity-30">{STEPS[step - 1].icon}</div>
+                          <p className="text-slate-500 text-lg font-medium">
+                            {STEPS[step - 1].title}
+                          </p>
+                          <p className="text-slate-600 text-sm mt-2">
+                            {step === 1
+                              ? 'Enter your niche and click "Generate Book Ideas" to start'
+                              : step === 2
+                              ? 'Click "Generate Outline" to create your book structure'
+                              : step === 3
+                              ? 'Select a chapter and click "Write Chapter" to generate content'
+                              : step === 5
+                              ? 'Click "Generate Cover" to create your cover with Nano Banana Pro'
+                              : `Click "Generate ${STEPS[step - 1].title}" to continue`}
+                          </p>
+                        </div>
+                      ) : null
+                    )}
                     <div ref={contentEndRef} />
                   </div>
                 )}
@@ -1081,6 +1545,65 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Library View Modal */}
+      {viewingLibraryBook && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+              <div>
+                <h2 className="text-white font-bold text-xl">{viewingLibraryBook.selectedIdea?.title}</h2>
+                <p className="text-slate-400 text-sm">Reviewing setup data for publication</p>
+              </div>
+              <button 
+                onClick={() => setViewingLibraryBook(null)}
+                className="text-slate-400 hover:text-white p-2"
+              >
+                ✕ Close
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-950/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <h3 className="text-indigo-400 text-sm font-semibold mb-2">📋 KDP Setup (Step 6)</h3>
+                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                      {viewingLibraryBook.kdpSetup || "No data saved"}
+                    </div>
+                  </div>
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <h3 className="text-yellow-500 text-sm font-semibold mb-2">💰 Pricing Strategy (Step 7)</h3>
+                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">
+                      {viewingLibraryBook.pricingStrategy || "No data saved"}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <h3 className="text-orange-500 text-sm font-semibold mb-2">📣 Marketing Content (Step 8)</h3>
+                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                      {viewingLibraryBook.marketingContent || "No data saved"}
+                    </div>
+                  </div>
+                  {viewingLibraryBook.coverImage && (
+                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                      <h3 className="text-green-500 text-sm font-semibold mb-2">🖼️ Book Cover</h3>
+                      <div className="aspect-[9/16] w-32 rounded-lg overflow-hidden border border-slate-700 mx-auto">
+                        <img src={`data:image/jpeg;base64,${viewingLibraryBook.coverImage}`} alt="Cover" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-slate-800 bg-slate-900/50 text-center">
+              <p className="text-slate-500 text-[10px]">EbookAI Library System — Use these details to fill your Amazon KDP listing.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
