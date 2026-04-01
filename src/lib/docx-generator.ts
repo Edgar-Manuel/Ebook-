@@ -102,6 +102,7 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
         new Paragraph({
           children: [
             new ImageRun({
+              type: 'jpg',
               data: coverBuffer,
               transformation: {
                 width: 595,  // Full width of A4 in points approx
@@ -345,9 +346,6 @@ export async function generateDocx(bookData: BookData): Promise<Buffer> {
             bold: true,
             font: 'Calibri',
             color: '16213e',
-          },
-          paragraph: {
-            pageBreakBefore: true,
           },
         },
         {

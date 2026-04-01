@@ -596,10 +596,7 @@ export default function Home() {
       try {
         const { error: storageError } = await insforge.storage
           .from('ebooks')
-          .upload(fileName, blob, {
-            upsert: true,
-            contentType: 'image/jpeg',
-          });
+          .upload(fileName, blob);
           
         if (storageError) {
           console.error('Storage upload error (cover):', storageError.message);
@@ -651,10 +648,7 @@ export default function Home() {
       try {
         const { error: storageError } = await insforge.storage
           .from('ebooks')
-          .upload(fileName, blob, {
-            upsert: true,
-            contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          });
+          .upload(fileName, blob);
           
         if (storageError) {
           console.error('Storage upload error:', storageError.message);

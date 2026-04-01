@@ -1,0 +1,4 @@
+src/lib/docx-generator.ts(104,26): error TS2345: Argument of type '{ data: Buffer<ArrayBuffer>; transformation: { width: number; height: number; }; }' is not assignable to parameter of type 'IImageOptions'.
+  Type '{ data: Buffer<ArrayBuffer>; transformation: { width: number; height: number; }; }' is not assignable to type 'SvgMediaOptions & CoreImageOptions'.
+    Type '{ data: Buffer<ArrayBuffer>; transformation: { width: number; height: number; }; }' is missing the following properties from type 'SvgMediaOptions': type, fallback
+src/lib/docx-generator.ts(350,13): error TS2353: Object literal may only specify known properties, and 'pageBreakBefore' does not exist in type 'IParagraphStylePropertiesOptions'.
