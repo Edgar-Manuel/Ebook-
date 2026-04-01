@@ -3,6 +3,8 @@ import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/m
 import { getPrompt } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
+export const runtime = 'edge';
+
 const client = new Anthropic();
 
 // Map shorthand model IDs (from CostOptimizer) to full Anthropic model IDs
@@ -23,8 +25,8 @@ const STEP_CONFIG: Record<
   { model: string; maxTokens: number; useThinking: boolean }
 > = {
   1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
-  2: { model: 'claude-sonnet-4-6', maxTokens: 3000, useThinking: true },
-  3: { model: 'claude-opus-4-6', maxTokens: 6000, useThinking: true },
+  2: { model: 'claude-sonnet-4-6', maxTokens: 4000, useThinking: false },
+  3: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: true },
   4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
   6: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
