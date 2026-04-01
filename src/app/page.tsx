@@ -666,6 +666,48 @@ export default function Home() {
     }
   };
 
+  const exportKdpStrategy = () => {
+    if (!bookData.selectedIdea) return;
+    
+    const content = `=========================================
+ESTRATEGIA MAESTRA AMAZON KDP
+=========================================
+
+Libro: ${bookData.selectedIdea.title}
+Subtítulo: ${bookData.selectedIdea.subtitle}
+Autor: ${bookData.authorName || 'Autor'}
+
+=========================================
+1. KDP SETUP (Metadatos y Empaque)
+=========================================
+${bookData.kdpSetup || 'No generado'}
+
+=========================================
+2. PRICING (Psicología de Precios)
+=========================================
+${bookData.pricingStrategy || 'No generado'}
+
+=========================================
+3. MARKETING Y TRÁFICO
+=========================================
+${bookData.marketingContent || 'No generado'}
+`;
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const safeTitle = bookData.selectedIdea.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    
+    link.href = url;
+    link.setAttribute('download', `${safeTitle}-estrategia-amazon-kdp.txt`);
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
   const completedText =
     step === 1
       ? bookData.ideas.length > 0
@@ -1516,21 +1558,29 @@ export default function Home() {
                             : 'Export your book outline and structure as .docx'}
                         </p>
                       </div>
-                      <button
-                        onClick={exportDocx}
-                        disabled={isExporting}
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center gap-2"
-                      >
-                        {isExporting ? (
-                          <>
-                            <span className="animate-spin">⟳</span> Exporting...
-                          </>
-                        ) : exportSuccess ? (
-                          <>✅ Download Again</>
-                        ) : (
-                          <>📥 Download .DOCX</>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+                        <button
+                          onClick={exportKdpStrategy}
+                          className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                        >
+                          📋 Datos KDP (TXT)
+                        </button>
+                        <button
+                          onClick={exportDocx}
+                          disabled={isExporting}
+                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                        >
+                          {isExporting ? (
+                            <>
+                              <span className="animate-spin">⟳</span> Exporting...
+                            </>
+                          ) : exportSuccess ? (
+                            <>✅ Download Again</>
+                          ) : (
+                            <>📥 Download .DOCX</>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
