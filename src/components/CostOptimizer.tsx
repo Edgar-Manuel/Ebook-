@@ -87,7 +87,7 @@ const STRATEGIES: StrategyDef[] = [
     icon: '⚖️',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
-      2: { model: 'sonnet-4.6', thinking: true,  maxTokens: 3000 },
+      2: { model: 'sonnet-4.6', thinking: false, maxTokens: 8000 },
       3: { model: 'opus-4.6',   thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },

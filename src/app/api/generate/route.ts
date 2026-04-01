@@ -25,7 +25,7 @@ const STEP_CONFIG: Record<
   { model: string; maxTokens: number; useThinking: boolean }
 > = {
   1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
-  2: { model: 'claude-sonnet-4-6', maxTokens: 4000, useThinking: false },
+  2: { model: 'claude-sonnet-4-6', maxTokens: 8000, useThinking: false },
   3: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: true },
   4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
@@ -60,10 +60,11 @@ export async function POST(req: Request) {
       const useThinking = SUPPORTS_THINKING.has(shortId) && !!(modelConfig.thinking?.[step]);
       
       let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
-      
-      // Override for strategic steps to prevent cutting off
-      if (step >= 6 && maxTokens < 8192) {
-        maxTokens = 8192;
+
+      // Enforce minimum tokens for content-heavy steps regardless of CostOptimizer
+      const MIN_TOKENS: Record<number, number> = { 2: 8000, 3: 8192, 6: 8192, 7: 8192, 8: 8192 };
+      if (MIN_TOKENS[step] && maxTokens < MIN_TOKENS[step]) {
+        maxTokens = MIN_TOKENS[step];
       }
 
       config = {
@@ -72,6 +73,13 @@ export async function POST(req: Request) {
         useThinking,
       };
     }
+
+    // Step 2 (outline): NEVER use thinking — it delays first visible token
+    // and wastes edge runtime's 30s budget on invisible thinking tokens
+    if (step === 2) {
+      config = { ...config, useThinking: false };
+    }
+
     if (!config) {
       return new Response(JSON.stringify({ error: 'Invalid step (1-8)' }), {
         status: 400,

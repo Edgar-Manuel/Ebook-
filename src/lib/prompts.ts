@@ -29,30 +29,37 @@ REGLAS DE GENERACIÓN (Basadas en Motivaciones Reales de Compra en Amazon):
 Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de valor real) y rechaza categóricamente ideas orientadas a bajo/medio contenido (nada de agendas, diarios o sudokus, ya que están sobresaturados). El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
 
     case 2:
-      return `Actúa como un Arquitecto Editorial experto en Psicología del Consumidor para Amazon KDP. El objetivo de este esquema no es volcar información, es diseñar un viaje de TRANSFORMACIÓN para el lector.
+      return `Actúa como un Arquitecto Editorial experto en Amazon KDP. Diseña un índice COMPLETO para este libro.
 
 Título: "${data.selectedIdea?.title}"
 Subtítulo: "${data.selectedIdea?.subtitle}"
 Descripción: "${data.selectedIdea?.description}"
-Audiencia Objetivo (El Cliente): "${data.selectedIdea?.targetAudience}"
+Audiencia: "${data.selectedIdea?.targetAudience}"
+Autor: ${data.authorName || 'el autor'}
 
-Diseña un índice completo con:
-- Introducción (Conectando de inmediato con el dolor del usuario. Además asume que el autor es ${data.authorName || 'el autor'}. Usa esta sección para construir una Fuerte Introducción Personal: cuenta una historia experta y vulnerable que justifique por qué el lector debe confiar ciegamente en este libro. Debes mostrar credibilidad experiencial).
-- 9-12 Capítulos MÍNIMO (El objetivo es crear un libro de "Alto Contenido" de valor masivo. Si el título o subtítulo promete una cantidad de elementos, ej: "12 juegos", "7 pasos", el índice DEBE cubrirlos todos obligatoriamente de forma desglosada)
-- 3-5 Subtítulos por capítulo
-- Conclusión (Llamada a la acción final)
+ESTRUCTURA OBLIGATORIA:
+- Introducción (con historia personal del autor que genere credibilidad)
+- 9-12 Capítulos MÍNIMO. Si el título promete una cantidad (ej: "12 juegos", "7 pasos"), el índice DEBE cubrirlos TODOS
+- 3-5 Subtítulos CORTOS por capítulo
+- Conclusión con llamada a la acción
 
-REGLA: NUNCA uses Spanglish en los títulos o subtítulos (ej: "Róbale Todo Su Power"). Si el libro es en español, todo de forma pulcra en español.
+FORMATO EXACTO (respeta este formato al pie de la letra):
+**Chapter 1: [Título atractivo]**
+- [Subtítulo corto 1]
+- [Subtítulo corto 2]
+- [Subtítulo corto 3]
 
-Formatea cada capítulo usando esta estructura exacta:
-**Chapter [N]: [TÍTULO DEL CAPÍTULO QUE PROMETA UN AVANCE]**
-- [Subtítulo accionable 1]
-- [Subtítulo accionable 2]
-- [Subtítulo accionable 3]
+**Chapter 2: [Título atractivo]**
+- [Subtítulo corto 1]
+- [Subtítulo corto 2]
+- [Subtítulo corto 3]
 
-- [Subtítulo accionable 3]
-
-Regla de oro: No hagas un índice técnico y aburrido. El lector compra "el dejar de sufrir un problema" o "el aprender una habilidad nueva". Cada capítulo debe sentirse como una pequeña victoria para el comprador. Este esquema servirá de base para un libro de "Alto Contenido", debe ser profundo y llenar los vacíos que la competencia no toca. Responde exclusivamente con el esquema estructural en español.`;
+REGLAS CRÍTICAS:
+1. CONCISIÓN: Cada subtítulo debe ser UNA FRASE CORTA (máximo 10-12 palabras). NO escribas párrafos ni descripciones largas.
+2. COMPLETITUD: Genera TODOS los capítulos prometidos. No te detengas a mitad.
+3. NUNCA Spanglish. Todo en español limpio.
+4. Cada capítulo = una victoria para el lector. Títulos que prometan avance.
+5. Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
 
     case 3: {
       const chapterNum = data.currentWritingChapter ?? 1;
