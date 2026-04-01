@@ -26,7 +26,7 @@ const STEP_CONFIG: Record<
   { model: string; maxTokens: number; useThinking: boolean }
 > = {
   1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
-  2: { model: 'claude-sonnet-4-6', maxTokens: 4000, useThinking: false },
+  2: { model: 'claude-sonnet-4-6', maxTokens: 16000, useThinking: false },
   3: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: true },
   4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
