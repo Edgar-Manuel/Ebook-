@@ -448,11 +448,14 @@ export default function Home() {
 
       const data = overrideData ? { ...latestData, ...overrideData } : latestData;
 
+      // Strip heavy fields not needed by the API to avoid edge 128KB body limit
+      const { writtenChapters, formattedContent, library, coverImage, marketingAssets, ...lightData } = data;
+
       try {
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step, data, modelConfig }),
+          body: JSON.stringify({ step, data: lightData, modelConfig }),
         });
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
