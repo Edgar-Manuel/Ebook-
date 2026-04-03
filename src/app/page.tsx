@@ -276,7 +276,10 @@ export default function Home() {
           // Ensure arrays are initialized if missing
           library: parsed.library || [],
           allIdeas: parsed.allIdeas || [],
-          savedIdeas: parsed.savedIdeas || [],
+          // Merge savedIdeas: keep defaults if localStorage has none
+          savedIdeas: (parsed.savedIdeas && parsed.savedIdeas.length > 0)
+            ? parsed.savedIdeas
+            : initialBookData.savedIdeas,
           writtenChapters: parsed.writtenChapters || {},
         });
       } catch (e) {
@@ -437,14 +440,85 @@ export default function Home() {
       }
     };
 
+    const fetchIdeasFromCloud = async () => {
+      try {
+        const { data, error } = await insforge.database
+          .from('ideas')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const cloudSaved = data.filter(r => r.is_next_book).map(r => r.idea as BookIdea);
+          const cloudAll = data.map(r => r.idea as BookIdea);
+
+          setBookData(prev => ({
+            ...prev,
+            // Merge cloud ideas with local, avoiding duplicates by title
+            savedIdeas: mergeIdeasByTitle(prev.savedIdeas, cloudSaved),
+            allIdeas: mergeIdeasByTitle(prev.allIdeas, cloudAll),
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch ideas from InsForge', err);
+      }
+    };
+
     if (isLoaded) {
       fetchLibraryFromCloud();
+      fetchIdeasFromCloud();
     }
   }, [isLoaded]);
 
   useEffect(() => {
     contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [streamedText]);
+
+  // Helper: merge ideas arrays avoiding duplicates by title
+  const mergeIdeasByTitle = (existing: BookIdea[], incoming: BookIdea[]): BookIdea[] => {
+    const titles = new Set(existing.map(i => i.title));
+    return [...existing, ...incoming.filter(i => !titles.has(i.title))];
+  };
+
+  // Cloud Sync: Save ideas to InsForge whenever they change
+  const prevIdeasRef = useRef<string>('');
+  useEffect(() => {
+    if (!isLoaded) return;
+    const key = JSON.stringify({ savedIdeas: bookData.savedIdeas, allIdeas: bookData.allIdeas });
+    if (key === prevIdeasRef.current) return;
+    prevIdeasRef.current = key;
+
+    const syncIdeasToCloud = async () => {
+      try {
+        // Upsert all ideas: each idea is a row with is_next_book flag
+        const rows = bookData.allIdeas.map(idea => ({
+          title: idea.title,
+          idea,
+          is_next_book: bookData.savedIdeas.some(s => s.title === idea.title),
+        }));
+
+        // Also include savedIdeas that aren't in allIdeas (manually added)
+        const allTitles = new Set(bookData.allIdeas.map(i => i.title));
+        for (const idea of bookData.savedIdeas) {
+          if (!allTitles.has(idea.title)) {
+            rows.push({ title: idea.title, idea, is_next_book: true });
+          }
+        }
+
+        if (rows.length === 0) return;
+
+        // Delete existing and re-insert (simple sync)
+        await insforge.database.from('ideas').delete().neq('title', '');
+        const { error } = await insforge.database.from('ideas').insert(rows);
+        if (error) console.error('Ideas cloud sync error:', error);
+      } catch (err) {
+        console.error('Ideas cloud sync failed:', err);
+      }
+    };
+
+    syncIdeasToCloud();
+  }, [bookData.savedIdeas, bookData.allIdeas, isLoaded]);
 
   const generate = useCallback(
     async (overrideData?: Partial<BookData>) => {
