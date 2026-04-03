@@ -74,9 +74,9 @@ export async function POST(req: Request) {
       };
     }
 
-    // Step 2 (outline): NEVER use thinking — it delays first visible token
-    // and wastes edge runtime's 30s budget on invisible thinking tokens
-    if (step === 2) {
+    // Steps 1-2: NEVER use thinking — delays first visible token on edge runtime
+    // Step 3: disable thinking too — each chapter needs full 30s for text output
+    if (step <= 3) {
       config = { ...config, useThinking: false };
     }
 

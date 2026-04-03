@@ -22,6 +22,7 @@ const initialBookData: BookData = {
   interests: '',
   authorName: 'Edgar Manchón',
   ideas: [],
+  allIdeas: [],
   selectedIdea: null,
   savedIdeas: [],
   outline: '',
@@ -261,6 +262,7 @@ export default function Home() {
           ...parsed,
           // Ensure arrays are initialized if missing
           library: parsed.library || [],
+          allIdeas: parsed.allIdeas || [],
           savedIdeas: parsed.savedIdeas || [],
           writtenChapters: parsed.writtenChapters || {},
         });
@@ -325,9 +327,8 @@ export default function Home() {
 
   const resetProject = () => {
     if (confirm('¿Estás seguro de que quieres borrar este proyecto y empezar de cero? Se mantendrá tu Biblioteca de libros finalizados pero perderás el progreso del libro actual.')) {
-      const library = bookData.library;
-      const savedIdeas = bookData.savedIdeas;
-      setBookData({ ...initialBookData, library, savedIdeas });
+      const { library, savedIdeas, allIdeas } = bookData;
+      setBookData({ ...initialBookData, library, savedIdeas, allIdeas });
       setStep(1);
       setStreamedText('');
       localStorage.removeItem('ebook_ai_data');
@@ -381,6 +382,7 @@ export default function Home() {
   };
 
   const [viewingLibraryBook, setViewingLibraryBook] = useState<BookData | null>(null);
+  const [headerPanel, setHeaderPanel] = useState<'library' | 'nextBooks' | 'ideas' | null>(null);
 
   // Cloud Sync: Fetch library from InsForge
   useEffect(() => {
@@ -498,9 +500,15 @@ export default function Home() {
         setBookData((prev) => {
           const updated = { ...prev };
           switch (step) {
-            case 1:
-              updated.ideas = parseIdeasFromText(finalText);
+            case 1: {
+              const newIdeas = parseIdeasFromText(finalText);
+              updated.ideas = newIdeas;
+              // Auto-accumulate: add new ideas avoiding duplicates by title
+              const existingTitles = new Set(prev.allIdeas.map(i => i.title));
+              const unique = newIdeas.filter(i => !existingTitles.has(i.title));
+              updated.allIdeas = [...prev.allIdeas, ...unique];
               break;
+            }
             case 2:
               updated.outline = finalText;
               updated.chapters = parseOutlineFromText(finalText);
@@ -555,7 +563,12 @@ export default function Home() {
       const response = await fetch('/api/cover', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookData),
+        body: JSON.stringify({
+          selectedIdea: bookData.selectedIdea,
+          niche: bookData.niche,
+          authorName: bookData.authorName,
+          coverDesign: bookData.coverDesign,
+        }),
       });
       const result = await response.json();
       if (!response.ok || result.error) {
@@ -675,10 +688,12 @@ export default function Home() {
     setIsExporting(true);
     setExportSuccess(false);
     try {
+      // Strip heavy non-essential fields to avoid edge 128KB body limit
+      const { coverImage, library, marketingAssets, ideas, savedIdeas, ...exportData } = bookData;
       const response = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookData),
+        body: JSON.stringify(exportData),
       });
 
       if (!response.ok) throw new Error('Export failed');
@@ -832,7 +847,41 @@ ${bookData.marketingContent || 'No generado'}
               </span>
             </div>
           )}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setHeaderPanel(headerPanel === 'ideas' ? null : 'ideas')}
+              title="Ideas guardadas"
+              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'ideas' ? 'bg-amber-900/40 text-amber-300 border-amber-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
+            >
+              <span>💡</span>
+              <span className="hidden sm:inline">Ideas</span>
+              {bookData.allIdeas.length > 0 && (
+                <span className="bg-amber-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.allIdeas.length}</span>
+              )}
+            </button>
+            <button
+              onClick={() => setHeaderPanel(headerPanel === 'library' ? null : 'library')}
+              title="Biblioteca de libros"
+              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'library' ? 'bg-indigo-900/40 text-indigo-300 border-indigo-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
+            >
+              <span>🏛️</span>
+              <span className="hidden sm:inline">Biblioteca</span>
+              {bookData.library.length > 0 && (
+                <span className="bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.library.length}</span>
+              )}
+            </button>
+            <button
+              onClick={() => setHeaderPanel(headerPanel === 'nextBooks' ? null : 'nextBooks')}
+              title="Próximos libros"
+              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'nextBooks' ? 'bg-purple-900/40 text-purple-300 border-purple-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
+            >
+              <span>📚</span>
+              <span className="hidden sm:inline">Próximos</span>
+              {bookData.savedIdeas.length > 0 && (
+                <span className="bg-purple-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.savedIdeas.length}</span>
+              )}
+            </button>
+            <div className="w-px h-5 bg-slate-700/50 mx-1" />
             <button
               onClick={resetProject}
               title="New Project"
@@ -859,6 +908,128 @@ ${bookData.marketingContent || 'No generado'}
           </div>
         </div>
       </header>
+
+      {/* Header Dropdown Panels */}
+      {headerPanel && (
+        <div className="border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            {/* Ideas Panel */}
+            {headerPanel === 'ideas' && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-amber-300 font-semibold text-sm flex items-center gap-2">
+                    <span>💡</span> Todas las Ideas Generadas
+                  </h3>
+                  <span className="text-slate-500 text-xs">{bookData.allIdeas.length} ideas guardadas</span>
+                </div>
+                {bookData.allIdeas.length === 0 ? (
+                  <p className="text-slate-500 text-xs">Genera ideas en el Step 1 y se guardarán aquí automáticamente.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {bookData.allIdeas.map((idea, idx) => (
+                      <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+                        <p className="text-white text-xs font-semibold truncate">{idea.title}</p>
+                        {idea.subtitle && <p className="text-slate-400 text-[10px] mt-1 truncate">{idea.subtitle}</p>}
+                        <div className="flex gap-1.5 mt-2">
+                          {!bookData.savedIdeas.some(s => s.title === idea.title) && (
+                            <button
+                              onClick={() => setBookData((p) => ({ ...p, savedIdeas: [...p.savedIdeas, idea] }))}
+                              className="text-[9px] font-bold bg-purple-700 hover:bg-purple-600 text-white px-2 py-1 rounded transition-colors"
+                            >
+                              + Próximo Libro
+                            </button>
+                          )}
+                          {bookData.savedIdeas.some(s => s.title === idea.title) && (
+                            <span className="text-[9px] font-bold text-purple-400 bg-purple-950/30 border border-purple-900/50 px-2 py-1 rounded">GUARDADO</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Library Panel */}
+            {headerPanel === 'library' && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-indigo-300 font-semibold text-sm flex items-center gap-2">
+                    <span>🏛️</span> Biblioteca de Libros
+                  </h3>
+                  <span className="text-slate-500 text-xs">{bookData.library.length} libros</span>
+                </div>
+                {bookData.library.length === 0 ? (
+                  <p className="text-slate-500 text-xs">Tus libros finalizados aparecerán aquí.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {bookData.library.map((libBook, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => { setViewingLibraryBook(libBook); setHeaderPanel(null); }}
+                        className="text-left bg-slate-800/60 border border-slate-700/40 rounded-lg p-3 hover:border-indigo-700/50 transition-colors"
+                      >
+                        <p className="text-white text-xs font-semibold truncate">{libBook.selectedIdea?.title}</p>
+                        <p className="text-slate-500 text-[10px] mt-1">{libBook.authorName}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Next Books Panel */}
+            {headerPanel === 'nextBooks' && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-purple-300 font-semibold text-sm flex items-center gap-2">
+                    <span>📚</span> Próximos Libros
+                  </h3>
+                  <span className="text-slate-500 text-xs">{bookData.savedIdeas.length} pendientes</span>
+                </div>
+                {bookData.savedIdeas.length === 0 ? (
+                  <p className="text-slate-500 text-xs">Guarda ideas como &quot;Próximo Libro&quot; y aparecerán aquí.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {bookData.savedIdeas.map((idea, idx) => (
+                      <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+                        <p className="text-white text-xs font-semibold truncate">{idea.title}</p>
+                        {idea.subtitle && <p className="text-slate-400 text-[10px] mt-1 truncate">{idea.subtitle}</p>}
+                        <div className="flex gap-1.5 mt-2">
+                          <button
+                            onClick={() => {
+                              const library = bookData.library;
+                              const savedIdeas = bookData.savedIdeas.filter((_, i) => i !== idx);
+                              setBookData({
+                                ...initialBookData,
+                                library,
+                                savedIdeas,
+                                selectedIdea: { ...idea },
+                                niche: idea.title,
+                              });
+                              setStep(2);
+                              setHeaderPanel(null);
+                            }}
+                            className="text-[9px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded transition-colors"
+                          >
+                            Empezar Libro
+                          </button>
+                          <button
+                            onClick={() => setBookData((p) => ({ ...p, savedIdeas: p.savedIdeas.filter((_, i) => i !== idx) }))}
+                            className="text-[9px] font-bold bg-slate-700 hover:bg-red-900/50 hover:text-red-300 text-slate-400 px-2 py-1 rounded transition-colors"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Step Progress */}
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -1073,14 +1244,13 @@ ${bookData.marketingContent || 'No generado'}
                   {bookData.chapters.length > 0 && chaptersWritten < bookData.chapters.length && (
                     <button
                       onClick={async () => {
-                        let freshData = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
-                        for (const ch of freshData.chapters) {
-                          freshData = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
-                          if (!freshData.writtenChapters[ch.number]) {
-                            setBookData((p) => ({ ...p, currentWritingChapter: ch.number }));
-                            await generate({ currentWritingChapter: ch.number });
-                            await new Promise((r) => setTimeout(r, 500));
-                          }
+                        for (const ch of bookData.chapters) {
+                          // Re-read fresh state before each chapter
+                          const fresh = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
+                          if (fresh.writtenChapters[ch.number]) continue;
+                          setBookData((p) => ({ ...p, currentWritingChapter: ch.number }));
+                          // generate() already awaits the full stream completion
+                          await generate({ currentWritingChapter: ch.number });
                         }
                       }}
                       disabled={isGenerating}
