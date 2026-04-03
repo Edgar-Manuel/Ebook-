@@ -24,7 +24,20 @@ const initialBookData: BookData = {
   ideas: [],
   allIdeas: [],
   selectedIdea: null,
-  savedIdeas: [],
+  savedIdeas: [
+    {
+      title: 'DESPUÉS DEL ESPEJO: LA GUÍA CLÍNICA PARA SANAR EL TRAUMA PSICOLÓGICO DE UNA RELACIÓN NARCISISTA',
+      subtitle: 'Un protocolo terapéutico paso a paso para reconstruir tu salud mental después del abuso emocional',
+      description: 'Guía clínica enfocada en la sanación post-narcisista con herramientas de terapia profesional adaptadas para el lector.',
+      targetAudience: 'Personas 6-24 meses post-ruptura narcisista, terapeutas buscando material de apoyo, víctimas de abuso emocional de larga duración',
+    },
+    {
+      title: 'EL ESPEJO ROTO: CÓMO RECUPERAR TU IDENTIDAD DESPUÉS DE VIVIR CON UN NARCISISTA',
+      subtitle: 'Una guía de reconstrucción psicológica paso a paso para restaurar tu autoestima, establecer límites inquebrantables y prosperar después del abuso',
+      description: 'Reconstrucción profunda de identidad después del abuso narcisista con ejercicios prácticos y estrategias de límites.',
+      targetAudience: 'Mujeres adultas que reconocen patrones narcisistas en su padre/madre, víctimas de abuso emocional buscando reconstrucción profunda, coaches y terapeutas',
+    },
+  ],
   outline: '',
   chapters: [],
   writtenChapters: {},
@@ -928,20 +941,42 @@ ${bookData.marketingContent || 'No generado'}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
                     {bookData.allIdeas.map((idea, idx) => (
                       <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
-                        <p className="text-white text-xs font-semibold truncate">{idea.title}</p>
-                        {idea.subtitle && <p className="text-slate-400 text-[10px] mt-1 truncate">{idea.subtitle}</p>}
+                        <input
+                          type="text"
+                          value={idea.title}
+                          onChange={(e) => setBookData((p) => ({
+                            ...p,
+                            allIdeas: p.allIdeas.map((s, i) => i === idx ? { ...s, title: e.target.value } : s)
+                          }))}
+                          className="w-full bg-transparent border-none text-white text-xs font-semibold focus:outline-none focus:bg-slate-900/60 rounded px-1 -mx-1"
+                        />
+                        <input
+                          type="text"
+                          value={idea.subtitle}
+                          onChange={(e) => setBookData((p) => ({
+                            ...p,
+                            allIdeas: p.allIdeas.map((s, i) => i === idx ? { ...s, subtitle: e.target.value } : s)
+                          }))}
+                          className="w-full bg-transparent border-none text-slate-400 text-[10px] mt-1 focus:outline-none focus:bg-slate-900/60 rounded px-1 -mx-1"
+                          placeholder="Añadir subtítulo..."
+                        />
                         <div className="flex gap-1.5 mt-2">
-                          {!bookData.savedIdeas.some(s => s.title === idea.title) && (
+                          {!bookData.savedIdeas.some(s => s.title === idea.title) ? (
                             <button
                               onClick={() => setBookData((p) => ({ ...p, savedIdeas: [...p.savedIdeas, idea] }))}
                               className="text-[9px] font-bold bg-purple-700 hover:bg-purple-600 text-white px-2 py-1 rounded transition-colors"
                             >
                               + Próximo Libro
                             </button>
-                          )}
-                          {bookData.savedIdeas.some(s => s.title === idea.title) && (
+                          ) : (
                             <span className="text-[9px] font-bold text-purple-400 bg-purple-950/30 border border-purple-900/50 px-2 py-1 rounded">GUARDADO</span>
                           )}
+                          <button
+                            onClick={() => setBookData((p) => ({ ...p, allIdeas: p.allIdeas.filter((_, i) => i !== idx) }))}
+                            className="text-[9px] font-bold bg-slate-700 hover:bg-red-900/50 hover:text-red-300 text-slate-400 px-2 py-1 rounded transition-colors"
+                          >
+                            Borrar
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -983,27 +1018,48 @@ ${bookData.marketingContent || 'No generado'}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-purple-300 font-semibold text-sm flex items-center gap-2">
-                    <span>📚</span> Próximos Libros
+                    <span>📚</span> Próximos Libros (Saga)
                   </h3>
                   <span className="text-slate-500 text-xs">{bookData.savedIdeas.length} pendientes</span>
                 </div>
                 {bookData.savedIdeas.length === 0 ? (
                   <p className="text-slate-500 text-xs">Guarda ideas como &quot;Próximo Libro&quot; y aparecerán aquí.</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
                     {bookData.savedIdeas.map((idea, idx) => (
                       <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
-                        <p className="text-white text-xs font-semibold truncate">{idea.title}</p>
-                        {idea.subtitle && <p className="text-slate-400 text-[10px] mt-1 truncate">{idea.subtitle}</p>}
+                        <div className="space-y-1.5">
+                          <input
+                            type="text"
+                            value={idea.title}
+                            onChange={(e) => setBookData((p) => ({
+                              ...p,
+                              savedIdeas: p.savedIdeas.map((s, i) => i === idx ? { ...s, title: e.target.value } : s)
+                            }))}
+                            className="w-full bg-slate-900/60 border border-slate-600/40 rounded px-2 py-1 text-white text-xs font-semibold focus:outline-none focus:border-purple-500"
+                            placeholder="Título del libro"
+                          />
+                          <input
+                            type="text"
+                            value={idea.subtitle}
+                            onChange={(e) => setBookData((p) => ({
+                              ...p,
+                              savedIdeas: p.savedIdeas.map((s, i) => i === idx ? { ...s, subtitle: e.target.value } : s)
+                            }))}
+                            className="w-full bg-slate-900/60 border border-slate-600/40 rounded px-2 py-1 text-slate-400 text-[10px] focus:outline-none focus:border-purple-500"
+                            placeholder="Subtítulo"
+                          />
+                        </div>
                         <div className="flex gap-1.5 mt-2">
                           <button
                             onClick={() => {
-                              const library = bookData.library;
-                              const savedIdeas = bookData.savedIdeas.filter((_, i) => i !== idx);
+                              const { library, savedIdeas: current, allIdeas } = bookData;
+                              const savedIdeas = current.filter((_, i) => i !== idx);
                               setBookData({
                                 ...initialBookData,
                                 library,
                                 savedIdeas,
+                                allIdeas,
                                 selectedIdea: { ...idea },
                                 niche: idea.title,
                               });
