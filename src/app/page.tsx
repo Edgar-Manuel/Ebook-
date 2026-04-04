@@ -5,6 +5,7 @@ import { insforge } from '@/lib/insforge';
 import type { BookData, BookIdea, Chapter, Step } from '@/types';
 import CostOptimizer, { type ModelConfig } from '@/components/CostOptimizer';
 import NicheRoulette from '@/components/NicheRoulette';
+import { postProcessBookText } from '@/lib/postprocess';
 
 const STEPS = [
   { number: 1, title: 'Book Ideas', icon: '💡', desc: 'Generate profitable book ideas with AI' },
@@ -252,6 +253,7 @@ export default function Home() {
   const [coverError, setCoverError] = useState('');
   const [isGeneratingMarketing, setIsGeneratingMarketing] = useState(false);
   const [marketingError, setMarketingError] = useState('');
+  const [pubFormats, setPubFormats] = useState<{ ebook: boolean; paperback: boolean }>({ ebook: true, paperback: false });
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
 
@@ -582,8 +584,9 @@ export default function Home() {
           }
         }
 
-        // Save to book data
-        const finalText = streamRef.current;
+        // Save to book data — apply post-processing to chapter text
+        const rawText = streamRef.current;
+        const finalText = step === 3 ? postProcessBookText(rawText) : rawText;
         setBookData((prev) => {
           const updated = { ...prev };
           switch (step) {
@@ -771,55 +774,53 @@ export default function Home() {
     }
   };
 
+  const exportDocxForMode = async (mode: 'ebook' | 'paperback') => {
+    const { coverImage, library, marketingAssets, ideas, savedIdeas, ...exportData } = bookData;
+    const response = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...exportData, mode }),
+    });
+
+    if (!response.ok) throw new Error('Export failed');
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const title = bookData.selectedIdea?.title ?? 'ebook';
+    const safeTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const suffix = mode === 'paperback' ? '_TB' : '_EB';
+    const fileName = `${safeTitle}${suffix}.docx`;
+
+    a.href = url;
+    a.setAttribute('download', fileName);
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    // Cloud backup
+    try {
+      const { error: storageError } = await insforge.storage
+        .from('ebooks')
+        .upload(fileName, blob);
+      if (storageError) console.error('Storage upload error:', storageError.message);
+      else console.log(`${fileName} guardado en la nube.`);
+    } catch (uploadErr) {
+      console.error('Failed to sync to InsForge Storage', uploadErr);
+    }
+  };
+
   const exportDocx = async () => {
     setIsExporting(true);
     setExportSuccess(false);
     try {
-      // Strip heavy non-essential fields to avoid edge 128KB body limit
-      const { coverImage, library, marketingAssets, ideas, savedIdeas, ...exportData } = bookData;
-      const response = await fetch('/api/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(exportData),
-      });
-
-      if (!response.ok) throw new Error('Export failed');
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const title = bookData.selectedIdea?.title ?? 'ebook';
-      // Limpia acentos y caracteres raros para asegurar el nombre correcto
-      const safeTitle = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, '-').toLowerCase();
-      const fileName = `${safeTitle}.docx`;
-      
-      a.href = url;
-      a.setAttribute('download', fileName);
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
-      
+      if (pubFormats.ebook) await exportDocxForMode('ebook');
+      if (pubFormats.paperback) await exportDocxForMode('paperback');
       setExportSuccess(true);
-
-      // Guardado silencioso de la copia del libro completo en InsForge Storage
-      try {
-        const { error: storageError } = await insforge.storage
-          .from('ebooks')
-          .upload(fileName, blob);
-          
-        if (storageError) {
-          console.error('Storage upload error:', storageError.message);
-        } else {
-          console.log(`Documento ${fileName} guardado permanentemente en la nube.`);
-        }
-      } catch (uploadErr) {
-        console.error('Failed to sync to InsForge Storage', uploadErr);
-      }
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed');
     } finally {
@@ -1471,17 +1472,17 @@ ${bookData.marketingContent || 'No generado'}
                   {step === 8 && (
                     <button
                       onClick={exportDocx}
-                      disabled={isExporting || !bookData.selectedIdea}
+                      disabled={isExporting || !bookData.selectedIdea || (!pubFormats.ebook && !pubFormats.paperback)}
                       className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                     >
                       {isExporting ? (
                         <>
-                          <span className="animate-spin">⟳</span> Exporting...
+                          <span className="animate-spin">⟳</span> Exportando...
                         </>
                       ) : exportSuccess ? (
-                        <>✅ Downloaded!</>
+                        <>✅ Descargado!</>
                       ) : (
-                        <>📥 Export as .DOCX</>
+                        <>📥 Exportar .DOCX</>
                       )}
                     </button>
                   )}
@@ -1970,39 +1971,67 @@ ${bookData.marketingContent || 'No generado'}
               {/* Export area in step 8 */}
               {step === 8 && bookData.selectedIdea && (
                 <div className="p-5 border-t border-slate-700/50">
-                  <div className="bg-gradient-to-r from-green-950/50 to-emerald-950/50 border border-green-700/30 rounded-xl p-4">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                      <div>
-                        <p className="text-green-400 font-semibold">🎉 Your ebook is ready!</p>
-                        <p className="text-slate-400 text-sm mt-0.5">
-                          {chaptersWritten > 0
-                            ? `${chaptersWritten} chapters written • Complete .docx ready for Kindle`
-                            : 'Export your book outline and structure as .docx'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
-                        <button
-                          onClick={exportKdpStrategy}
-                          className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
-                        >
-                          📋 Datos KDP (TXT)
-                        </button>
-                        <button
-                          onClick={exportDocx}
-                          disabled={isExporting}
-                          className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
-                        >
-                          {isExporting ? (
-                            <>
-                              <span className="animate-spin">⟳</span> Exporting...
-                            </>
-                          ) : exportSuccess ? (
-                            <>✅ Download Again</>
-                          ) : (
-                            <>📥 Download .DOCX</>
-                          )}
-                        </button>
-                      </div>
+                  <div className="bg-gradient-to-r from-green-950/50 to-emerald-950/50 border border-green-700/30 rounded-xl p-4 space-y-4">
+                    <div>
+                      <p className="text-green-400 font-semibold">🎉 Tu ebook está listo!</p>
+                      <p className="text-slate-400 text-sm mt-0.5">
+                        {chaptersWritten > 0
+                          ? `${chaptersWritten} capítulos escritos - .docx listo para Amazon KDP`
+                          : 'Exporta tu libro como .docx'}
+                      </p>
+                    </div>
+
+                    {/* Publication format selector */}
+                    <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3 space-y-2">
+                      <p className="text-slate-300 font-semibold text-sm">Formato de publicación:</p>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={pubFormats.ebook}
+                          onChange={(e) => setPubFormats(prev => ({ ...prev, ebook: e.target.checked }))}
+                          className="w-4 h-4 rounded border-gray-300 accent-green-500"
+                        />
+                        <span className="text-sm text-slate-300">Ebook (libro electrónico Kindle)</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={pubFormats.paperback}
+                          onChange={(e) => setPubFormats(prev => ({ ...prev, paperback: e.target.checked }))}
+                          className="w-4 h-4 rounded border-gray-300 accent-green-500"
+                        />
+                        <span className="text-sm text-slate-300">Tapa blanda (libro impreso)</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <button
+                        onClick={exportKdpStrategy}
+                        className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                      >
+                        📋 Datos KDP (TXT)
+                      </button>
+                      <button
+                        onClick={exportDocx}
+                        disabled={isExporting || (!pubFormats.ebook && !pubFormats.paperback)}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                      >
+                        {isExporting ? (
+                          <>
+                            <span className="animate-spin">⟳</span> Exportando...
+                          </>
+                        ) : !pubFormats.ebook && !pubFormats.paperback ? (
+                          <>Selecciona al menos un formato</>
+                        ) : exportSuccess ? (
+                          <>✅ Descargar de nuevo</>
+                        ) : pubFormats.ebook && pubFormats.paperback ? (
+                          <>📥 Descargar Ebook + Tapa blanda</>
+                        ) : pubFormats.ebook ? (
+                          <>📥 Descargar Ebook (.docx)</>
+                        ) : (
+                          <>📥 Descargar Tapa blanda (.docx)</>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
