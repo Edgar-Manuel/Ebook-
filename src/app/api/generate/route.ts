@@ -27,7 +27,7 @@ const STEP_CONFIG: Record<
   1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
   2: { model: 'claude-sonnet-4-6', maxTokens: 8000, useThinking: false },
   3: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: true },
-  4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
+  4: { model: 'claude-sonnet-4-6', maxTokens: 8000, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
   6: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
   7: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: false },
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
 
       // Enforce minimum tokens for content-heavy steps regardless of CostOptimizer
-      const MIN_TOKENS: Record<number, number> = { 2: 8000, 3: 8192, 6: 8192, 7: 8192, 8: 8192 };
+      const MIN_TOKENS: Record<number, number> = { 2: 8000, 3: 8192, 4: 8000, 6: 8192, 7: 8192, 8: 8192 };
       if (MIN_TOKENS[step] && maxTokens < MIN_TOKENS[step]) {
         maxTokens = MIN_TOKENS[step];
       }
