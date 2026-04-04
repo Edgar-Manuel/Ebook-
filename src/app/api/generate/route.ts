@@ -55,6 +55,33 @@ REGLAS ABSOLUTAS DE FORMATO:
 10. TONO: Directo, conversacional, tutea al lector.
 11. TEXTO JUSTIFICADO.
 
+REGLAS DE GÉNERO INCLUSIVO (OBLIGATORIO):
+- El libro se dirige TANTO a hombres como a mujeres de 20 a 45 años.
+- SIEMPRE usa formas inclusivas: "tú mismo/a", "solo/a", "seguro/a", "preparado/a".
+- Cuando sea posible, reformula para evitar la barra: "recuperar tu autenticidad" en vez de "ser tú mismo/a".
+- NUNCA uses femenino exclusivo ("tú misma", "segura", "sola") ni masculino exclusivo ("tú mismo", "seguro", "solo") cuando te diriges al lector.
+- En ejemplos concretos, alterna: a veces "tu pareja" (neutro), a veces "tu novio", a veces "tu novia". A veces "tu jefe", a veces "tu jefa". Que el lector vea que el libro habla de su realidad independientemente de su género.
+- Los ejercicios prácticos también deben ser inclusivos: "Escribe una frase que te decían frecuentemente" en vez de "Cuando era niña, yo sabía que..."
+
+REGLA DE ENFOQUE EN EL PRESENTE (CRÍTICA - NO en la infancia):
+- El público son adultos de 20 a 45 años que viven el problema AHORA.
+- El FOCO del libro es el presente: relaciones actuales, trabajo actual, vida diaria actual.
+- La infancia puede mencionarse como origen de un patrón UNA SOLA VEZ EN TODO EL LIBRO, y solo si es estrictamente necesario. Si puedes explicar el patrón sin mencionar la infancia, no la menciones.
+- NUNCA abras un capítulo con una escena de infancia. Abre con una situación que el lector adulto reconozca HOY: una discusión de pareja, una situación en el trabajo, un momento con amigos, una reacción que tuvo esta semana.
+- NUNCA uses frases como "cuando eras pequeño/a", "tu cerebro infantil", "en tu infancia", "a los cinco años", "antes que el alfabeto". Este libro NO trata sobre la niñez. Trata sobre la vida adulta.
+- NUNCA abras ni cierres un capítulo con un ejercicio que pida al lector recordar su infancia. Los ejercicios deben referirse al PRESENTE: "Piensa en tu última semana. ¿En qué momento te callaste algo que querías decir?"
+- Transforma TODA referencia de infancia en referencia de presente:
+  × "Cuando eras pequeño/a y tu padre te ignoraba" → ✓ "Cuando tu pareja te ignora después de una discusión"
+  × "Tu madre te decía que eras demasiado sensible" → ✓ "¿Cuántas veces esta semana alguien te dijo que exagerabas?"
+  × "Aprendiste de niño/a que tus emociones eran un problema" → ✓ "Hoy sigues tragándote lo que sientes para no 'molestar' a nadie"
+- Si necesitas explicar el ORIGEN de un patrón, hazlo breve y abstracto: "Ese patrón se instaló hace mucho tiempo, probablemente antes de que pudieras cuestionarlo" y pasa inmediatamente al presente. NO desarrolles la escena de infancia.
+
+REGLA DE DIFERENCIACIÓN CON "EL PATRÓN QUE NO VES":
+- Este es un libro DIFERENTE al anterior. No debe sentirse como una versión 2.0 del mismo libro.
+- "El Patrón Que No Ves" se centraba en patrones relacionales y apego. Los nuevos libros se centran en narcisismo y recuperación de identidad.
+- Evita repetir la misma estructura narrativa: NO abras con "hay algo que nadie te enseñó a ver". NO cierres con "el patrón dejó de ser invisible".
+- El tono puede ser similar (directo, conversacional) pero los ejemplos, escenarios y herramientas deben ser DISTINTOS.
+
 ESTRUCTURA DEL LIBRO:
 - Portada interior (título, subtítulo, autor)
 - Copyright (© Año, autor, derechos reservados)

@@ -34,11 +34,81 @@ export function postProcessBookText(text: string): string {
   });
   text = cleaned.join('\n');
 
-  // 5. Collapse multiple spaces into one
+  // 5. Fix gender inclusivity (feminine-only → inclusive)
+  text = fixGenderInclusivity(text);
+
+  // 6. Detect excess childhood references (warn only, does not modify text)
+  reduceChildhoodReferences(text);
+
+  // 7. Collapse multiple spaces into one
   text = text.replace(/  +/g, ' ');
 
-  // 6. Collapse excessive blank lines (4+ → max 3)
+  // 8. Collapse excessive blank lines (4+ → max 3)
   text = text.replace(/\n{4,}/g, '\n\n\n');
 
   return text.trim();
+}
+
+/**
+ * Replaces feminine-exclusive forms with inclusive "o/a" forms
+ * when addressing the reader directly.
+ */
+function fixGenderInclusivity(text: string): string {
+  const replacements: [RegExp, string][] = [
+    [/\btú misma\b/g, 'tú mismo/a'],
+    [/\bti misma\b/g, 'ti mismo/a'],
+    [/\bcontigo misma\b/g, 'contigo mismo/a'],
+    [/\bhacia ti misma\b/g, 'hacia ti mismo/a'],
+    [/\bser tú misma\b/g, 'ser tú mismo/a'],
+    [/\bsegura de\b/g, 'seguro/a de'],
+    [/\bpreparada para\b/g, 'preparado/a para'],
+    [/\bconvencida de\b/g, 'convencido/a de'],
+    [/\batrapada en\b/g, 'atrapado/a en'],
+    [/\bsola\b(?!\w)/g, 'solo/a'],
+  ];
+
+  for (const [pattern, replacement] of replacements) {
+    text = text.replace(pattern, replacement);
+  }
+
+  return text;
+}
+
+/**
+ * Safety net: detects and warns about excess childhood references.
+ * The system prompt is the primary guard; this is a secondary check.
+ * Does NOT modify the text — only logs warnings.
+ */
+function reduceChildhoodReferences(text: string): void {
+  const childhoodPatterns = [
+    /cuando eras pequeñ[oa]/gi,
+    /cuando eras niñ[oa]/gi,
+    /en tu infancia/gi,
+    /de niñ[oa]/gi,
+    /tu cerebro infantil/gi,
+    /a los \d+ años/gi,
+    /creciste en/gi,
+    /antes que el alfabeto/gi,
+    /\bprogenitor\b/gi,
+  ];
+
+  let count = 0;
+  const matches: string[] = [];
+  for (const pattern of childhoodPatterns) {
+    const found = text.match(pattern);
+    if (found) {
+      count += found.length;
+      matches.push(...found);
+    }
+  }
+
+  if (count > 1) {
+    console.warn(
+      `⚠️ ADVERTENCIA: ${count} referencias a infancia detectadas. ` +
+      `MÁXIMO permitido: 1 en todo el libro. ` +
+      `Referencias: ${matches.slice(0, 5).join(', ')}...`
+    );
+  } else if (count === 1) {
+    console.info('✅ 1 referencia a infancia detectada (dentro del límite).');
+  }
 }
