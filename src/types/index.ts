@@ -21,6 +21,7 @@ export interface BookData {
   interests: string;
   authorName: string;
   ideas: BookIdea[];
+  allIdeas: BookIdea[];  // All ideas ever generated (auto-accumulated)
   selectedIdea: BookIdea | null;
   savedIdeas: BookIdea[];
 

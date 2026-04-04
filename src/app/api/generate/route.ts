@@ -3,7 +3,6 @@ import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/m
 import { getPrompt } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
-// Edge runtime is required for proper SSE streaming on Vercel
 export const runtime = 'edge';
 
 const client = new Anthropic();
@@ -26,7 +25,7 @@ const STEP_CONFIG: Record<
   { model: string; maxTokens: number; useThinking: boolean }
 > = {
   1: { model: 'claude-haiku-4-5-20251001', maxTokens: 2000, useThinking: false },
-  2: { model: 'claude-sonnet-4-6', maxTokens: 16000, useThinking: false },
+  2: { model: 'claude-sonnet-4-6', maxTokens: 8000, useThinking: false },
   3: { model: 'claude-sonnet-4-6', maxTokens: 8192, useThinking: true },
   4: { model: 'claude-haiku-4-5-20251001', maxTokens: 2500, useThinking: false },
   5: { model: 'claude-haiku-4-5-20251001', maxTokens: 3000, useThinking: false },
@@ -59,7 +58,7 @@ export async function POST(req: Request) {
       const shortId = modelConfig.assignments[step];
       const fullModelId = MODEL_ID_MAP[shortId] ?? shortId;
       const useThinking = SUPPORTS_THINKING.has(shortId) && !!(modelConfig.thinking?.[step]);
-
+      
       let maxTokens = modelConfig.maxTokens?.[step] ?? STEP_CONFIG[step]?.maxTokens ?? 3000;
 
       // Enforce minimum tokens for content-heavy steps regardless of CostOptimizer
@@ -75,9 +74,9 @@ export async function POST(req: Request) {
       };
     }
 
-    // Step 2 (outline): NEVER use thinking — it delays first visible token
-    // and wastes the edge runtime's 30s budget on invisible thinking tokens
-    if (step === 2) {
+    // Steps 1-2: NEVER use thinking — delays first visible token on edge runtime
+    // Step 3: disable thinking too — each chapter needs full 30s for text output
+    if (step <= 3) {
       config = { ...config, useThinking: false };
     }
 
