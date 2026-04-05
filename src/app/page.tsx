@@ -425,7 +425,7 @@ export default function Home() {
 
       alert('¡Libro guardado en tu Biblioteca Cloud de InsForge!');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? err.message : typeof err === 'object' ? JSON.stringify(err) : String(err);
       console.error('Cloud save failed:', msg);
       alert(`Error guardando en la nube: ${msg}\nSe guardará localmente.`);
 
