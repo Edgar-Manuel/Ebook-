@@ -271,6 +271,19 @@ export default function Home() {
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
+        // Restore images from separate localStorage key
+        let restoredCoverImage: string | null = null;
+        let restoredMarketingAssets: Record<string, string> = {};
+        try {
+          const savedImages = localStorage.getItem('ebook_ai_images');
+          if (savedImages) {
+            const imgs = JSON.parse(savedImages);
+            restoredCoverImage = imgs.coverImage || null;
+            restoredMarketingAssets = imgs.marketingAssets || {};
+          }
+        } catch (e) {
+          console.warn('Failed to restore images from localStorage', e);
+        }
         // Merge with initialBookData to ensure new properties like 'library' exist
         setBookData({
           ...initialBookData,
@@ -283,6 +296,9 @@ export default function Home() {
             ? parsed.savedIdeas
             : initialBookData.savedIdeas,
           writtenChapters: parsed.writtenChapters || {},
+          // Restore images
+          coverImage: restoredCoverImage,
+          marketingAssets: restoredMarketingAssets,
         });
       } catch (e) {
         console.error('Failed to load book data', e);
@@ -312,16 +328,30 @@ export default function Home() {
     if (!isLoaded) return;
     if (bookData !== initialBookData) {
       try {
-        // Optimization: Don't save the entire library or large cover images to localStorage
-        // This prevents QuotaExceededError (5MB limit)
-        const dataToSave = { 
-          ...bookData, 
-          library: [], // Keep library only in Cloud/State
-          coverImage: null // Keep images only in Cloud/State
+        // Save main data WITHOUT images and library (keeps under 5MB quota)
+        const dataToSave = {
+          ...bookData,
+          library: [],
+          coverImage: null,
+          marketingAssets: {},
         };
         localStorage.setItem('ebook_ai_data', JSON.stringify(dataToSave));
       } catch (e) {
-        console.warn('LocalStorage quota exceeded, but data is still in memory. Please use "Save to Library" (Cloud).', e);
+        console.warn('LocalStorage quota exceeded for main data.', e);
+      }
+
+      // Save images in a separate key (cover + A+ assets)
+      try {
+        const hasImages = bookData.coverImage || Object.keys(bookData.marketingAssets).length > 0;
+        if (hasImages) {
+          const imageData = {
+            coverImage: bookData.coverImage,
+            marketingAssets: bookData.marketingAssets,
+          };
+          localStorage.setItem('ebook_ai_images', JSON.stringify(imageData));
+        }
+      } catch (e) {
+        console.warn('LocalStorage quota exceeded for images. Images are backed up in InsForge Cloud.', e);
       }
     }
   }, [bookData, isLoaded]);

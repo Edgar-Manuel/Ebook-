@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenAI } from '@google/genai';
 import sharp from 'sharp';
 import type { BookData } from '@/types';
+import { insforge } from '@/lib/insforge';
 
 // Use Node.js runtime — required for sharp and Google GenAI
 export const runtime = 'nodejs';
@@ -39,12 +40,15 @@ Book details:
 - Genre / Niche: "${niche}"
 - Target Audience: "${audience}"
 
-Rules:
-- The prompt MUST include the exact title text "${title}" to be displayed prominently on the cover
-- Subtitle text "${subtitle}" should appear below the title in a smaller font
-- At the bottom center of the cover, the author name text "${authorName}" MUST be clearly written
+CRITICAL LAYOUT RULES (the text MUST be fully visible and never cut off):
+- The title "${title}" MUST be perfectly CENTERED horizontally, placed in the upper third of the cover
+- The title must have generous LEFT and RIGHT margins (at least 15% on each side) so NO word is cut off at the edges
+- If the title is long, it MUST wrap into multiple lines, each line centered, with NO text touching the left or right edges
+- The subtitle "${subtitle}" should appear CENTERED below the title, in a smaller font, also with wide margins
+- The author name "${authorName}" MUST be placed at the BOTTOM CENTER of the cover, well ABOVE the bottom edge (at least 10% from the bottom) so it is NEVER cropped or cut off
+- All text must be clearly legible against the background (use contrast, shadows, or text backgrounds if needed)
+- Portrait 9:16 ratio, high production quality, KDP-ready
 - Style must suit the "${niche}" genre
-- High production quality, KDP-ready, portrait 9:16 ratio
 - No watermarks, no borders, no extra UI elements
 - Return ONLY the prompt text — no explanation, no labels`,
       },
@@ -126,9 +130,21 @@ export async function POST(req: Request) {
       .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
       .toBuffer();
 
+    const coverBase64 = kindleBuffer.toString('base64');
+
+    // Auto-save cover to InsForge Storage
+    try {
+      const title = bookData.selectedIdea?.title ?? 'cover';
+      const fileName = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-COVER.jpg`;
+      const blob = new Blob([new Uint8Array(kindleBuffer)], { type: 'image/jpeg' });
+      await insforge.storage.from('ebooks').upload(fileName, blob);
+    } catch (e) {
+      console.warn('Cover cloud sync failed:', e);
+    }
+
     return new Response(
       JSON.stringify({
-        image: kindleBuffer.toString('base64'),
+        image: coverBase64,
         mimeType: 'image/jpeg',
         width: KINDLE_WIDTH,
         height: KINDLE_HEIGHT,

@@ -33,10 +33,11 @@ export async function POST(req: Request) {
       signature line for author '${authorName}'. Ensure the cover in the mockup matches the ATTACHED COVER exactly. 
       Professional editorial lighting. No extra text.`;
     } else if (type === 'method') {
-      prompt = `High-end Amazon KDP A+ module (970x600). Create a horizontal process layout with 4 minimalist icons: 
-      1. Identification, 2. Roots, 3. Breaking Cycle, 4. Healing. 
-      Use the EXACT warm, golden, cinematic color palette and artistic style of the ATTACHED COVER. 
-      Icons should look like high-quality professional illustrations. No text. Premium editorial aesthetic.`;
+      prompt = `High-end Amazon KDP A+ module (970x600). Create a horizontal process layout with 4 minimalist icons representing these 4 stages IN SPANISH:
+      1. "Identificación", 2. "Raíces", 3. "Romper el Ciclo", 4. "Sanación".
+      Write these labels IN SPANISH below each icon.
+      Use the EXACT warm, golden, cinematic color palette and artistic style of the ATTACHED COVER.
+      Icons should look like high-quality professional illustrations. Premium editorial aesthetic. ALL TEXT MUST BE IN SPANISH.`;
     }
 
     const genResponse = await ai.models.generateContent({
