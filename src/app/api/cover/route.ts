@@ -40,15 +40,16 @@ Book details:
 - Genre / Niche: "${niche}"
 - Target Audience: "${audience}"
 
-CRITICAL LAYOUT RULES (the text MUST be fully visible and never cut off):
-- The title "${title}" MUST be perfectly CENTERED horizontally, placed in the upper third of the cover
-- The title must have generous LEFT and RIGHT margins (at least 15% on each side) so NO word is cut off at the edges
-- If the title is long, it MUST wrap into multiple lines, each line centered, with NO text touching the left or right edges
-- The subtitle "${subtitle}" should appear CENTERED below the title, in a smaller font, also with wide margins
-- The author name "${authorName}" MUST be placed at the BOTTOM CENTER of the cover, well ABOVE the bottom edge (at least 10% from the bottom) so it is NEVER cropped or cut off
-- All text must be clearly legible against the background (use contrast, shadows, or text backgrounds if needed)
+ABSOLUTE SAFE ZONE RULES (MOST IMPORTANT - text gets cropped if you ignore these):
+- The cover has a SAFE ZONE: nothing important in the top 12%, bottom 12%, left 10%, or right 10% of the image.
+- ALL text (title, subtitle, author) MUST be INSIDE this safe zone. Text outside gets cropped by Amazon.
+- Title "${title}": Place it starting at ~15% from the top, horizontally centered, with text staying inside the safe zone. Use a font size that fits WITHOUT reaching the edges.
+- Subtitle "${subtitle}": Place BELOW the title, centered, smaller font, well inside the safe zone.
+- Author name "${authorName}": Place at approximately 85% from the top (NOT at the very bottom). It must be fully visible with space below it.
+- The visual artwork/illustration should occupy the CENTER of the cover (between ~35% and ~80% from top).
 - Portrait 9:16 ratio, high production quality, KDP-ready
 - Style must suit the "${niche}" genre
+- All text must be clearly legible (use contrast, text shadows, or semi-transparent backgrounds behind text)
 - No watermarks, no borders, no extra UI elements
 - Return ONLY the prompt text — no explanation, no labels`,
       },
@@ -121,11 +122,16 @@ export async function POST(req: Request) {
     }
 
     // ── Step 4: resize to exact Kindle dimensions ─────────────────────────
+    // Use 'contain' instead of 'cover' to avoid cropping text at edges.
+    // Detect dominant edge color for seamless background fill.
     const rawBuffer = Buffer.from(imageBase64, 'base64');
+    const { dominant } = await sharp(rawBuffer).stats();
+    const bgColor = { r: dominant.r, g: dominant.g, b: dominant.b };
     const kindleBuffer = await sharp(rawBuffer)
       .resize(KINDLE_WIDTH, KINDLE_HEIGHT, {
-        fit: 'cover',
+        fit: 'contain',
         position: 'centre',
+        background: bgColor,
       })
       .jpeg({ quality: 95, chromaSubsampling: '4:4:4' })
       .toBuffer();
