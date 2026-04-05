@@ -9,9 +9,7 @@ import {
   Header,
   Footer,
   PageNumber,
-  PageNumberSeparator,
   ImageRun,
-  SectionType,
 } from 'docx';
 import type { BookData } from '@/types';
 import { postProcessBookText } from './postprocess';
@@ -31,8 +29,8 @@ export interface DocxOptions {
 const BASE_STYLES = {
   default: {
     document: {
-      run: { font: 'Times New Roman', size: 24 }, // 12pt
-      paragraph: { spacing: { line: 300 } },       // 1.25 interlineado
+      run: { font: 'Times New Roman', size: 24 },
+      paragraph: { spacing: { line: 300 } },
     },
   },
   paragraphStyles: [
@@ -52,7 +50,7 @@ const BASE_STYLES = {
       basedOn: 'Normal',
       next: 'Normal',
       quickFormat: true,
-      run: { font: 'Times New Roman', size: 32, bold: true }, // 16pt
+      run: { font: 'Times New Roman', size: 32, bold: true },
       paragraph: {
         spacing: { before: 360, after: 240 },
         alignment: AlignmentType.LEFT,
@@ -65,7 +63,7 @@ const BASE_STYLES = {
       basedOn: 'Normal',
       next: 'Normal',
       quickFormat: true,
-      run: { font: 'Times New Roman', size: 28, bold: true }, // 14pt
+      run: { font: 'Times New Roman', size: 28, bold: true },
       paragraph: {
         spacing: { before: 240, after: 120 },
         alignment: AlignmentType.LEFT,
@@ -78,12 +76,12 @@ const BASE_STYLES = {
 // ── Page configs ─────────────────────────────────────────────────────────────
 
 const EBOOK_PAGE = {
-  size: { width: 8640, height: 12960 },   // 6" × 9"
+  size: { width: 8640, height: 12960 },
   margin: { top: 1020, bottom: 1020, left: 1020, right: 1020, gutter: 0 },
 };
 
 const PAPERBACK_PAGE = {
-  size: { width: 8640, height: 12960 },   // 6" × 9"
+  size: { width: 8640, height: 12960 },
   margin: { top: 1020, bottom: 1020, left: 1417, right: 1417, gutter: 227 },
 };
 
@@ -174,10 +172,7 @@ function parseMarkdownToParagraphs(text: string): Paragraph[] {
 
 // ── Build front matter ───────────────────────────────────────────────────────
 
-function buildFrontMatter(
-  bookData: BookData,
-  opts: DocxOptions
-): Paragraph[] {
+function buildFrontMatter(bookData: BookData, opts: DocxOptions): Paragraph[] {
   const children: Paragraph[] = [];
 
   // Cover image (full page) — both formats
@@ -203,12 +198,12 @@ function buildFrontMatter(
     }
   }
 
-  // Paperback: 2 blank pages at the start
+  // Paperback ONLY: 2 blank pages at the start
   if (opts.mode === 'paperback') {
     children.push(
-      new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 0 } }),
+      new Paragraph({ children: [new TextRun({ text: ' ' })], spacing: { before: 0 } }),
       new Paragraph({ children: [new PageBreak()] }),
-      new Paragraph({ children: [new TextRun({ text: '' })], spacing: { before: 0 } }),
+      new Paragraph({ children: [new TextRun({ text: ' ' })], spacing: { before: 0 } }),
       new Paragraph({ children: [new PageBreak()] })
     );
   }
@@ -263,7 +258,10 @@ function buildFrontMatter(
         new TextRun({ text: 'Esta obra ha sido publicada bajo licencia de contenido exclusivo para Amazon Kindle Direct Publishing.', size: 24, font: 'Times New Roman', break: 1 }),
         new TextRun({ text: 'Se prohíbe la reproducción total o parcial de este libro sin permiso escrito del autor, salvo para citas breves en artículos, reseñas y otros usos permitidos por la ley de derechos de autor.', size: 24, font: 'Times New Roman', break: 1 }),
         new TextRun({ text: '', size: 24, break: 1 }),
-        new TextRun({ text: 'Versión 1.0 - Edición Kindle', size: 24, font: 'Times New Roman', italics: true, break: 1 }),
+        new TextRun({
+          text: opts.mode === 'paperback' ? 'Versión 1.0 - Edición Tapa Blanda' : 'Versión 1.0 - Edición Kindle',
+          size: 24, font: 'Times New Roman', italics: true, break: 1,
+        }),
       ],
     }),
     new Paragraph({ children: [new PageBreak()] })
@@ -309,7 +307,7 @@ function buildFrontMatter(
 
 // ── Build Table of Contents ──────────────────────────────────────────────────
 
-function buildTOC(bookData: BookData, opts: DocxOptions): Paragraph[] {
+function buildTOC(bookData: BookData): Paragraph[] {
   const children: Paragraph[] = [];
 
   children.push(
@@ -351,7 +349,7 @@ function buildTOC(bookData: BookData, opts: DocxOptions): Paragraph[] {
 
 // ── Build chapters ───────────────────────────────────────────────────────────
 
-function buildChapters(bookData: BookData): Paragraph[] {
+function buildChapters(bookData: BookData, mode: DocxMode): Paragraph[] {
   const children: Paragraph[] = [];
   const writtenChapters = bookData.writtenChapters ?? {};
 
@@ -360,7 +358,25 @@ function buildChapters(bookData: BookData): Paragraph[] {
       const content = writtenChapters[chapter.number];
 
       if (content) {
-        const paragraphs = parseMarkdownToParagraphs(content);
+        // Ensure chapter header has "Capítulo X:" prefix
+        let processedContent = content;
+        const chapterPrefix = `Capítulo ${chapter.number}:`;
+
+        // Check if the content starts with the chapter title but without "Capítulo X:" prefix
+        // Look at the first H1/H2 heading in the content
+        const headingMatch = processedContent.match(/^(#{1,2}\s+)(.*?)$/m);
+        if (headingMatch) {
+          const headingText = headingMatch[2].replace(/\*\*/g, '');
+          if (!headingText.includes(chapterPrefix)) {
+            // Replace the heading with the correct prefixed version
+            processedContent = processedContent.replace(
+              headingMatch[0],
+              `${headingMatch[1]}${chapterPrefix} ${headingText}`
+            );
+          }
+        }
+
+        const paragraphs = parseMarkdownToParagraphs(processedContent);
         children.push(...paragraphs);
       } else {
         children.push(
@@ -392,7 +408,16 @@ function buildChapters(bookData: BookData): Paragraph[] {
         }
       }
 
-      children.push(new Paragraph({ children: [new PageBreak()] }));
+      // Paperback: force each chapter to start on odd page by adding extra page break
+      if (mode === 'paperback') {
+        // Two page breaks = ensures next content starts on an odd page
+        children.push(
+          new Paragraph({ children: [new PageBreak()] }),
+          new Paragraph({ children: [new PageBreak()] })
+        );
+      } else {
+        children.push(new Paragraph({ children: [new PageBreak()] }));
+      }
     }
   }
 
@@ -441,7 +466,8 @@ function buildCTA(): Paragraph[] {
 
 /**
  * Generate a .docx buffer for either ebook or paperback format.
- * Content is the same; only page setup, headers/footers, and margins differ.
+ * Content is the same; page setup, headers/footers, margins, and
+ * blank-page strategy differ per mode.
  */
 export async function generateDocx(
   bookData: BookData,
@@ -455,20 +481,21 @@ export async function generateDocx(
 
   const pageConfig = mode === 'paperback' ? PAPERBACK_PAGE : EBOOK_PAGE;
 
-  // Assemble all content
+  // Assemble all content — pass mode to chapters for paperback odd-page forcing
   const children = [
     ...buildFrontMatter(bookData, opts),
-    ...buildTOC(bookData, opts),
-    ...buildChapters(bookData),
+    ...buildTOC(bookData),
+    ...buildChapters(bookData, mode),
     ...buildCTA(),
   ];
 
-  // Paperback: headers (author on even pages, title on odd) + page numbers
+  // Section properties differ by format
   const sectionProps: Record<string, unknown> = {
     page: pageConfig,
   };
 
   if (mode === 'paperback') {
+    // Headers: even pages → author, odd pages → title, first page → none
     sectionProps.headers = {
       even: new Header({
         children: [new Paragraph({
@@ -484,6 +511,7 @@ export async function generateDocx(
       }),
       first: new Header({ children: [new Paragraph({ text: '' })] }),
     };
+    // Footer: centered page number
     sectionProps.footers = {
       default: new Footer({
         children: [new Paragraph({
@@ -496,7 +524,7 @@ export async function generateDocx(
         })],
       }),
     };
-    sectionProps.titlePage = true; // first page different (no header)
+    sectionProps.titlePage = true;
   }
 
   const doc = new Document({
@@ -507,5 +535,9 @@ export async function generateDocx(
     sections: [{ properties: sectionProps as never, children }],
   });
 
-  return await Packer.toBuffer(doc);
+  const buffer = await Packer.toBuffer(doc);
+
+  console.info(`[docx-generator] mode=${mode}, size=${buffer.length} bytes, children=${children.length}`);
+
+  return buffer;
 }

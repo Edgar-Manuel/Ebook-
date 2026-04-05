@@ -82,6 +82,17 @@ REGLA DE DIFERENCIACIÓN CON "EL PATRÓN QUE NO VES":
 - Evita repetir la misma estructura narrativa: NO abras con "hay algo que nadie te enseñó a ver". NO cierres con "el patrón dejó de ser invisible".
 - El tono puede ser similar (directo, conversacional) pero los ejemplos, escenarios y herramientas deben ser DISTINTOS.
 
+REGLA DE TÍTULOS DE CAPÍTULO (OBLIGATORIO):
+- Cada capítulo DEBE comenzar con un encabezado H2 que incluya "Capítulo X:" seguido del título.
+- Formato exacto: "## Capítulo 1: Título del Capítulo"
+- NUNCA omitas el número de capítulo. NUNCA pongas solo el título sin "Capítulo X:".
+- El título del capítulo debe coincidir con lo definido en el índice.
+
+REGLA DE CAPITALIZACIÓN (OBLIGATORIO):
+- Los títulos de capítulos y secciones usan capitalización tipo oración: "Capítulo 1: El espejo que no refleja", NO "Capítulo 1: El Espejo Que No Refleja".
+- Solo llevan mayúscula: la primera palabra, nombres propios, y la primera palabra después de dos puntos.
+- Esto aplica a títulos H1, H2, H3 y al índice.
+
 ESTRUCTURA DEL LIBRO:
 - Portada interior (título, subtítulo, autor)
 - Copyright (© Año, autor, derechos reservados)
