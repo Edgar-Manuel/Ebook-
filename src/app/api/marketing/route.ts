@@ -33,10 +33,11 @@ export async function POST(req: Request) {
       signature line for author '${authorName}'. Ensure the cover in the mockup matches the ATTACHED COVER exactly. 
       Professional editorial lighting. No extra text.`;
     } else if (type === 'method') {
-      prompt = `High-end Amazon KDP A+ module (970x600). Create a horizontal process layout with 4 minimalist icons representing these 4 stages IN SPANISH:
-      1. "Identificación", 2. "Raíces", 3. "Romper el Ciclo", 4. "Sanación".
-      Write these labels IN SPANISH below each icon.
-      Use the EXACT warm, golden, cinematic color palette and artistic style of the ATTACHED COVER.
+      prompt = `High-end Amazon KDP A+ module (970x600) for the book "${title}".
+      Create a horizontal process layout with 4 minimalist icons representing the 4 KEY STAGES or STEPS that this specific book teaches its reader.
+      Infer the 4 stages from the book title "${title}" and its cover design. The stages should represent the reader's transformation journey as promised by this book.
+      Write a SHORT LABEL IN SPANISH below each icon (2-3 words max per label).
+      Use the EXACT warm, cinematic color palette and artistic style of the ATTACHED COVER.
       Icons should look like high-quality professional illustrations. Premium editorial aesthetic. ALL TEXT MUST BE IN SPANISH.`;
     }
 
