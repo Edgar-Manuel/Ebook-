@@ -12,8 +12,10 @@ export function postProcessBookText(text: string): string {
   text = text.replace(/ -- /g, ' -');
   text = text.replace(/--/g, '-');
 
-  // 2. Restore section separators (lone hyphen on its own line → ---)
-  text = text.replace(/^\-$/gm, '---');
+  // 2. Normalize separators: any line with 3+ dashes → exactly "---"
+  text = text.replace(/^-{3,}$/gm, '---');
+  // Also restore lone hyphen on its own line → ---
+  text = text.replace(/^-$/gm, '---');
 
   // 3. Remove English artifacts and placeholders
   text = text.replace(/This book.*?is designed for.*?\./gi, '');
@@ -55,6 +57,7 @@ export function postProcessBookText(text: string): string {
  */
 function fixGenderInclusivity(text: string): string {
   const replacements: [RegExp, string][] = [
+    // Feminine-exclusive → inclusive
     [/\btú misma\b/g, 'tú mismo/a'],
     [/\bti misma\b/g, 'ti mismo/a'],
     [/\bcontigo misma\b/g, 'contigo mismo/a'],
@@ -64,7 +67,24 @@ function fixGenderInclusivity(text: string): string {
     [/\bpreparada para\b/g, 'preparado/a para'],
     [/\bconvencida de\b/g, 'convencido/a de'],
     [/\batrapada en\b/g, 'atrapado/a en'],
-    [/\bsola\b(?!\w)/g, 'solo/a'],
+    [/\bestás sola\b/g, 'estás solo/a'],
+    [/\bsentirte sola\b/g, 'sentirte solo/a'],
+    [/\bquedarte sola\b/g, 'quedarte solo/a'],
+    [/\bquedar sola\b/g, 'quedar solo/a'],
+    // Masculine-exclusive without /a → inclusive
+    [/\btú mismo\b(?!\/)/g, 'tú mismo/a'],
+    [/\bti mismo\b(?!\/)/g, 'ti mismo/a'],
+    [/\bcontigo mismo\b(?!\/)/g, 'contigo mismo/a'],
+    [/\bhacia ti mismo\b(?!\/)/g, 'hacia ti mismo/a'],
+    [/\bser tú mismo\b(?!\/)/g, 'ser tú mismo/a'],
+    [/\bseguro de\b(?!\/)/g, 'seguro/a de'],
+    [/\bpreparado para\b(?!\/)/g, 'preparado/a para'],
+    [/\bconvencido de\b(?!\/)/g, 'convencido/a de'],
+    [/\batrapado en\b(?!\/)/g, 'atrapado/a en'],
+    [/\bestás solo\b(?!\/)/g, 'estás solo/a'],
+    [/\bsentirte solo\b(?!\/)/g, 'sentirte solo/a'],
+    [/\bquedarte solo\b(?!\/)/g, 'quedarte solo/a'],
+    [/\bquedar solo\b(?!\/)/g, 'quedar solo/a'],
   ];
 
   for (const [pattern, replacement] of replacements) {
