@@ -387,8 +387,15 @@ export default function Home() {
   const saveToLibrary = async () => {
     if (!bookData.selectedIdea) return;
 
-    // 1. Save to cloud (InsForge) — exclude large base64 images from DB row
+    // 1. Save to cloud (InsForge) — only essential metadata in DB.
+    //    Large content (images, full chapters) is kept in Storage + localStorage.
     try {
+      // Truncate written_chapters to first 200 chars each (summary only for DB)
+      const chapterSummaries: Record<number, string> = {};
+      for (const [key, text] of Object.entries(bookData.writtenChapters)) {
+        chapterSummaries[Number(key)] = text.slice(0, 200) + '...';
+      }
+
       const { error } = await insforge.database.from('books').insert([
         {
           niche: bookData.niche,
@@ -397,14 +404,14 @@ export default function Home() {
           selected_idea: bookData.selectedIdea,
           outline: bookData.outline,
           chapters: bookData.chapters,
-          written_chapters: bookData.writtenChapters,
-          cover_design: bookData.coverDesign,
-          cover_image: null, // Images stored in Storage, not DB (too large)
+          written_chapters: chapterSummaries,
+          cover_design: null,
+          cover_image: null,
           cover_prompt: bookData.coverPrompt,
-          kdp_setup: bookData.kdpSetup,
-          pricing_strategy: bookData.pricingStrategy,
-          marketing_content: bookData.marketingContent,
-          marketing_assets: {}, // Images stored in Storage, not DB
+          kdp_setup: null,
+          pricing_strategy: null,
+          marketing_content: null,
+          marketing_assets: {},
         },
       ]);
 
@@ -416,10 +423,11 @@ export default function Home() {
         library: [...prev.library, { ...prev, library: [] }]
       }));
 
-      alert('¡Libro guardado en tu Biblioteca Cloud de InsForge! Ya es permanente y seguro.');
+      alert('¡Libro guardado en tu Biblioteca Cloud de InsForge!');
     } catch (err) {
-      console.error('Cloud save failed', err);
-      alert('Error guardando en la nube. Se guardará localmente.');
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Cloud save failed:', msg);
+      alert(`Error guardando en la nube: ${msg}\nSe guardará localmente.`);
 
       // Fallback local save
       setBookData(prev => ({
