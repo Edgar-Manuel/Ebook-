@@ -387,31 +387,49 @@ export default function Home() {
   const saveToLibrary = async () => {
     if (!bookData.selectedIdea) return;
 
-    // 1. Save to cloud (InsForge) — only essential metadata in DB.
-    //    Large content (images, full chapters) is kept in Storage + localStorage.
-    try {
-      // Truncate written_chapters to first 200 chars each (summary only for DB)
-      const chapterSummaries: Record<number, string> = {};
-      for (const [key, text] of Object.entries(bookData.writtenChapters)) {
-        chapterSummaries[Number(key)] = text.slice(0, 200) + '...';
-      }
+    // Full row with all columns (requires migration to have run)
+    const fullRow = {
+      niche: bookData.niche,
+      interests: bookData.interests,
+      author_name: bookData.authorName,
+      selected_idea: bookData.selectedIdea,
+      outline: bookData.outline,
+      chapters: bookData.chapters,
+      written_chapters: bookData.writtenChapters,
+      cover_design: bookData.coverDesign || null,
+      cover_image: null, // Too large for DB — stored in Storage
+      cover_prompt: bookData.coverPrompt,
+      kdp_setup: bookData.kdpSetup || null,
+      pricing_strategy: bookData.pricingStrategy || null,
+      marketing_content: bookData.marketingContent || null,
+      marketing_assets: {}, // Too large for DB — stored in Storage
+    };
 
-      const { error } = await insforge.database.from('books').insert([
-        {
-          niche: bookData.niche,
-          interests: bookData.interests,
-          author_name: bookData.authorName,
-          selected_idea: bookData.selectedIdea,
-          outline: bookData.outline,
-          chapters: bookData.chapters,
-          written_chapters: chapterSummaries,
-          cover_prompt: bookData.coverPrompt,
-        },
-      ]);
+    // Minimal row (only original columns, always works)
+    const minimalRow = {
+      niche: bookData.niche,
+      interests: bookData.interests,
+      author_name: bookData.authorName,
+      selected_idea: bookData.selectedIdea,
+      outline: bookData.outline,
+      chapters: bookData.chapters,
+      written_chapters: bookData.writtenChapters,
+      cover_prompt: bookData.coverPrompt,
+    };
+
+    try {
+      // Try full row first (works after migration)
+      let { error } = await insforge.database.from('books').insert([fullRow]);
+
+      // If column doesn't exist, fallback to minimal row
+      if (error?.code === 'PGRST204') {
+        console.warn('Full save failed, trying minimal columns...');
+        const res = await insforge.database.from('books').insert([minimalRow]);
+        error = res.error;
+      }
 
       if (error) throw error;
 
-      // 2. Update local state
       setBookData(prev => ({
         ...prev,
         library: [...prev.library, { ...prev, library: [] }]
@@ -423,7 +441,6 @@ export default function Home() {
       console.error('Cloud save failed:', msg);
       alert(`Error guardando en la nube: ${msg}\nSe guardará localmente.`);
 
-      // Fallback local save
       setBookData(prev => ({
         ...prev,
         library: [...prev.library, { ...prev, library: [] }]
@@ -446,16 +463,20 @@ export default function Home() {
         if (error) throw error;
 
         if (data && data.length > 0) {
-          const cloudBooks = data.map(row => ({
+          const cloudBooks = data.map((row: Record<string, unknown>) => ({
             ...initialBookData,
-            niche: row.niche || '',
-            interests: row.interests || '',
-            authorName: row.author_name || '',
-            selectedIdea: row.selected_idea,
-            outline: row.outline || '',
-            chapters: row.chapters || [],
-            writtenChapters: row.written_chapters || {},
-            coverPrompt: row.cover_prompt || '',
+            niche: (row.niche as string) || '',
+            interests: (row.interests as string) || '',
+            authorName: (row.author_name as string) || '',
+            selectedIdea: row.selected_idea as BookIdea,
+            outline: (row.outline as string) || '',
+            chapters: (row.chapters as Chapter[]) || [],
+            writtenChapters: (row.written_chapters as Record<number, string>) || {},
+            coverDesign: (row.cover_design as string) || '',
+            coverPrompt: (row.cover_prompt as string) || '',
+            kdpSetup: (row.kdp_setup as string) || '',
+            pricingStrategy: (row.pricing_strategy as string) || '',
+            marketingContent: (row.marketing_content as string) || '',
           }));
 
           setBookData(prev => ({
