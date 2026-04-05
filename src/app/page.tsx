@@ -386,8 +386,8 @@ export default function Home() {
 
   const saveToLibrary = async () => {
     if (!bookData.selectedIdea) return;
-    
-    // 1. Save to cloud (InsForge)
+
+    // 1. Save to cloud (InsForge) — exclude large base64 images from DB row
     try {
       const { error } = await insforge.database.from('books').insert([
         {
@@ -399,17 +399,17 @@ export default function Home() {
           chapters: bookData.chapters,
           written_chapters: bookData.writtenChapters,
           cover_design: bookData.coverDesign,
-          cover_image: bookData.coverImage,
+          cover_image: null, // Images stored in Storage, not DB (too large)
           cover_prompt: bookData.coverPrompt,
           kdp_setup: bookData.kdpSetup,
           pricing_strategy: bookData.pricingStrategy,
           marketing_content: bookData.marketingContent,
-          marketing_assets: bookData.marketingAssets,
+          marketing_assets: {}, // Images stored in Storage, not DB
         },
       ]);
 
       if (error) throw error;
-      
+
       // 2. Update local state
       setBookData(prev => ({
         ...prev,
@@ -420,7 +420,7 @@ export default function Home() {
     } catch (err) {
       console.error('Cloud save failed', err);
       alert('Error guardando en la nube. Se guardará localmente.');
-      
+
       // Fallback local save
       setBookData(prev => ({
         ...prev,
@@ -786,10 +786,11 @@ export default function Home() {
 
       // Guardado silencioso de la portada en InsForge Storage
       try {
+        await insforge.storage.from('ebooks').remove(fileName).catch(() => {});
         const { error: storageError } = await insforge.storage
           .from('ebooks')
           .upload(fileName, blob);
-          
+
         if (storageError) {
           console.error('Storage upload error (cover):', storageError.message);
         } else {
@@ -832,8 +833,9 @@ export default function Home() {
       URL.revokeObjectURL(url);
     }, 100);
 
-    // Cloud backup
+    // Cloud backup (delete old then upload to avoid duplicates)
     try {
+      await insforge.storage.from('ebooks').remove(fileName).catch(() => {});
       const { error: storageError } = await insforge.storage
         .from('ebooks')
         .upload(fileName, blob);
@@ -849,6 +851,10 @@ export default function Home() {
     setExportSuccess(false);
     try {
       if (pubFormats.ebook) await exportDocxForMode('ebook');
+      // Delay between downloads so the browser doesn't block the second one
+      if (pubFormats.ebook && pubFormats.paperback) {
+        await new Promise(r => setTimeout(r, 1500));
+      }
       if (pubFormats.paperback) await exportDocxForMode('paperback');
       setExportSuccess(true);
     } catch (err) {

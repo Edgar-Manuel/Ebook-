@@ -143,6 +143,7 @@ export async function POST(req: Request) {
       const title = bookData.selectedIdea?.title ?? 'cover';
       const fileName = `${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-COVER.jpg`;
       const blob = new Blob([new Uint8Array(kindleBuffer)], { type: 'image/jpeg' });
+      await insforge.storage.from('ebooks').remove(fileName).catch(() => {});
       await insforge.storage.from('ebooks').upload(fileName, blob);
     } catch (e) {
       console.warn('Cover cloud sync failed:', e);
