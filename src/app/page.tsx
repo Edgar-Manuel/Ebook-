@@ -405,13 +405,7 @@ export default function Home() {
           outline: bookData.outline,
           chapters: bookData.chapters,
           written_chapters: chapterSummaries,
-          cover_design: null,
-          cover_image: null,
           cover_prompt: bookData.coverPrompt,
-          kdp_setup: null,
-          pricing_strategy: null,
-          marketing_content: null,
-          marketing_assets: {},
         },
       ]);
 
@@ -454,20 +448,14 @@ export default function Home() {
         if (data && data.length > 0) {
           const cloudBooks = data.map(row => ({
             ...initialBookData,
-            niche: row.niche,
-            interests: row.interests,
-            authorName: row.author_name,
+            niche: row.niche || '',
+            interests: row.interests || '',
+            authorName: row.author_name || '',
             selectedIdea: row.selected_idea,
-            outline: row.outline,
-            chapters: row.chapters,
-            writtenChapters: row.written_chapters,
-            coverDesign: row.cover_design,
-            coverImage: row.cover_image,
-            coverPrompt: row.cover_prompt,
-            kdpSetup: row.kdp_setup,
-            pricingStrategy: row.pricing_strategy,
-            marketingContent: row.marketing_content,
-            marketingAssets: row.marketing_assets || {},
+            outline: row.outline || '',
+            chapters: row.chapters || [],
+            writtenChapters: row.written_chapters || {},
+            coverPrompt: row.cover_prompt || '',
           }));
 
           setBookData(prev => ({
