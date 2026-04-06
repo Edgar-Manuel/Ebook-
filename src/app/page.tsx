@@ -1877,8 +1877,8 @@ ${bookData.marketingContent || 'No generado'}
                           <div className="mt-8 border-t border-slate-700/50 pt-8 animate-fade-in">
                             <div className="flex items-center justify-between mb-6">
                               <div>
-                                <h4 className="text-white font-bold text-lg mb-1">🚀 Amazon KDP Marketing Pack</h4>
-                                <p className="text-slate-400 text-sm">3 Módulos de Contenido A+ Premium (970x600 px)</p>
+                                <h4 className="text-white font-bold text-lg mb-1">🚀 Amazon KDP A+ Content Pack</h4>
+                                <p className="text-slate-400 text-sm">3 Módulos Premium · 1940×1200 px (Retina 2x) · RGB · Amazon Compliance</p>
                               </div>
                               <button
                                 onClick={generateMarketingPack}
@@ -1893,12 +1893,17 @@ ${bookData.marketingContent || 'No generado'}
                             {marketingError && <p className="text-red-400 text-sm mb-4">❌ {marketingError}</p>}
 
                             <div className="grid grid-cols-1 gap-6">
-                              {['comparison', 'authority', 'method'].map((type) => (
+                              {[
+                                { type: 'comparison', label: 'Módulo 1: Antes vs. Después', desc: 'Gancho emocional — el lector se identifica con el dolor y ve la transformación' },
+                                { type: 'authority', label: 'Módulo 2: Autoridad del Autor', desc: 'Credibilidad editorial — mockup 3D del libro con firma personal' },
+                                { type: 'method', label: 'Módulo 3: Metodología / Proceso', desc: 'Infografía de las 4 fases — transforma características en beneficios' },
+                              ].map(({ type, label, desc }) => (
                                 <div key={type} className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 transition-all hover:bg-slate-800/60 overflow-hidden">
-                                  <div className="flex items-center justify-between mb-4">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                                      {type === 'comparison' ? 'Módulo 1: Transformación' : type === 'authority' ? 'Módulo 2: Autoridad' : 'Módulo 3: Metodología'}
-                                    </span>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div>
+                                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">{label}</span>
+                                      <p className="text-[11px] text-slate-500 mt-0.5">{desc}</p>
+                                    </div>
                                     {bookData.marketingAssets[type] && (
                                       <button 
                                         onClick={() => {
@@ -1906,19 +1911,19 @@ ${bookData.marketingContent || 'No generado'}
                                           const url = URL.createObjectURL(blob);
                                           const link = document.createElement('a');
                                           link.href = url;
-                                          link.download = `${bookData.selectedIdea?.title}-Aplus-${type}.jpg`;
+                                          link.download = `${bookData.selectedIdea?.title}-Aplus-${type}-2x.jpg`;
                                           link.click();
                                         }}
                                         className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-lg text-slate-300"
                                       >
-                                        📥 Descargar Jpg
+                                        📥 Descargar 2x JPG
                                       </button>
                                     )}
                                   </div>
                                   
                                   <div className="aspect-[970/600] w-full bg-slate-900/80 rounded-xl overflow-hidden border border-slate-700/50 flex items-center justify-center relative">
                                     {bookData.marketingAssets[type] ? (
-                                      <img src={`data:image/jpeg;base64,${bookData.marketingAssets[type]}`} alt={type} className="w-full h-full object-cover" />
+                                      <img src={`data:image/jpeg;base64,${bookData.marketingAssets[type]}`} alt={`A+ ${label}`} className="w-full h-full object-cover" />
                                     ) : (
                                       <div className="text-slate-700 flex flex-col items-center gap-2">
                                         <div className="text-3xl">🖼️</div>
