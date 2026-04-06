@@ -387,35 +387,52 @@ export default function Home() {
   const saveToLibrary = async () => {
     if (!bookData.selectedIdea) return;
 
+    // Snapshot all generated data explicitly to avoid missing fields
+    const snapshot: BookData = {
+      ...bookData,
+      // Ensure step 6/7/8 data is captured even if user is still on a step
+      kdpSetup: bookData.kdpSetup || '',
+      pricingStrategy: bookData.pricingStrategy || '',
+      marketingContent: bookData.marketingContent || '',
+      // Clean up non-serializable/large fields for library entry
+      library: [],
+    };
+
     // Full row with all columns (requires migration to have run)
     const fullRow = {
-      niche: bookData.niche,
-      interests: bookData.interests,
-      author_name: bookData.authorName,
-      selected_idea: bookData.selectedIdea,
-      outline: bookData.outline,
-      chapters: bookData.chapters,
-      written_chapters: bookData.writtenChapters,
-      cover_design: bookData.coverDesign || null,
+      niche: snapshot.niche,
+      interests: snapshot.interests,
+      author_name: snapshot.authorName,
+      selected_idea: snapshot.selectedIdea,
+      outline: snapshot.outline,
+      chapters: snapshot.chapters,
+      written_chapters: snapshot.writtenChapters,
+      cover_design: snapshot.coverDesign || null,
       cover_image: null, // Too large for DB — stored in Storage
-      cover_prompt: bookData.coverPrompt,
-      kdp_setup: bookData.kdpSetup || null,
-      pricing_strategy: bookData.pricingStrategy || null,
-      marketing_content: bookData.marketingContent || null,
+      cover_prompt: snapshot.coverPrompt,
+      kdp_setup: snapshot.kdpSetup || null,
+      pricing_strategy: snapshot.pricingStrategy || null,
+      marketing_content: snapshot.marketingContent || null,
       marketing_assets: {}, // Too large for DB — stored in Storage
     };
 
     // Minimal row (only original columns, always works)
     const minimalRow = {
-      niche: bookData.niche,
-      interests: bookData.interests,
-      author_name: bookData.authorName,
-      selected_idea: bookData.selectedIdea,
-      outline: bookData.outline,
-      chapters: bookData.chapters,
-      written_chapters: bookData.writtenChapters,
-      cover_prompt: bookData.coverPrompt,
+      niche: snapshot.niche,
+      interests: snapshot.interests,
+      author_name: snapshot.authorName,
+      selected_idea: snapshot.selectedIdea,
+      outline: snapshot.outline,
+      chapters: snapshot.chapters,
+      written_chapters: snapshot.writtenChapters,
+      cover_prompt: snapshot.coverPrompt,
     };
+
+    // Add to local library immediately (keeps all rich data including steps 6/7/8)
+    setBookData(prev => ({
+      ...prev,
+      library: [...prev.library, snapshot]
+    }));
 
     try {
       // Try full row first (works after migration)
@@ -429,22 +446,11 @@ export default function Home() {
       }
 
       if (error) throw error;
-
-      setBookData(prev => ({
-        ...prev,
-        library: [...prev.library, { ...prev, library: [] }]
-      }));
-
       alert('¡Libro guardado en tu Biblioteca Cloud de InsForge!');
     } catch (err) {
       const msg = err instanceof Error ? err.message : typeof err === 'object' ? JSON.stringify(err) : String(err);
       console.error('Cloud save failed:', msg);
       alert(`Error guardando en la nube: ${msg}\nSe guardará localmente.`);
-
-      setBookData(prev => ({
-        ...prev,
-        library: [...prev.library, { ...prev, library: [] }]
-      }));
     }
   };
 
@@ -479,10 +485,35 @@ export default function Home() {
             marketingContent: (row.marketing_content as string) || '',
           }));
 
-          setBookData(prev => ({
-            ...prev,
-            library: cloudBooks
-          }));
+          // Merge with local library: prefer local data (richer) over cloud data (may lack columns)
+          setBookData(prev => {
+            const localByTitle = new Map(
+              prev.library.map(b => [b.selectedIdea?.title || '', b])
+            );
+            const merged = cloudBooks.map(cloudBook => {
+              const title = cloudBook.selectedIdea?.title || '';
+              const localBook = localByTitle.get(title);
+              if (localBook) {
+                // Keep local version if it has richer data (e.g. steps 6/7/8 filled)
+                return {
+                  ...cloudBook,
+                  kdpSetup: localBook.kdpSetup || cloudBook.kdpSetup,
+                  pricingStrategy: localBook.pricingStrategy || cloudBook.pricingStrategy,
+                  marketingContent: localBook.marketingContent || cloudBook.marketingContent,
+                  writtenChapters: Object.keys(localBook.writtenChapters || {}).length > Object.keys(cloudBook.writtenChapters || {}).length
+                    ? localBook.writtenChapters : cloudBook.writtenChapters,
+                };
+              }
+              return cloudBook;
+            });
+            // Add any local-only books that aren't in the cloud
+            for (const [title, localBook] of localByTitle) {
+              if (!cloudBooks.some(cb => (cb.selectedIdea?.title || '') === title)) {
+                merged.push(localBook);
+              }
+            }
+            return { ...prev, library: merged };
+          });
         }
       } catch (err) {
         console.error('Failed to fetch from InsForge', err);
