@@ -285,16 +285,32 @@ export default function Home() {
           console.warn('Failed to restore images from localStorage', e);
         }
         // Merge with initialBookData to ensure new properties like 'library' exist
+        
+        // ── One-time migration: fix Book 2 title (CLÍNICA → PRÁCTICA) ──
+        const migrateIdea = (idea: BookIdea): BookIdea => {
+          if (idea.title?.includes('GUÍA CLÍNICA') && idea.title?.includes('DESPUÉS DEL ESPEJO')) {
+            return {
+              ...idea,
+              title: idea.title.replace('GUÍA CLÍNICA', 'GUÍA PRÁCTICA'),
+              subtitle: idea.subtitle?.replace('protocolo terapéutico', 'protocolo') ?? idea.subtitle,
+              description: idea.description?.replace(/clínica/gi, 'práctica').replace(/terapia profesional adaptadas/gi, 'reconstrucción emocional') ?? idea.description,
+            };
+          }
+          return idea;
+        };
+        const migratedSavedIdeas = (parsed.savedIdeas && parsed.savedIdeas.length > 0)
+          ? parsed.savedIdeas.map(migrateIdea)
+          : initialBookData.savedIdeas;
+        const migratedSelectedIdea = parsed.selectedIdea ? migrateIdea(parsed.selectedIdea) : null;
+
         setBookData({
           ...initialBookData,
           ...parsed,
           // Ensure arrays are initialized if missing
           library: parsed.library || [],
           allIdeas: parsed.allIdeas || [],
-          // Merge savedIdeas: keep defaults if localStorage has none
-          savedIdeas: (parsed.savedIdeas && parsed.savedIdeas.length > 0)
-            ? parsed.savedIdeas
-            : initialBookData.savedIdeas,
+          savedIdeas: migratedSavedIdeas,
+          selectedIdea: migratedSelectedIdea,
           writtenChapters: parsed.writtenChapters || {},
           // Restore images
           coverImage: restoredCoverImage,
