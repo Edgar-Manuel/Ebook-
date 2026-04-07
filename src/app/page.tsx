@@ -993,6 +993,8 @@ ${bookData.marketingContent || 'No generado'}
     return 1;
   })() as Step;
 
+  console.log('[debug] step:', step, 'furthestStep:', furthestStep, 'writtenChapters keys:', Object.keys(bookData.writtenChapters ?? {}), 'chapters:', bookData.chapters?.length, 'selectedIdea:', !!bookData.selectedIdea);
+
   const goNext = () => {
     if (step < 8) {
       setStep((s) => (s + 1) as Step);
@@ -1623,19 +1625,38 @@ ${bookData.marketingContent || 'No generado'}
                     </div>
                   )}
                 </div>
-                {furthestStep > step && (
-                  <button
-                    onClick={() => {
-                      setStep(furthestStep);
-                      setStreamedText('');
-                    }}
-                    className="w-full mt-4 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
-                  >
-                    Continuar donde lo dejaste
-                    <span className="text-xs opacity-75">
-                      (Paso {furthestStep}: {STEPS[furthestStep - 1]?.title})
-                    </span>
-                  </button>
+                {/* Quick navigation buttons when there's progress */}
+                {bookData.chapters?.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    {step !== furthestStep && (
+                      <button
+                        onClick={() => {
+                          setStep(furthestStep);
+                          setStreamedText('');
+                        }}
+                        className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        Continuar donde lo dejaste
+                        <span className="text-xs opacity-75">
+                          (Paso {furthestStep}: {STEPS[furthestStep - 1]?.title})
+                        </span>
+                      </button>
+                    )}
+                    {step !== 3 && chaptersWritten < bookData.chapters.length && (
+                      <button
+                        onClick={() => {
+                          setStep(3);
+                          setStreamedText('');
+                        }}
+                        className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        Ir a escribir capítulos
+                        <span className="text-xs opacity-75">
+                          ({chaptersWritten}/{bookData.chapters.length})
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
