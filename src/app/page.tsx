@@ -472,6 +472,7 @@ export default function Home() {
 
   const [viewingLibraryBook, setViewingLibraryBook] = useState<BookData | null>(null);
   const [headerPanel, setHeaderPanel] = useState<'library' | 'nextBooks' | 'ideas' | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
 
   // Cloud Sync: Fetch library from InsForge
   useEffect(() => {
@@ -1391,12 +1392,48 @@ ${bookData.marketingContent || 'No generado'}
                 <div className="space-y-3">
                   {bookData.selectedIdea ? (
                     <div className="bg-indigo-950/50 border border-indigo-700/30 rounded-xl p-3">
-                      <p className="text-indigo-300 font-semibold text-sm">
-                        {bookData.selectedIdea.title}
-                      </p>
-                      <p className="text-slate-400 text-xs mt-1">
-                        {bookData.selectedIdea.subtitle}
-                      </p>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider">Título</span>
+                        <button
+                          onClick={() => setEditingTitle(!editingTitle)}
+                          className="text-slate-500 hover:text-indigo-400 text-xs transition-colors"
+                          title="Editar título y subtítulo"
+                        >
+                          {editingTitle ? '✓ Listo' : '✏️ Editar'}
+                        </button>
+                      </div>
+                      {editingTitle ? (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={bookData.selectedIdea.title}
+                            onChange={(e) => setBookData(prev => ({
+                              ...prev,
+                              selectedIdea: prev.selectedIdea ? { ...prev.selectedIdea, title: e.target.value } : null
+                            }))}
+                            className="w-full bg-slate-800 border border-indigo-500/50 rounded-lg px-3 py-2 text-indigo-300 text-sm font-semibold focus:outline-none focus:border-indigo-400"
+                          />
+                          <input
+                            type="text"
+                            value={bookData.selectedIdea.subtitle || ''}
+                            onChange={(e) => setBookData(prev => ({
+                              ...prev,
+                              selectedIdea: prev.selectedIdea ? { ...prev.selectedIdea, subtitle: e.target.value } : null
+                            }))}
+                            placeholder="Subtítulo"
+                            className="w-full bg-slate-800 border border-slate-600/50 rounded-lg px-3 py-1.5 text-slate-400 text-xs focus:outline-none focus:border-indigo-400"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-indigo-300 font-semibold text-sm">
+                            {bookData.selectedIdea.title}
+                          </p>
+                          <p className="text-slate-400 text-xs mt-1">
+                            {bookData.selectedIdea.subtitle}
+                          </p>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <p className="text-yellow-400 text-sm">
