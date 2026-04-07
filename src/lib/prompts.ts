@@ -28,7 +28,107 @@ REGLAS DE GENERACIÓN (Basadas en Motivaciones Reales de Compra en Amazon):
 
 Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de valor real) y rechaza categóricamente ideas orientadas a bajo/medio contenido (nada de agendas, diarios o sudokus, ya que están sobresaturados). El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
 
-    case 2:
+    case 2: {
+      const outlineTitle = data.selectedIdea?.title ?? '';
+      const isBook2Outline = outlineTitle.toUpperCase().includes('DESPUÉS DEL ESPEJO');
+
+      if (isBook2Outline) {
+        // Return the pre-approved outline for Book 2 directly
+        return `El siguiente es el índice FINAL APROBADO para el libro 2 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
+
+Título: "${data.selectedIdea?.title}"
+Subtítulo: "${data.selectedIdea?.subtitle}"
+Autor: ${data.authorName || 'el autor'}
+
+GENERA ESTE OUTLINE EXACTO:
+
+**Introducción: Lo Que Nadie Te Dijo Sobre Sanar**
+- Por qué escribí esta guía: mi camino personal con este tema
+- Por qué esta guía es diferente a lo que ya leíste
+- Cómo usar este libro para obtener el máximo resultado
+- Lo que puedes esperar en los próximos capítulos
+
+**Chapter 1: Dónde Estás Ahora Mismo**
+- Test: identifica tu fase actual de recuperación
+- Las 4 fases de la reconstrucción y por qué no son lineales
+- Tu mapa de los próximos 90 días
+- El error más común al empezar a sanar
+
+**Chapter 2: Tu Sistema Nervioso Después Del Abuso**
+- Resumen breve de cómo el trauma alteró tu biología
+- Síntomas físicos que no sabías que eran del trauma
+- El primer protocolo de regulación inmediata
+- Cuándo el cuerpo sana antes que la mente
+
+**Chapter 3: Desactivar La Mente En Alerta Permanente**
+- Por qué sigues esperando que algo malo ocurra
+- Protocolo de cinco pasos para salir del modo supervivencia
+- Técnicas de regulación para el día a día
+- Cómo medir tu progreso semana a semana
+
+**Chapter 4: Romper El Vínculo Que Aún No Has Roto**
+- Por qué extrañas a alguien que te hizo daño
+- El protocolo de desintoxicación emocional en siete días
+- Qué hacer cuando el narcisista reaparece
+- Gestionar el duelo sin recaer
+
+**Chapter 5: Reconstruir Tu Identidad Desde Cero**
+- Ejercicios progresivos para redescubrir quién eres
+- Recuperar tus opiniones, gustos y valores propios
+- El diario de identidad: protocolo de 30 días
+- Cuando ya no sabes qué quieres: hoja de ruta
+
+**Chapter 6: La Terapia Que Sí Funciona Para Tu Caso**
+- Qué enfoques son más efectivos para este tipo de trauma
+- Qué enfoques evitar y por qué
+- Cómo elegir al profesional adecuado para ti
+- Preguntas clave para tu primera sesión
+
+**Chapter 7: Gestionar Las Recaídas Sin Destruir Tu Avance**
+- Por qué las recaídas forman parte del proceso
+- Protocolo de emergencia cuando quieres volver
+- Cómo recuperarte de una recaída en menos de 72 horas
+- Construir una red de contención real
+
+**Chapter 8: Relaciones Nuevas Con El Radar Recalibrado**
+- Cómo detectar señales de alerta desde el primer contacto
+- Por qué proyectas el trauma en personas sanas
+- Protocolo para las primeras citas después del abuso
+- Cuándo estás realmente listo/a para una nueva relación
+
+**Chapter 9: Situaciones Difíciles Del Día A Día**
+- Protocolo para cuando el narcisista sigue en tu vida
+- Cómo sobrevivir a reuniones familiares sin desmoronarte
+- Gestionar el trabajo y la productividad durante la recuperación
+- Ansiedad al despertar: rutina de mañana para días difíciles
+
+**Chapter 10: Sanar Tu Relación Con El Dinero Y El Trabajo**
+- Cómo el abuso narcisista afectó tu vida profesional
+- Recuperar la seguridad económica y la autoconfianza laboral
+- Protocolo para volver a tomar decisiones sin miedo
+- Construir independencia real paso a paso
+
+**Chapter 11: El Cuerpo Que Olvidaste Que Tenías**
+- Reconectar con tu cuerpo después del trauma
+- Movimiento, sueño y alimentación como herramientas de sanación
+- Protocolo corporal de recuperación en cuatro semanas
+- Cuando el cuerpo guarda lo que la mente no procesó
+
+**Chapter 12: Construir Una Vida Que No Necesite Al Narcisista**
+- Diseñar tu nueva identidad con base en valores propios
+- Amistades, proyectos y rutinas que sostengan la recuperación
+- El protocolo de los 90 días finales
+- Cómo saber que ya has cruzado al otro lado
+
+**Conclusión: No Es El Final, Es El Comienzo**
+- Lo que lograste al llegar hasta aquí
+- El paso siguiente más importante que puedes dar hoy
+- Carta del autor al lector
+- Tu Opinión Importa (CTA de reseña en Amazon)
+
+Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+      }
+
       return `Actúa como un Arquitecto Editorial experto en Amazon KDP. Diseña un índice COMPLETO para este libro.
 
 Título: "${data.selectedIdea?.title}"
@@ -60,22 +160,102 @@ REGLAS CRÍTICAS:
 3. NUNCA Spanglish. Todo en español limpio.
 4. Cada capítulo = una victoria para el lector. Títulos que prometan avance.
 5. Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+    }
 
     case 3: {
       const chapterNum = data.currentWritingChapter ?? 1;
       const chapterInfo = data.chapters?.[chapterNum - 1];
       const chapterTitle = chapterInfo?.title ?? `Capítulo ${chapterNum}`;
       const subheadings = chapterInfo?.subheadings?.join(', ') ?? '';
+      const bookTitle = data.selectedIdea?.title ?? '';
+
+      // Detect Book 2 of the saga
+      const isBook2 = bookTitle.toUpperCase().includes('DESPUÉS DEL ESPEJO');
+
+      // ── SAGA CONTINUATION RULES (Book 2 only) ──────────────────────────
+      const sagaRules = isBook2 ? `
+
+REGLAS DE CONTINUACIÓN DE SAGA (CRÍTICAS - APLICAR EN CADA LÍNEA):
+Este es el LIBRO 2 de una saga. El libro 1 es "El Espejo Roto: Cómo Recuperar Tu Identidad Después De Vivir Con Un Narcisista". El lector YA LO LEYÓ. No repitas lo que ya sabe.
+
+CONTENIDO QUE EL LIBRO 1 YA CUBRIÓ - PROHIBIDO RE-EXPLICAR:
+- Qué es el narcisismo y cómo funciona
+- Las máscaras del narcisista
+- El gaslighting y cómo distorsiona tu percepción
+- La erosión de identidad (el "borrado personal")
+- El refuerzo intermitente / analogía de las tragamonedas
+- La bioquímica detallada del vínculo (dopamina, cortisol, amígdala, hipocampo)
+- La validación del daño ("lo que te pasó fue real")
+- Las heridas invisibles (vergüenza tóxica, hipervigilancia, vacío de identidad)
+- El duelo del vínculo tóxico
+- Límites básicos
+- Contacto cero (concepto)
+
+CÓMO REFERENCIAR CONCEPTOS DEL LIBRO 1:
+- En UNA FRASE de referencia y avanzar: "Como vimos en El Espejo Roto, [concepto en 1 línea]. Ahora vamos a trabajar con las herramientas para [acción concreta]."
+- NUNCA re-explicar un concepto completo del libro 1.
+- Máximo 1 referencia al libro 1 por capítulo. No más.
+
+FOCO DEL LIBRO 2:
+- Pregunta central: "¿Qué hago ahora?" (no "¿qué me pasó?")
+- Tono: práctico, accionable, con protocolos paso a paso
+- Cada capítulo: al menos 1 protocolo o ejercicio concreto que el lector pueda aplicar HOY
+- Menos reflexión introspectiva, más instrucciones directas
+- El lector ya pasó el shock y el reconocimiento. Está en fase de reconstrucción.
+
+TERMINOLOGÍA PROHIBIDA (credibilidad del autor):
+- NUNCA uses "clínico/a", "terapéutico/a", "tratamiento", "prescripción" para describir el contenido del libro
+- Usa: "práctico/a", "paso a paso", "protocolo", "herramienta", "guía"
+- El autor no es terapeuta. El libro no es sustituto de terapia profesional.
+- El autor es un guía informado que investigó a fondo, NO un profesional clínico.
+- Formato correcto: "El EMDR es un enfoque que ha mostrado resultados positivos en personas con trauma relacional..."
+- Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica...", "El tratamiento indicado..."` : '';
+
+      // ── CHAPTER-SPECIFIC RULES (Book 2 only) ──────────────────────────
+      let chapterSpecificRules = '';
+      if (isBook2) {
+        if (chapterNum === 0 || chapterTitle.toLowerCase().includes('introducción') || chapterTitle.toLowerCase().includes('lo que nadie')) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - INTRODUCCIÓN:
+La sección sobre el autor debe centrarse en su motivación PERSONAL para escribir el libro y en su experiencia INVESTIGANDO el tema.
+NUNCA debe implicar credenciales clínicas, título de terapeuta ni formación en salud mental.
+El tono es: "Escribí esto porque lo viví, lo investigué a fondo y quiero compartir lo que aprendí".
+NO: "Escribí esto como profesional de la salud mental".
+Usa "Por qué escribí esta guía: mi camino personal con este tema" como encabezado, NO "mi camino clínico".`;
+        } else if (chapterNum === 2) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - CAPÍTULO 2:
+La sección "Cómo el trauma narcisista altera tu biología" debe ser un RESUMEN de 2-3 párrafos MÁXIMO (menos de 500 palabras).
+NO re-desarrollar la teoría de cortisol, amígdala e hipocampo. El lector ya lo leyó en El Espejo Roto.
+Formato correcto: 1 párrafo de resumen tipo: "Tu sistema nervioso quedó alterado por el estrés crónico de la relación. Como vimos en El Espejo Roto, la exposición prolongada al abuso emocional cambia la forma en que tu cerebro procesa el peligro, la memoria y la toma de decisiones. Eso no fue tu culpa y -lo más importante- es reversible."
+Luego ir DIRECTAMENTE al protocolo de regulación inmediata.
+PROPORCIÓN OBLIGATORIA: 20% explicación (resumen breve) / 80% herramientas prácticas (protocolo, ejercicios, pasos concretos).`;
+        } else if (chapterNum === 6) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - CAPÍTULO 6:
+Este capítulo orienta al lector sobre enfoques terapéuticos (EMDR, IFS, terapia sensoriomotriz, TCC, etc.).
+El tono debe ser el de alguien que INVESTIGÓ estos enfoques y puede guiar al lector, NO el de un profesional que los practica.
+Formato correcto: "El EMDR es un enfoque que ha mostrado resultados positivos en personas con trauma relacional. Funciona procesando recuerdos traumáticos mediante estimulación bilateral."
+"Al buscar terapeuta, hay señales que indican que estás en buenas manos: [lista]. Y hay señales que indican que deberías buscar a otro profesional: [lista]."
+Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica he observado...", "El tratamiento indicado para..."
+El autor es un guía informado, no un clínico.`;
+        }
+      }
 
       return `Actúa como un Escritor Fantasma (Ghostwriter) de élite especializado en libros "Non-Fiction" Best Sellers de Amazon.
 
 Libro: "${data.selectedIdea?.title}"
+${isBook2 ? `Subtítulo: "${data.selectedIdea?.subtitle}"` : ''}
 Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudience}"
+Autor: ${data.authorName || 'el autor'}
+${isBook2 ? 'POSICIÓN EN LA SAGA: Libro 2 de la Serie "Reconstrucción Emocional". El Libro 1 ("El Espejo Roto") ya fue publicado y leído por el lector.' : ''}
 
 Capítulo a escribir: ${chapterNum}: ${chapterTitle}
 Subtítulos a cubrir: ${subheadings}
+${sagaRules}${chapterSpecificRules}
 
 Escribe AL MENOS 1500 - 2000 palabras para este capítulo. Desarrolla los conceptos con muchísima profundidad.
+
 REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR Y REDACCIÓN:
 - PROFUNDIDAD EXTREMA: No seas superficial. Desarrolla herramientas prácticas, guiones de diálogo interno y escenarios detallados.
 - NUNCA uses "Casos Reales" falsos con nombres como "Roberto" o "Camila". Narra historias y simulaciones directas a la acción de la oficina. NO añadas etiquetas prefabricadas como "Ejemplo Representativo:" o "Escenario Práctico:" a las viñetas, eso suena a un disclaimer legal robótico que rompe la magia. Solo intercala y cuenta la historia naturalmente.
@@ -87,6 +267,14 @@ REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR Y REDACCIÓN:
 - Tono empático, directo, accionable y cero relleno. Cada palabra debe empujar al lector hacia la solución.
 - ORIGINALIDAD Y VALOR 100%: Amazon cierra cuentas por contenido duplicado o derechos de autor. Todo el contenido generado debe ser completamente único, original y aportar tanto valor real que las reseñas orgánicas positivas lleguen solas. Cero plagio, cero relleno.
 - Idioma: Español neutro y natural (cero lenguaje robótico o traducciones literales del inglés).
+
+REGLAS DE FORMATO KDP (OBLIGATORIAS):
+- Guiones: Solo guión simple (-), NUNCA em-dash (—) ni dobles guiones (--)
+- Género inclusivo: Siempre "mismo/a", "solo/a", "seguro/a", alternar ejemplos masculinos/femeninos
+- Enfoque en presente: Máximo 1 referencia a infancia en TODO el libro, foco en la vida adulta actual (20-45 años)
+- Sin artefactos en inglés
+- Títulos de capítulo: SIEMPRE "Capítulo X: Título"
+- Separadores: Exactamente "---" (tres guiones)
 
 Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
     }

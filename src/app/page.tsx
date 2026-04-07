@@ -27,10 +27,10 @@ const initialBookData: BookData = {
   selectedIdea: null,
   savedIdeas: [
     {
-      title: 'DESPUÉS DEL ESPEJO: LA GUÍA CLÍNICA PARA SANAR EL TRAUMA PSICOLÓGICO DE UNA RELACIÓN NARCISISTA',
-      subtitle: 'Un protocolo terapéutico paso a paso para reconstruir tu salud mental después del abuso emocional',
-      description: 'Guía clínica enfocada en la sanación post-narcisista con herramientas de terapia profesional adaptadas para el lector.',
-      targetAudience: 'Personas 6-24 meses post-ruptura narcisista, terapeutas buscando material de apoyo, víctimas de abuso emocional de larga duración',
+      title: 'DESPUÉS DEL ESPEJO: LA GUÍA PRÁCTICA PARA SANAR EL TRAUMA PSICOLÓGICO DE UNA RELACIÓN NARCISISTA',
+      subtitle: 'Un protocolo paso a paso para reconstruir tu salud mental después del abuso emocional',
+      description: 'Guía práctica de sanación post-narcisista con protocolos paso a paso, ejercicios aplicables y herramientas de reconstrucción emocional. Libro 2 de la saga, continuación directa de El Espejo Roto.',
+      targetAudience: 'Personas 6-24 meses post-ruptura narcisista, lectores de El Espejo Roto que buscan el siguiente paso, víctimas de abuso emocional de larga duración buscando herramientas prácticas de reconstrucción',
     },
     {
       title: 'EL ESPEJO ROTO: CÓMO RECUPERAR TU IDENTIDAD DESPUÉS DE VIVIR CON UN NARCISISTA',
