@@ -76,11 +76,50 @@ REGLA DE ENFOQUE EN EL PRESENTE (CRÍTICA - NO en la infancia):
   × "Aprendiste de niño/a que tus emociones eran un problema" → ✓ "Hoy sigues tragándote lo que sientes para no 'molestar' a nadie"
 - Si necesitas explicar el ORIGEN de un patrón, hazlo breve y abstracto: "Ese patrón se instaló hace mucho tiempo, probablemente antes de que pudieras cuestionarlo" y pasa inmediatamente al presente. NO desarrolles la escena de infancia.
 
-REGLA DE DIFERENCIACIÓN CON "EL PATRÓN QUE NO VES":
-- Este es un libro DIFERENTE al anterior. No debe sentirse como una versión 2.0 del mismo libro.
-- "El Patrón Que No Ves" se centraba en patrones relacionales y apego. Los nuevos libros se centran en narcisismo y recuperación de identidad.
-- Evita repetir la misma estructura narrativa: NO abras con "hay algo que nadie te enseñó a ver". NO cierres con "el patrón dejó de ser invisible".
-- El tono puede ser similar (directo, conversacional) pero los ejemplos, escenarios y herramientas deben ser DISTINTOS.
+REGLA DE CONTINUACIÓN DE SAGA (CRÍTICA):
+Este es el LIBRO 2 de una saga. El lector YA LEYÓ el libro 1 ("El Espejo Roto: Cómo Recuperar Tu Identidad Después De Vivir Con Un Narcisista"). No repitas lo que el libro 1 ya explicó.
+
+CONTENIDO QUE EL LIBRO 1 YA CUBRIÓ (NO REPETIR):
+- Qué es el narcisismo y cómo funciona
+- Las máscaras del narcisista (progenitor perfecto, mártir, crítico, frágil, ausente)
+- El gaslighting y cómo distorsiona tu percepción
+- La erosión de identidad (el "borrado personal")
+- Los estilos de apego y cómo afectan tus relaciones
+- El refuerzo intermitente / analogía de las tragamonedas
+- La bioquímica del vínculo (dopamina, cortisol, abstinencia)
+- La validación del daño ("lo que te pasó fue real")
+- Las heridas invisibles (vergüenza tóxica, hipervigilancia, dificultad con límites, vacío de identidad)
+- El duelo del vínculo tóxico
+- Límites básicos y cómo empezar a ponerlos
+- Contacto cero y distancia emocional
+
+CÓMO REFERENCIAR CONCEPTOS DEL LIBRO 1 SIN REPETIRLOS:
+- Si necesitas mencionar un concepto del libro 1, hazlo en UNA FRASE de referencia y avanza: "En el libro anterior vimos cómo el refuerzo intermitente crea un vínculo bioquímico. Ahora vamos a trabajar con las herramientas concretas para desactivarlo."
+- NUNCA re-expliques un concepto del libro 1. Da por hecho que el lector lo entiende.
+- Si un concepto del libro 1 es necesario como base, pon una nota breve: "Si no leíste El Espejo Roto, el refuerzo intermitente es [definición de 1 línea]. Si ya lo leíste, sabes exactamente de qué hablo."
+
+LO QUE EL LIBRO 2 DEBE CUBRIR (CONTENIDO NUEVO):
+El libro 2 se centra en la RECONSTRUCCIÓN PRÁCTICA. No en entender qué pasó (eso fue el libro 1), sino en QUÉ HACER AHORA:
+1. Herramientas prácticas de regulación del sistema nervioso (ejercicios concretos, no teoría de cortisol)
+2. Protocolos paso a paso para situaciones específicas del día a día (ansiedad al despertar, flashbacks en el trabajo, contacto del narcisista, primeras citas, reuniones familiares)
+3. Reconstrucción de la identidad: ejercicios progresivos para redescubrir gustos, opiniones, valores propios
+4. Terapias y enfoques profesionales: cuáles funcionan para trauma narcisista, cuáles no, qué buscar en un terapeuta
+5. Relaciones nuevas: cómo detectar red flags con el radar recalibrado, cómo no proyectar el trauma en personas sanas
+6. Recaídas: qué hacer cuando vuelves a caer (contactar al narcisista, idealizar la relación, volver)
+7. Construcción de una vida nueva: trabajo, amistades, proyectos, rutinas que sostengan la recuperación
+
+TONO DEL LIBRO 2:
+- Menos diagnóstico, más acción. El libro 1 fue "entiende qué te pasó". El libro 2 es "ahora haz esto".
+- Cada capítulo debe tener al menos un protocolo, ejercicio o herramienta CONCRETA que el lector pueda aplicar hoy.
+- Menos reflexión introspectiva, más instrucciones paso a paso.
+- El lector ya pasó la fase de shock y reconocimiento. Está en "ok, ya sé qué me pasó, ¿ahora qué hago?". Habla desde ahí.
+
+DIFERENCIAS CLAVE LIBRO 1 vs LIBRO 2:
+- Libro 1 pregunta "¿Qué me pasó?" → Libro 2 pregunta "¿Qué hago ahora?"
+- Libro 1 es diagnóstico y reflexivo → Libro 2 es práctico y accionable
+- Libro 1 mira hacia atrás para entender → Libro 2 mira hacia adelante para actuar
+- Libro 1 cierra con "Reflexiona sobre esto" → Libro 2 cierra con "Aplica este protocolo hoy"
+- Ejercicios libro 1: reflexivos ("escribe qué sentías") → Ejercicios libro 2: accionables ("haz esto cuando sientas X")
 
 REGLA DE TÍTULOS DE CAPÍTULO (OBLIGATORIO):
 - Cada capítulo DEBE comenzar con un encabezado H2 que incluya "Capítulo X:" seguido del título.
@@ -98,8 +137,15 @@ ESTRUCTURA DEL LIBRO:
 - Copyright (© Año, autor, derechos reservados)
 - Nota importante (disclaimer: no sustituye terapia profesional)
 - Índice (cada sección UNA SOLA VEZ)
-- Capítulos
-- "Tu Opinión Importa" (CTA reseña Amazon, 3-4 líneas)`;
+- 12 Capítulos (cada uno con al menos 1 protocolo/ejercicio/herramienta CONCRETA)
+- "Tu Opinión Importa" (CTA reseña Amazon, 3-4 líneas)
+
+CAPÍTULO 1 - ENFOQUE ESPECIAL:
+El capítulo 1 NO debe re-explicar el narcisismo ni la neurociencia del daño. Debe arrancar con: "Ya sabes qué te pasó. Ya pusiste nombre al daño. Ahora la pregunta es: ¿cómo sales de aquí?" y centrarse en:
+- Evaluación del estado actual del lector (test: ¿en qué fase de recuperación estás?)
+- Las 4 fases de la reconstrucción (y por qué no son lineales)
+- Tu plan personalizado de los próximos 90 días
+La neurociencia del daño se puede mencionar en 2-3 párrafos como resumen ("tu sistema nervioso quedó alterado, como vimos en El Espejo Roto") pero SIN re-desarrollar la teoría de cortisol/amígdala/hipocampo.`;
 
 export async function POST(req: Request) {
   try {
