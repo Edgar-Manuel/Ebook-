@@ -490,7 +490,7 @@ export default function Home() {
             const localByTitle = new Map(
               prev.library.map(b => [b.selectedIdea?.title || '', b])
             );
-            const merged = cloudBooks.map(cloudBook => {
+            const merged: BookData[] = cloudBooks.map(cloudBook => {
               const title = cloudBook.selectedIdea?.title || '';
               const localBook = localByTitle.get(title);
               if (localBook) {
@@ -507,9 +507,9 @@ export default function Home() {
               return cloudBook;
             });
             // Add any local-only books that aren't in the cloud
-            for (const [title, localBook] of localByTitle) {
+            for (const [title, localBook] of Array.from(localByTitle)) {
               if (!cloudBooks.some(cb => (cb.selectedIdea?.title || '') === title)) {
-                merged.push(localBook);
+                merged.push(localBook as BookData);
               }
             }
             return { ...prev, library: merged };
