@@ -980,6 +980,19 @@ ${bookData.marketingContent || 'No generado'}
       ? !!bookData.coverImage || (bookData.coverDesign && bookData.coverDesign.length > 50)
       : completedText && completedText.length > 100));
 
+  // Calculate the furthest step the user has reached based on existing data
+  const furthestStep: Step = (() => {
+    if (bookData.marketingContent) return 8;
+    if (bookData.pricingStrategy) return 7;
+    if (bookData.kdpSetup) return 6;
+    if (bookData.coverImage || bookData.coverDesign) return 5;
+    if (bookData.formattedContent) return 4;
+    if (Object.keys(bookData.writtenChapters ?? {}).length > 0) return 3;
+    if (bookData.outline || (bookData.chapters?.length > 0)) return 2;
+    if (bookData.selectedIdea) return 1;
+    return 1;
+  })() as Step;
+
   const goNext = () => {
     if (step < 8) {
       setStep((s) => (s + 1) as Step);
@@ -1253,7 +1266,7 @@ ${bookData.marketingContent || 'No generado'}
             <button
               key={s.number}
               onClick={() => {
-                if (s.number <= step) {
+                if (s.number <= Math.max(step, furthestStep)) {
                   setStep(s.number as Step);
                   setStreamedText('');
                 }
@@ -1261,8 +1274,8 @@ ${bookData.marketingContent || 'No generado'}
               className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                 s.number === step
                   ? 'step-active text-white'
-                  : s.number < step
-                  ? 'step-complete text-white opacity-80'
+                  : s.number <= furthestStep
+                  ? 'step-complete text-white opacity-80 cursor-pointer'
                   : 'bg-slate-800/50 text-slate-500'
               }`}
             >
@@ -1610,6 +1623,20 @@ ${bookData.marketingContent || 'No generado'}
                     </div>
                   )}
                 </div>
+                {furthestStep > step && (
+                  <button
+                    onClick={() => {
+                      setStep(furthestStep);
+                      setStreamedText('');
+                    }}
+                    className="w-full mt-4 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    Continuar donde lo dejaste
+                    <span className="text-xs opacity-75">
+                      (Paso {furthestStep}: {STEPS[furthestStep - 1]?.title})
+                    </span>
+                  </button>
+                )}
               </div>
             )}
 
