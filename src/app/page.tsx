@@ -38,6 +38,12 @@ const initialBookData: BookData = {
       description: 'Reconstrucción profunda de identidad después del abuso narcisista con ejercicios prácticos y estrategias de límites.',
       targetAudience: 'Mujeres adultas que reconocen patrones narcisistas en su padre/madre, víctimas de abuso emocional buscando reconstrucción profunda, coaches y terapeutas',
     },
+    {
+      title: 'MÁS ALLÁ DEL ESPEJO: LA GUÍA AVANZADA PARA DISEÑAR UNA VIDA DE LIBERTAD',
+      subtitle: 'Establece estándares de alto valor y no vuelvas a perderte nunca más',
+      description: 'Cierre de trilogía. Manual de operaciones post-trauma diseñado para quienes ya sanaron. Transforma límites de supervivencia en estrategias de éxito, magnetismo sano, excelencia relacional e independencia radical.',
+      targetAudience: 'Supervivientes de abuso emocional en fase de estabilidad. Lectores de los dos volúmenes anteriores que quieren herramientas ofensivas para consolidar estándares altos.',
+    },
   ],
   outline: '',
   chapters: [],
@@ -298,9 +304,17 @@ export default function Home() {
           }
           return idea;
         };
-        const migratedSavedIdeas = (parsed.savedIdeas && parsed.savedIdeas.length > 0)
+        let migratedSavedIdeas = (parsed.savedIdeas && parsed.savedIdeas.length > 0)
           ? parsed.savedIdeas.map(migrateIdea)
-          : initialBookData.savedIdeas;
+          : [...initialBookData.savedIdeas];
+          
+        // Merge any new hardcoded default ideas (like Book 3) that are missing from localStorage
+        for (const defaultIdea of initialBookData.savedIdeas) {
+          if (!migratedSavedIdeas.some((idea: any) => idea.title === defaultIdea.title)) {
+            migratedSavedIdeas.push(defaultIdea);
+          }
+        }
+
         const migratedSelectedIdea = parsed.selectedIdea ? migrateIdea(parsed.selectedIdea) : null;
 
         setBookData({
@@ -566,6 +580,22 @@ export default function Home() {
       fetchLibraryFromCloud();
       fetchIdeasFromCloud();
     }
+  }, [isLoaded]);
+
+  // Auto-recovery: ensure hardcoded default ideas are always present in the state
+  useEffect(() => {
+    if (!isLoaded) return;
+    setBookData(prev => {
+      let changed = false;
+      const newSaved = [...prev.savedIdeas];
+      for (const defaultIdea of initialBookData.savedIdeas) {
+        if (!newSaved.some(idea => idea.title === defaultIdea.title)) {
+          newSaved.push(defaultIdea);
+          changed = true;
+        }
+      }
+      return changed ? { ...prev, savedIdeas: newSaved } : prev;
+    });
   }, [isLoaded]);
 
   useEffect(() => {

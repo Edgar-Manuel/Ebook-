@@ -31,6 +31,89 @@ Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de v
     case 2: {
       const outlineTitle = data.selectedIdea?.title ?? '';
       const isBook2Outline = outlineTitle.toUpperCase().includes('DESPUÉS DEL ESPEJO');
+      const isBook3Outline = outlineTitle.toUpperCase().includes('MÁS ALLÁ DEL ESPEJO');
+
+      if (isBook3Outline) {
+        return `El siguiente es el índice FINAL APROBADO para el libro 3 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
+
+Título: "${data.selectedIdea?.title}"
+Subtítulo: "${data.selectedIdea?.subtitle}"
+Autor: ${data.authorName || 'el autor'}
+
+GENERA ESTE OUTLINE EXACTO:
+
+**Introducción: El Paradigma Del Poder Personal**
+- Por qué llegaste hasta aquí y qué vas a encontrar
+- La diferencia entre sobrevivir y diseñar tu vida
+- Cómo usar este manual de operaciones
+
+**Chapter 1: El Vértigo De La Paz**
+- Por qué la tranquilidad se siente aburrida al principio
+- Recalibrar tu cerebro para la ausencia de drama
+- Protocolo para no auto-sabotear la estabilidad
+
+**Chapter 2: Quitarse El Traje De "Sobreviviente"**
+- Evitar que el trauma se convierta en tu identidad
+- Eres mucho más que lo que te hicieron
+- Ejercicio práctico: reescribir tu narrativa actual
+
+**Chapter 3: La Auditoría Del Entorno**
+- Análisis implacable de quién ocupa tu tiempo ahora
+- Limpiar residuos tóxicos tolerados en el pasado
+- Protocolo: el coste de entrada a tu vida
+
+**Chapter 4: La Diferencia Entre Un Límite Y Un Estándar**
+- El límite protege de lo malo, el estándar filtra la excelencia
+- Cómo definir tus innegociables absolutos
+- Ejercicio: mapa estratégico de estándares de alto valor
+
+**Chapter 5: El "Filtro De Paz" Absoluto**
+- Si no aporta paz, no entra: regla de oro radical
+- Aplicación en citas, trabajo y familia
+- Protocolo de evaluación rápida de nuevas personas
+
+**Chapter 6: La Comodidad En La Soledad Elegida**
+- Perder definitivamente el miedo a estar solo
+- Cuando tu propia compañía es tu zona segura
+- El escudo definitivo contra amenazas de abandono
+
+**Chapter 7: El Éxito Que Te Robaron**
+- Por qué frenaste tu carrera para no opacar a otros
+- Recuperar la ambición profesional y financiera
+- La independencia económica como escudo protector
+
+**Chapter 8: Autenticidad Sin Disculpas**
+- Dejar de complacer y de leer la habitación
+- Hablar y actuar desde tu esencia real
+- Asumir que incomodar es una victoria vital
+
+**Chapter 9: Magnetismo Sano**
+- Cómo los nuevos estándares alejan a depredadores
+- Atraer dinámicas de respeto y madurez emocional
+- El cambio radical de frecuencia energética
+
+**Chapter 10: Tribus De Alta Vibración**
+- Construir círculos que celebren tus victorias
+- Identificar y erradicar la envidia disfrazada de afecto
+- Protocolo avanzado de reciprocidad relacional
+
+**Chapter 11: El Radar Infalible**
+- Escuchar el "no" de tu cuerpo en los 5 primeros minutos
+- Confiar en tu intuición e instinto al 100%
+- Tolerancia cero absoluta a banderas rojas evidentes
+
+**Chapter 12: Tu Diseño De Vida Inquebrantable**
+- El manifiesto de tu nueva vida elegida
+- Mantener este ecosistema protector a largo plazo
+- El espejo refleja la vida que construiste desde cero
+
+**Conclusión: El Castillo Protegido**
+- Un repaso a tu evolución en los tres volúmenes
+- Tus próximos pasos hacia una libertad definitiva
+- Tu Opinión Importa (CTA de reseña en Amazon)
+
+Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+      }
 
       if (isBook2Outline) {
         // Return the pre-approved outline for Book 2 directly
@@ -171,9 +254,32 @@ REGLAS CRÍTICAS:
 
       // Detect Book 2 of the saga
       const isBook2 = bookTitle.toUpperCase().includes('DESPUÉS DEL ESPEJO');
+      const isBook3 = bookTitle.toUpperCase().includes('MÁS ALLÁ DEL ESPEJO');
 
-      // ── SAGA CONTINUATION RULES (Book 2 only) ──────────────────────────
-      const sagaRules = isBook2 ? `
+      // ── SAGA CONTINUATION RULES ──────────────────────────
+      let sagaRules = '';
+      if (isBook3) {
+        sagaRules = `
+
+REGLAS DE CONTINUACIÓN DE SAGA (LIBRO 3 - MÁS ALLÁ DEL ESPEJO):
+Este es el LIBRO 3 y final de tu trilogía.
+El lector YA LEYÓ los dos anteriores ("El Espejo Roto" y "Después del Espejo").
+
+LO QUE EL LECTOR YA SABE (TIENES ESTRICTAMENTE PROHIBIDO REPETIRLO):
+- Del Libro 1: Qué es el narcisismo, gaslighting, refuerzo intermitente, tipos de narcisistas, máscaras.
+- Del Libro 2: Cómo regular el sistema nervioso, terapias de trauma (EMDR, somática), Protocolo ANCLA para recaídas, contacto cero absoluto, fase aguda de ansiedad. NADA de supervivencia.
+
+ESTADO ACTUAL DEL LECTOR Y ENFOQUE DEL LIBRO 3:
+- El lector NO es una víctima ni un paciente en rehabilitación. Está en la fase de ESTABILIDAD y PODER PERSONAL.
+- El libro trata de la OFENSIVA: pasar de límites defensivos a "Estándares de Alto Valor".
+- Foco en diseño de vida: filtrar la excelencia, la independencia radical, ambición, construir el éxito propio y re-activar la intuición sin miedos al sabotaje del aburrimiento.
+
+ESTILO DE REDACCIÓN DEL LIBRO 3:
+- Cero condescendencia: No uses tono clínico, paternalista ni fosa positividad. Escribe con la fuerza de un "protocolo de operaciones". Habla de tú a tú.
+- Estructura obligatoria: Valida una incomodidad nueva al inicio (ej. "el vértigo de la paz") e IMPERATIVAMENTE termina con un protocolo o ejercicio práctico de alto impacto.
+- Usa jerga de empoderamiento: "auditoría del entorno", "costo de entrada", "tribu de alta vibración", "radar infalible", "dieta relacional".`;
+      } else if (isBook2) {
+        sagaRules = `
 
 REGLAS DE CONTINUACIÓN DE SAGA (CRÍTICAS - APLICAR EN CADA LÍNEA):
 Este es el LIBRO 2 de una saga. El libro 1 es "El Espejo Roto: Cómo Recuperar Tu Identidad Después De Vivir Con Un Narcisista". El lector YA LO LEYÓ. No repitas lo que ya sabe.
@@ -209,7 +315,8 @@ TERMINOLOGÍA PROHIBIDA (credibilidad del autor):
 - El autor no es terapeuta. El libro no es sustituto de terapia profesional.
 - El autor es un guía informado que investigó a fondo, NO un profesional clínico.
 - Formato correcto: "El EMDR es un enfoque que ha mostrado resultados positivos en personas con trauma relacional..."
-- Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica...", "El tratamiento indicado..."` : '';
+- Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica...", "El tratamiento indicado..."`;
+      }
 
       // ── CHAPTER-SPECIFIC RULES (Book 2 only) ──────────────────────────
       let chapterSpecificRules = '';
@@ -249,6 +356,7 @@ ${isBook2 ? `Subtítulo: "${data.selectedIdea?.subtitle}"` : ''}
 Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudience}"
 Autor: ${data.authorName || 'el autor'}
 ${isBook2 ? 'POSICIÓN EN LA SAGA: Libro 2 de la Serie "Reconstrucción Emocional". El Libro 1 ("El Espejo Roto") ya fue publicado y leído por el lector.' : ''}
+${isBook3 ? 'POSICIÓN EN LA SAGA: Libro 3 de la Serie "Reconstrucción Emocional". El cierre donde el lector ya está en plena estabilidad y asumiendo su poder personal.' : ''}
 
 Capítulo a escribir: ${chapterNum}: ${chapterTitle}
 Subtítulos a cubrir: ${subheadings}
