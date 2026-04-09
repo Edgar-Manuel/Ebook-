@@ -318,8 +318,23 @@ TERMINOLOGÍA PROHIBIDA (credibilidad del autor):
 - Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica...", "El tratamiento indicado..."`;
       }
 
-      // ── CHAPTER-SPECIFIC RULES (Book 2 only) ──────────────────────────
+      // ── CHAPTER-SPECIFIC RULES (Book 2 and Book 3) ──────────────────────────
       let chapterSpecificRules = '';
+
+      if (isBook3 && chapterNum === 9) {
+        chapterSpecificRules = `
+REGLA DE ORO ESTRICTA PARA EL CAPÍTULO 9 (Magnetismo sano y frecuencia energética):
+Tienes ESTRICTAMENTE PROHIBIDO usar cualquier lenguaje esotérico, místico, New Age, espiritual o pseudocientífico. No hables de "Ley de Atracción", "manifestación", "chakras", "vibrar alto", "energía cuántica" ni del "universo alineándose".
+
+CÓMO DEBES EXPLICARLO (Enfoque de Psicología Conductual):
+En los libros de Edgar Manchón, el concepto de "frecuencia energética" y "magnetismo" se explica única y exclusivamente a través de la conducta humana y la psicología clínica/social.
+
+Menciona explícitamente que el "cambio de frecuencia" significa:
+1. Lenguaje corporal y comunicación: Caminas, hablas y miras de forma diferente porque ya no tienes miedo al conflicto. Eso lo notan los demás en milisegundos.
+2. Repelente de depredadores: Los manipuladores buscan personas complacientes y con límites débiles. Cuando tu "energía" (comportamiento) demuestra que no toleras tonterías y tienes estándares altos, los narcisistas se alejan solos porque eres un objetivo "demasiado difícil y aburrido" para ellos.
+3. Atracción de personas sanas: Las personas emocionalmente maduras se sienten atraídas por la coherencia, la responsabilidad afectiva y la gente que sabe decir "no" sin culpa. Eso es el "magnetismo sano".`;
+      }
+
       if (isBook2) {
         if (chapterNum === 0 || chapterTitle.toLowerCase().includes('introducción') || chapterTitle.toLowerCase().includes('lo que nadie')) {
           chapterSpecificRules = `
