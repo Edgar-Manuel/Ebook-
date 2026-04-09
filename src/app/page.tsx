@@ -1708,6 +1708,20 @@ ${bookData.marketingContent || 'No generado'}
                     </div>
                   )}
                 </div>
+                {/* Quick navigation buttons when there's NO progress yet */}
+                {(!bookData.chapters || bookData.chapters.length === 0) && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        setStep(2);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white text-sm font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <span>📋</span> Continuar a Crear Outline
+                    </button>
+                  </div>
+                )}
                 {/* Quick navigation buttons when there's progress */}
                 {bookData.chapters?.length > 0 && (
                   <div className="mt-4 space-y-2">
