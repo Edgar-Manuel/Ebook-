@@ -441,7 +441,22 @@ Proporciona:
 
 Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.`;
 
-    case 5:
+    case 5: {
+      const bookTitle = data.selectedIdea?.title ?? '';
+      const isBook4 = bookTitle.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || bookTitle.toUpperCase().includes('DIGO QUE SI');
+
+      let coverSpecificRules = '';
+      if (isBook4) {
+        coverSpecificRules = `
+REGLA ESPECIAL PARA EL DISEÑO DE ESTA PORTADA:
+- Este diseño debe ser ESTRICTAMENTE TIPOGRÁFICO, sin imágenes complejas, fotos de paisajes ni personajes.
+- Fondo: Color blanco roto o crema antiguo, muy limpio, minimalista y profesional.
+- Elemento clave de diseño: Las palabras "SÍ" y "NO" del título ("¿POR QUÉ DIGO QUE SÍ CUANDO QUIERO DECIR QUE NO?") deben ser GIGANTES, dominar el centro de la cubierta y estar en un color ROJO CHILLÓN muy llamativo e imperativo.
+- El resto del texto del título puede ir en negro o gris grafito oscuro.
+- El subtítulo ("${data.selectedIdea?.subtitle}") y el autor ("${data.authorName}") deben enmarcar este gran juego tipográfico, buscando inspiración directa en la portada clásica de Herbert Fensterheim (letras masivas que transmiten firmeza y asertividad).
+`;
+      }
+
       return `Actúa como un diseñador profesional de portadas de libros y experto en marketing. Crea un documento detallado (Brief) para diseñar una portada generada por IA usando Nano Banana Pro (generación de imágenes con Google Gemini):
 
 Book Title: "${data.selectedIdea?.title}"
@@ -449,6 +464,7 @@ Subtitle: "${data.selectedIdea?.subtitle}"
 Author: "${data.authorName}"
 Target Audience: "${data.selectedIdea?.targetAudience}"
 Genre/Niche: "${data.niche}"
+${coverSpecificRules}
 
 Proporciona:
 1. **Concepto de la Portada (Empaque Fuerte)** - Descripción visual detallada (estado de ánimo, estilo, imágenes, composición) optimizada para IA. En Amazon la gente SÍ juzga el libro por su portada; el diseño debe ser de élite para destacar entre miles de búsquedas.
@@ -462,6 +478,7 @@ Proporciona:
 9. **Ajustes Post-Generación** - Consejos para ediciones menores después de la generación por IA (recorte, contraste, comprobación de legibilidad del texto)
 
 Haz que los consejos de diseño sean específicos, procesables y enfocados en destacar en el nicho "${data.niche}". Recuerda: la portada será generada completamente por IA, así que describe el concepto visual con mucho detalle para facilitar la creación del prompt. IMPRESCINDIBLE: ESCRIBE TODO EN ESPAÑOL.`;
+    }
 
     case 6:
       return `Actúa como un Estratega Experto en el Algoritmo de Amazon KDP y Posicionamiento SEO. Tu objetivo no es enseñar a "subir un libro", sino enseñar a "vender una solución".
