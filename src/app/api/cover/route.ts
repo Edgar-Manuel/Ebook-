@@ -24,6 +24,8 @@ async function buildImagePrompt(bookData: Partial<BookData>): Promise<string> {
   const audience = bookData.selectedIdea?.targetAudience ?? 'general readers';
 
   const authorName = bookData.authorName ?? 'Edgar Manchón';
+  const coverDesignGuidelines = bookData.coverDesign ? `\nSPECIFIC DESIGN GUIDELINES FROM THE AUTHOR (PRIORITY):\n${bookData.coverDesign}\n` : '';
+
 
   const response = await claudeClient.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -39,19 +41,15 @@ Book details:
 - Author Name: "${authorName}"
 - Genre / Niche: "${niche}"
 - Target Audience: "${audience}"
-
+${coverDesignGuidelines}
 ABSOLUTE SAFE ZONE RULES (MOST IMPORTANT - text gets cropped if you ignore these):
 - The cover has a SAFE ZONE: nothing important in the top 12%, bottom 12%, left 10%, or right 10% of the image.
-- ALL text (title, subtitle, author) MUST be INSIDE this safe zone. Text outside gets cropped by Amazon.
-- Title "${title}": Place it starting at ~15% from the top, horizontally centered, with text staying inside the safe zone. Use a font size that fits WITHOUT reaching the edges.
-- Subtitle "${subtitle}": Place BELOW the title, centered, smaller font, well inside the safe zone.
-- Author name "${authorName}": Place at approximately 85% from the top (NOT at the very bottom). It must be fully visible with space below it.
-- The visual artwork/illustration should occupy the CENTER of the cover (between ~35% and ~80% from top).
-- Portrait 9:16 ratio, high production quality, KDP-ready
-- Style must suit the "${niche}" genre
-- All text must be clearly legible (use contrast, text shadows, or semi-transparent backgrounds behind text)
-- No watermarks, no borders, no extra UI elements
-- Return ONLY the prompt text — no explanation, no labels`,
+- ALL text (title, subtitle, author) MUST be INSIDE this safe zone.
+- Title "${title}": Place it starting at ~15% from the top, horizontally centered.
+- Subtitle "${subtitle}": Place BELOW the title, centered.
+- Author name "${authorName}": Place at approximately 85% from the top.
+- ALL TEXT MUST BE CLEARLY LEGIBLE and follow the SPECIFIC DESIGN GUIDELINES above.
+- Return ONLY the final prompt text in English for the image generator.`,
       },
     ],
   });
