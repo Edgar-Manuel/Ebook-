@@ -181,8 +181,11 @@ export async function POST(req: Request) {
     // Resize to 2x Retina standard (1940×1200) then export at standard (970×600)
     // to ensure crisp rendering on all screens including HiDPI/Retina displays.
     const rawBuffer = Buffer.from(resultBase64, 'base64');
+    const { dominant } = await sharp(rawBuffer).stats();
+    const bgColor = { r: dominant.r, g: dominant.g, b: dominant.b };
     const aPlusBuffer = await sharp(rawBuffer)
-      .resize(1940, 1200, { fit: 'cover' })
+      .resize(1940, 1200, { fit: 'cover', position: 'centre', background: bgColor })
+      .flatten({ background: bgColor }) // eliminate any transparency / edge artifacts
       .jpeg({ quality: 92, mozjpeg: true }) // mozjpeg for better compression, <500KB target
       .toBuffer();
 
