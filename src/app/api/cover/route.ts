@@ -22,8 +22,23 @@ async function buildImagePrompt(bookData: Partial<BookData>): Promise<string> {
   const subtitle = bookData.selectedIdea?.subtitle ?? '';
   const niche = bookData.niche ?? 'self-help';
   const audience = bookData.selectedIdea?.targetAudience ?? 'general readers';
-
   const authorName = bookData.authorName ?? 'Edgar Manchón';
+
+  const isBook4 = title.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || title.toUpperCase().includes('DIGO QUE SI');
+  
+  // Hardcoded prompt for Book 4 to bypass AI creativity
+  if (isBook4) {
+    return `Professional Amazon Kindle book cover, 1600x2560.
+STYLE: Strictly minimalist and typographic, authoritative clinical psychology aesthetic. 
+BACKGROUND: Solid light cream or off-white matte color (#F5F5DC), completely clean, NO textures, NO gradients, NO characters, NO silhouettes, NO illustrations, NO symbols.
+LAYOUT: High-end typography.
+1. TITLE: At 15% from top, centered. The words "SÍ" and "NO" must be COLOSSAL in size, bold modern sans-serif, in VIBRANT RED (#FF0000). The rest of the title "¿POR QUÉ DIGO QUE... CUANDO QUIERO DECIR QUE..." in heavy black sans-serif.
+2. SUBTITLE: "${subtitle}" centered below the title in small elegant black font.
+3. AUTHOR: "${authorName}" at 85% from top, centered in black modern font.
+SAFE ZONE: Keep all text 12% away from top/bottom and 10% from sides.
+FINAL LOOK: 100% Typographic cover, modern, high-impact. RETURN ONLY THIS PROMPT.`;
+  }
+
   const coverDesignGuidelines = bookData.coverDesign ? `\nSPECIFIC DESIGN GUIDELINES FROM THE AUTHOR (PRIORITY):\n${bookData.coverDesign}\n` : '';
 
 
