@@ -625,7 +625,7 @@ export default function Home() {
 
   useEffect(() => {
     if (autoScroll) {
-      contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      contentEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [streamedText, autoScroll]);
 
