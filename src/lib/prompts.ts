@@ -422,16 +422,25 @@ Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
     }
 
     case 4: {
-      const outlineText = data.chapters?.map(c => `${c.number === 0 ? 'Introducción' : c.number === 99 ? 'Conclusión' : `Capítulo ${c.number}`}: ${c.title}`).join('\n') ?? '';
+      const outlineText = data.chapters?.map(c => {
+        if (c.number === 0) return `SECCIÓN: Introducción - Título: ${c.title}`;
+        if (c.number === 99) return `SECCIÓN: Conclusión - Título: ${c.title}`;
+        return `CAPÍTULO ${c.number}: ${c.title}`;
+      }).join('\n') ?? '';
       
-      return `Actúa como un maquetador profesional de ebooks. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
+      const numRealChapters = data.chapters?.filter(c => c.number > 0 && c.number < 99).length ?? 0;
+
+      return `Actúa como un maquetador profesional de ebooks y experto en KDP. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
 
 Libro: "${data.selectedIdea?.title}"
 Autor: "${data.authorName}"
 
-Resumen del contenido actual: El libro tiene ${data.chapters?.length ?? 0} partes que cubren ${data.selectedIdea?.description}
+ESTRUCTURA REAL DEL LIBRO:
+- El libro tiene una Introducción, ${numRealChapters} capítulos numerados y una Conclusión.
+- NO INVENTES CAPÍTULOS. NO USES PLACEHOLDERS como "Título del capítulo X".
+- USA LOS TÍTULOS REALES QUE TE DOY A CONTINUACIÓN PARA EL ÍNDICE.
 
-ÍNDICE REAL DEL LIBRO (Usa ESTOS títulos exactos para el índice, NUNCA inventes capítulos de otro libro):
+ÍNDICE REAL DEL LIBRO (Copia estos títulos tal cual):
 ${outlineText}
 
 Nota: Esta aplicación exporta automáticamente el libro como un archivo .docx formateado. Basándonos en los requisitos oficiales de Amazon KDP, el formato .docx (Word) es el IDEAL y RECOMENDADO para publicar como "Libro Electrónico (eBook Kindle)", ya que permite que el texto sea "texto ajustable" y se adapte perfectamente a diferentes tamaños de pantalla (a diferencia del PDF, que solo se recomienda si fuera para imprimir en versión "Tapa Blanda"). Tu tarea es proporcionar una guía sobre la estructura visual y de estilo para la versión eBook Kindle.
