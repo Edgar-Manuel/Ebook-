@@ -428,7 +428,15 @@ Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
         return `CAPÍTULO ${c.number}: ${c.title}`;
       }).join('\n') ?? '';
       
+      const hasIntro = data.chapters?.some(c => c.number === 0);
+      const hasConclusion = data.chapters?.some(c => c.number === 99);
       const numRealChapters = data.chapters?.filter(c => c.number > 0 && c.number < 99).length ?? 0;
+      
+      const structureParts = [];
+      if (hasIntro) structureParts.push('una Introducción');
+      if (numRealChapters > 0) structureParts.push(`${numRealChapters} capítulos numerados`);
+      if (hasConclusion) structureParts.push('una Conclusión');
+      const structureDesc = structureParts.join(', ').replace(/, ([^,]*)$/, ' y $1');
 
       return `Actúa como un maquetador profesional de ebooks y experto en KDP. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
 
@@ -436,7 +444,7 @@ Libro: "${data.selectedIdea?.title}"
 Autor: "${data.authorName}"
 
 ESTRUCTURA REAL DEL LIBRO:
-- El libro tiene una Introducción, ${numRealChapters} capítulos numerados y una Conclusión.
+- El libro tiene ${structureDesc || 'varias secciones'}.
 - NO INVENTES CAPÍTULOS. NO USES PLACEHOLDERS como "Título del capítulo X".
 - USA LOS TÍTULOS REALES QUE TE DOY A CONTINUACIÓN PARA EL ÍNDICE.
 
