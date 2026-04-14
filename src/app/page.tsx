@@ -44,6 +44,12 @@ const initialBookData: BookData = {
       description: 'Cierre de trilogía. Manual de operaciones post-trauma diseñado para quienes ya sanaron. Transforma límites de supervivencia en estrategias de éxito, magnetismo sano, excelencia relacional e independencia radical.',
       targetAudience: 'Supervivientes de abuso emocional en fase de estabilidad. Lectores de los dos volúmenes anteriores que quieren herramientas ofensivas para consolidar estándares altos.',
     },
+    {
+      title: '¿POR QUÉ DIGO QUE SÍ CUANDO QUIERO DECIR QUE NO?',
+      subtitle: 'Descubre por qué tu amabilidad es en realidad miedo y cómo dejar de complacer a los demás sin sentir culpa',
+      description: 'El manual definitivo para desmontar la complacencia crónica (people-pleasing). Descubre cómo el miedo al rechazo activa la respuesta de adulación (fawning), llevándote a acumular una deuda secreta de resentimiento. Incluye protocolos tácticos para tolerar la abstinencia de validación y poner límites sanos.',
+      targetAudience: 'Personas de 25 a 50 años, empáticas pero con baja tolerancia al conflicto. Funcionan como el sostén emocional de su entorno, arrastran agotamiento crónico y suelen explotar tras acumular meses de "síes" falsos.',
+    },
   ],
   outline: '',
   chapters: [],
