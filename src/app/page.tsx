@@ -1577,7 +1577,7 @@ ${bookData.marketingContent || 'No generado'}
                         <span className="animate-spin">⟳</span> Writing Chapter...
                       </>
                     ) : (
-                      <>✍️ Write Chapter {bookData.currentWritingChapter}</>
+                      <>✍️ Write {bookData.currentWritingChapter === 0 ? 'Introducción' : bookData.currentWritingChapter === 99 ? 'Conclusión' : `Chapter ${bookData.currentWritingChapter}`}</>
                     )}
                   </button>
 
@@ -2236,7 +2236,7 @@ ${bookData.marketingContent || 'No generado'}
                             : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                         }`}
                       >
-                        Ch.{num} ✓
+                        {num === '0' ? 'Intro' : num === '99' ? 'Concl' : `Ch.${num}`} ✓
                       </button>
                     ))}
                   </div>

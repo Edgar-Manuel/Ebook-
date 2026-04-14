@@ -247,8 +247,8 @@ REGLAS CRÍTICAS:
 
     case 3: {
       const chapterNum = data.currentWritingChapter ?? 1;
-      const chapterInfo = data.chapters?.[chapterNum - 1];
-      const chapterTitle = chapterInfo?.title ?? `Capítulo ${chapterNum}`;
+      const chapterInfo = data.chapters?.find(c => c.number === chapterNum) || data.chapters?.[chapterNum - 1];
+      const chapterTitle = chapterInfo?.title ?? (chapterNum === 0 ? 'Introducción' : chapterNum === 99 ? 'Conclusión' : `Capítulo ${chapterNum}`);
       const subheadings = chapterInfo?.subheadings?.join(', ') ?? '';
       const bookTitle = data.selectedIdea?.title ?? '';
 
@@ -392,7 +392,7 @@ ${isBook2 ? 'POSICIÓN EN LA SAGA: Libro 2 de la Serie "Reconstrucción Emociona
 ${isBook3 ? 'POSICIÓN EN LA SAGA: Libro 3 de la Serie "Reconstrucción Emocional". El cierre donde el lector ya está en plena estabilidad y asumiendo su poder personal.' : ''}
 ${isBook4 ? 'TONO: Práctico, revelador, una "bofetada compasiva" informada por la neurociencia pero escrita en un lenguaje absolutamente cotidiano y táctico.' : ''}
 
-Capítulo a escribir: ${chapterNum}: ${chapterTitle}
+Sección a escribir: ${chapterNum === 0 ? 'Introducción' : chapterNum === 99 ? 'Conclusión' : `Capítulo ${chapterNum}`}: ${chapterTitle}
 Subtítulos a cubrir: ${subheadings}
 ${sagaRules}${chapterSpecificRules}
 
