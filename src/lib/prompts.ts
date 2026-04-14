@@ -255,6 +255,7 @@ REGLAS CRÍTICAS:
       // Detect Book 2 of the saga
       const isBook2 = bookTitle.toUpperCase().includes('DESPUÉS DEL ESPEJO');
       const isBook3 = bookTitle.toUpperCase().includes('MÁS ALLÁ DEL ESPEJO');
+      const isBook4 = bookTitle.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || bookTitle.toUpperCase().includes('DIGO QUE SI');
 
       // ── SAGA CONTINUATION RULES ──────────────────────────
       let sagaRules = '';
@@ -318,8 +319,25 @@ TERMINOLOGÍA PROHIBIDA (credibilidad del autor):
 - Formato INCORRECTO: "Como profesionales, recomendamos...", "En mi práctica clínica...", "El tratamiento indicado..."`;
       }
 
-      // ── CHAPTER-SPECIFIC RULES (Book 2 and Book 3) ──────────────────────────
+      // ── CHAPTER-SPECIFIC RULES (Book 2, 3 and 4) ──────────────────────────
       let chapterSpecificRules = '';
+
+      if (isBook4) {
+        // Enforce different nucleus fears for the practical contexts
+        if (chapterNum === 8) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - CAPÍTULO 8 (Pareja):
+Asegúrate de anclar la aplicación práctica de decir "no" en la pareja al MIEDO NUCLEAR de ese ámbito: El miedo al abandono y a no ser suficiente. Explica cómo este miedo profundo es el verdadero motor del fawning en relaciones de pareja, no el amor desinteresado.`;
+        } else if (chapterNum === 9) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - CAPÍTULO 9 (Trabajo):
+Asegúrate de anclar la aplicación práctica de decir "no" en el trabajo al MIEDO NUCLEAR de ese ámbito: El miedo a la incompetencia o a perder el sustento. El desarrollo y los guiones para este capítulo deben enmarcar los límites como algo transaccional y profesional, eliminando la culpa por ser un "mal compañero".`;
+        } else if (chapterNum === 10) {
+          chapterSpecificRules = `
+REGLA ESPECIAL - CAPÍTULO 10 (Familia y Amistades):
+Asegúrate de anclar la aplicación práctica de decir "no" en la familia al MIEDO NUCLEAR de ese ámbito: El miedo a perder la pertenencia o la lealtad de la "tribu". Subraya que la culpa aquí es profunda y "ancestral", y orienta las herramientas a tolerar esa expulsión imaginaria.`;
+        }
+      }
 
       if (isBook3 && chapterNum === 9) {
         chapterSpecificRules = `
@@ -372,6 +390,7 @@ Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudi
 Autor: ${data.authorName || 'el autor'}
 ${isBook2 ? 'POSICIÓN EN LA SAGA: Libro 2 de la Serie "Reconstrucción Emocional". El Libro 1 ("El Espejo Roto") ya fue publicado y leído por el lector.' : ''}
 ${isBook3 ? 'POSICIÓN EN LA SAGA: Libro 3 de la Serie "Reconstrucción Emocional". El cierre donde el lector ya está en plena estabilidad y asumiendo su poder personal.' : ''}
+${isBook4 ? 'TONO: Práctico, revelador, una "bofetada compasiva" informada por la neurociencia pero escrita en un lenguaje absolutamente cotidiano y táctico.' : ''}
 
 Capítulo a escribir: ${chapterNum}: ${chapterTitle}
 Subtítulos a cubrir: ${subheadings}

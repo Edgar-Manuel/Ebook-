@@ -141,11 +141,13 @@ function parseOutlineFromText(text: string): Chapter[] {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Match chapter headings like "**Chapter 1: Title**", "**Capítulo 1: Título**", "Chapter 1: Title", etc.
     const chapterMatch =
       trimmed.match(/\*?\*?(?:Chapter|Cap[ií]tulo)\s+(\d+)[:.]?\s*(.+?)\*?\*?$/i) ??
       trimmed.match(/^#{1,3}\s+(?:Chapter|Cap[ií]tulo)\s+(\d+)[:.]?\s*(.+)$/i) ??
       trimmed.match(/^(\d+)\.\s+(.+)$/);
+
+    const intMatch = trimmed.match(/\*?\*?(?:Introducci[oó]n|Introduction)(?:[:.-]\s*(.+?))?\*?\*?$/i);
+    const concMatch = trimmed.match(/\*?\*?(?:Conclusi[oó]n|Conclusion)(?:[:.-]\s*(.+?))?\*?\*?$/i);
 
     if (chapterMatch) {
       // If we found a new chapter, push the previous one
@@ -154,6 +156,22 @@ function parseOutlineFromText(text: string): Chapter[] {
       currentChapter = {
         number: parseInt(chapterMatch[1]),
         title: chapterMatch[2].replace(/\*\*/g, '').trim(),
+        subheadings: [],
+      };
+      continue;
+    } else if (intMatch) {
+      if (currentChapter) chapters.push(currentChapter);
+      currentChapter = {
+        number: 0,
+        title: 'Introducción' + (intMatch[1] ? `: ${intMatch[1].replace(/\*\*/g, '').trim()}` : ''),
+        subheadings: [],
+      };
+      continue;
+    } else if (concMatch) {
+      if (currentChapter) chapters.push(currentChapter);
+      currentChapter = {
+        number: 99,
+        title: 'Conclusión' + (concMatch[1] ? `: ${concMatch[1].replace(/\*\*/g, '').trim()}` : ''),
         subheadings: [],
       };
       continue;
