@@ -286,6 +286,7 @@ export default function Home() {
   const [pubFormats, setPubFormats] = useState<{ ebook: boolean; paperback: boolean }>({ ebook: true, paperback: false });
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
+  const [autoScroll, setAutoScroll] = useState(true);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -623,8 +624,10 @@ export default function Home() {
   }, [isLoaded]);
 
   useEffect(() => {
-    contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [streamedText]);
+    if (autoScroll) {
+      contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [streamedText, autoScroll]);
 
   // Helper: merge ideas arrays avoiding duplicates by title
   const mergeIdeasByTitle = (existing: BookIdea[], incoming: BookIdea[]): BookIdea[] => {
@@ -2171,6 +2174,20 @@ ${bookData.marketingContent || 'No generado'}
                     ) : (
                       completedText || streamedText ? (
                         <div key="ai-content-area" className={isGenerating ? 'streaming-cursor' : ''}>
+                          {isGenerating && (
+                            <div className="sticky top-4 z-10 flex justify-end mb-4">
+                              <button
+                                onClick={() => setAutoScroll(!autoScroll)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-md transition-all flex items-center gap-2 ${
+                                  autoScroll 
+                                    ? 'bg-indigo-600/90 text-white hover:bg-indigo-500' 
+                                    : 'bg-slate-700/90 text-slate-200 hover:bg-slate-600'
+                                }`}
+                              >
+                                {autoScroll ? '⬇️ Auto-scroll ON' : '⏸️ Auto-scroll OFF'}
+                              </button>
+                            </div>
+                          )}
                           {renderAIContent(isGenerating ? streamedText : completedText)}
                         </div>
                       ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
