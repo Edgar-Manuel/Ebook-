@@ -324,7 +324,7 @@ function buildTOC(bookData: BookData): Paragraph[] {
       children.push(
         new Paragraph({
           children: [
-            new TextRun({ text: `Capítulo ${chapter.number}: `, bold: true, font: 'Times New Roman', size: 24 }),
+            new TextRun({ text: chapter.number === 0 ? 'Introducción: ' : chapter.number === 99 ? 'Conclusión: ' : `Capítulo ${chapter.number}: `, bold: true, font: 'Times New Roman', size: 24 }),
             new TextRun({ text: chapter.title, font: 'Times New Roman', size: 24 }),
           ],
           spacing: { before: 100, after: 100 },
@@ -360,7 +360,7 @@ function buildChapters(bookData: BookData, mode: DocxMode): Paragraph[] {
       if (content) {
         // Ensure chapter header has "Capítulo X:" prefix
         let processedContent = content;
-        const chapterPrefix = `Capítulo ${chapter.number}:`;
+        const chapterPrefix = chapter.number === 0 ? 'Introducción:' : chapter.number === 99 ? 'Conclusión:' : `Capítulo ${chapter.number}:`;
 
         // Check if the content starts with the chapter title but without "Capítulo X:" prefix
         // Look at the first H1/H2 heading in the content
@@ -382,7 +382,7 @@ function buildChapters(bookData: BookData, mode: DocxMode): Paragraph[] {
         children.push(
           new Paragraph({
             children: [new TextRun({
-              text: `Capítulo ${chapter.number}: ${chapter.title}`,
+              text: `${chapter.number === 0 ? 'Introducción' : chapter.number === 99 ? 'Conclusión' : `Capítulo ${chapter.number}`}: ${chapter.title}`,
               font: 'Times New Roman', size: 32, bold: true,
             })],
             heading: HeadingLevel.HEADING_1,

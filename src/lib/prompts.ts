@@ -421,13 +421,18 @@ REGLAS DE FORMATO KDP (OBLIGATORIAS):
 Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
     }
 
-    case 4:
+    case 4: {
+      const outlineText = data.chapters?.map(c => `${c.number === 0 ? 'Introducción' : c.number === 99 ? 'Conclusión' : `Capítulo ${c.number}`}: ${c.title}`).join('\n') ?? '';
+      
       return `Actúa como un maquetador profesional de ebooks. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
 
 Libro: "${data.selectedIdea?.title}"
 Autor: "${data.authorName}"
 
-Resumen del contenido actual: El libro tiene ${data.chapters?.length ?? 0} capítulos que cubren ${data.selectedIdea?.description}
+Resumen del contenido actual: El libro tiene ${data.chapters?.length ?? 0} partes que cubren ${data.selectedIdea?.description}
+
+ÍNDICE REAL DEL LIBRO (Usa ESTOS títulos exactos para el índice, NUNCA inventes capítulos de otro libro):
+${outlineText}
 
 Nota: Esta aplicación exporta automáticamente el libro como un archivo .docx formateado. Basándonos en los requisitos oficiales de Amazon KDP, el formato .docx (Word) es el IDEAL y RECOMENDADO para publicar como "Libro Electrónico (eBook Kindle)", ya que permite que el texto sea "texto ajustable" y se adapte perfectamente a diferentes tamaños de pantalla (a diferencia del PDF, que solo se recomienda si fuera para imprimir en versión "Tapa Blanda"). Tu tarea es proporcionar una guía sobre la estructura visual y de estilo para la versión eBook Kindle.
 
@@ -440,6 +445,7 @@ Proporciona:
 6. **Checklist de Calidad y Experiencia de Lectura** - Comprobaciones antes de publicar para asegurar que este libro de "Alto Contenido" mantenga al lector enganchado en Kindle o en versión impresa (Tapablanda).
 
 Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.`;
+    }
 
     case 5: {
       const bookTitle = data.selectedIdea?.title ?? '';
