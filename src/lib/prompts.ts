@@ -468,16 +468,24 @@ Haz que las recomendaciones de formato sean específicas y procesables. Recuerda
       const bookTitle = data.selectedIdea?.title ?? '';
       const isBook4 = bookTitle.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || bookTitle.toUpperCase().includes('DIGO QUE SI');
 
-      let coverSpecificRules = '';
       if (isBook4) {
-        coverSpecificRules = `
-REGLA ESPECIAL PARA EL DISEÑO DE ESTA PORTADA:
-- Este diseño debe ser ESTRICTAMENTE TIPOGRÁFICO, sin imágenes complejas, fotos de paisajes ni personajes.
-- Fondo: Color blanco roto o crema antiguo, muy limpio, minimalista y profesional.
-- Elemento clave de diseño: Las palabras "SÍ" y "NO" del título ("¿POR QUÉ DIGO QUE SÍ CUANDO QUIERO DECIR QUE NO?") deben ser GIGANTES, dominar el centro de la cubierta y estar en un color ROJO CHILLÓN muy llamativo e imperativo.
-- El resto del texto del título puede ir en negro o gris grafito oscuro.
-- El subtítulo ("${data.selectedIdea?.subtitle}") y el autor ("${data.authorName}") deben enmarcar este gran juego tipográfico, buscando inspiración directa en la portada clásica de Herbert Fensterheim (letras masivas que transmiten firmeza y asertividad).
-`;
+        return `Actúa como un diseñador de portadas minimalistas y experto en branding tipográfico. Tu objetivo es crear un Brief de diseño para la portada del libro "${data.selectedIdea?.title}".
+
+REQUISITO ABSOLUTO: La portada debe ser 100% TIPOGRÁFICA. 
+PROHIBICIÓN TOTAL: No incluyas personajes, figuras humanas, siluetas, cerebros, corazones, paisajes, luces marianas ni elementos esotéricos o místicos.
+
+DIRECCIÓN VISUAL PARA LA IA (Nano Banana Pro):
+1. **Fondo:** Color crema satinado o blanco roto mate (estilo libro clásico de psicología). Muy limpio.
+2. **Jerarquía Visual:** 
+   - Las palabras "SÍ" y "NO" deben ser de un tamaño COLOSAL, ocupando el 70% de la portada.
+   - El color de "SÍ" y "NO" debe ser ROJO VIBRANTE / CHILLÓN (#FF0000), tipo señal de prohibición o alerta.
+   - El resto del título ("¿POR QUÉ DIGO QUE... CUANDO QUIERO DECIR QUE...") debe ir en una tipografía Sans Serif moderna, pesada y firme, en color negro sólido.
+3. **Composición:** Inspiración en el estilo de Herbert Fensterheim. Tipografía masiva que transmita fuerza y autoridad.
+4. **Textos secundarios:**
+   - Subtítulo: "${data.selectedIdea?.subtitle}" en la parte superior o inferior, fuente pequeña y elegante en negro.
+   - Autor: "${data.authorName}" en la parte inferior, centrado, fuente firme en negro.
+
+Escribe el Brief detallando estas instrucciones. Incluye una sección de "LO QUE NO DEBE APARECER" listando siluetas humanas y fondos oscuros.`;
       }
 
       return `Actúa como un diseñador profesional de portadas de libros y experto en marketing. Crea un documento detallado (Brief) para diseñar una portada generada por IA usando Nano Banana Pro (generación de imágenes con Google Gemini):
