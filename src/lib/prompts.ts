@@ -495,7 +495,7 @@ Subtitle: "${data.selectedIdea?.subtitle}"
 Author: "${data.authorName}"
 Target Audience: "${data.selectedIdea?.targetAudience}"
 Genre/Niche: "${data.niche}"
-${coverSpecificRules}
+${data.coverDesign ? `\nDIRECTRICES DE DISEÑO DEL AUTOR:\n${data.coverDesign}\n` : ''}
 
 Proporciona:
 1. **Concepto de la Portada (Empaque Fuerte)** - Descripción visual detallada (estado de ánimo, estilo, imágenes, composición) optimizada para IA. En Amazon la gente SÍ juzga el libro por su portada; el diseño debe ser de élite para destacar entre miles de búsquedas.
