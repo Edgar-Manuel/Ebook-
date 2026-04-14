@@ -24,19 +24,45 @@ async function buildImagePrompt(bookData: Partial<BookData>): Promise<string> {
   const audience = bookData.selectedIdea?.targetAudience ?? 'general readers';
   const authorName = bookData.authorName ?? 'Edgar Manchón';
 
-  const isBook4 = title.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || title.toUpperCase().includes('DIGO QUE SI');
-  
+  // Strip diacritics before comparing to avoid NFD vs NFC Unicode mismatch
+  const stripDiacritics = (s: string) =>
+    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  const titleNorm = stripDiacritics(title);
+  const isBook4 =
+    titleNorm.includes('POR QUE DIGO QUE SI') ||
+    (titleNorm.includes('DIGO QUE SI') && titleNorm.includes('CUANDO QUIERO DECIR QUE NO'));
+
+  // Log for debugging — remove once confirmed working
+  console.log('[cover/route] titleNorm=', titleNorm, '| isBook4=', isBook4);
+
   // Hardcoded prompt for Book 4 to bypass AI creativity
   if (isBook4) {
-    return `Professional Amazon Kindle book cover, 1600x2560.
-STYLE: Strictly minimalist and typographic, authoritative clinical psychology aesthetic. 
-BACKGROUND: Solid light cream or off-white matte color (#F5F5DC), completely clean, NO textures, NO gradients, NO characters, NO silhouettes, NO illustrations, NO symbols.
-LAYOUT: High-end typography.
-1. TITLE: At 15% from top, centered. The words "SÍ" and "NO" must be COLOSSAL in size, bold modern sans-serif, in VIBRANT RED (#FF0000). The rest of the title "¿POR QUÉ DIGO QUE... CUANDO QUIERO DECIR QUE..." in heavy black sans-serif.
-2. SUBTITLE: "${subtitle}" centered below the title in small elegant black font.
-3. AUTHOR: "${authorName}" at 85% from top, centered in black modern font.
-SAFE ZONE: Keep all text 12% away from top/bottom and 10% from sides.
-FINAL LOOK: 100% Typographic cover, modern, high-impact. RETURN ONLY THIS PROMPT.`;
+    return `Professional Amazon Kindle book cover, 1600x2560 pixels, 300 DPI.
+
+CRITICAL RULES — NO EXCEPTIONS:
+- ZERO human figures, faces, silhouettes, bodies, or body parts.
+- ZERO landscapes, scenery, nature, clouds, chains, light beams, or decorative objects.
+- ZERO gradients or textures. The background is a single flat solid color.
+- 100% typographic layout. Text IS the design.
+
+STYLE: Classic American psychology self-help book from the 1970s — authoritative, clinical, unapologetic. Think bold black-and-red paperbacks that shouted from the shelf.
+
+BACKGROUND: Solid off-white / warm cream (#F2EDE4), completely flat and clean across the entire cover.
+
+TYPOGRAPHY LAYOUT (top to bottom, all centered):
+
+1. LINE 1 — "¿POR QUÉ DIGO QUE" — large bold sans-serif, BLACK (#1A1A1A), approx 18% from top.
+2. LINE 2 — "SÍ" — COLOSSAL, occupying ~22% of the cover height, ultra-bold sans-serif, VIVID RED (#D91E18). This word must dominate the page visually.
+3. LINE 3 — "CUANDO QUIERO" — large bold sans-serif, BLACK, immediately below.
+4. LINE 4 — "DECIR QUE" — large bold sans-serif, BLACK.
+5. LINE 5 — "NO?" — COLOSSAL, same size as "SÍ", ultra-bold sans-serif, VIVID RED (#D91E18).
+6. A thin horizontal rule in black (#1A1A1A) spanning 80% of the cover width, positioned after the title block.
+7. SUBTITLE: "${subtitle}" — small, elegant serif or clean sans-serif, BLACK, centered, ~2 lines max.
+8. Another thin horizontal rule in black.
+9. AUTHOR NAME: "${authorName}" — medium weight sans-serif, BLACK, positioned near the bottom (~88% from top).
+
+SAFE ZONE: All text must be at least 10% from left/right edges and 8% from top/bottom.
+FINAL LOOK: Maximum visual impact through typography alone. The contrast between the dominant red "SÍ" and "NO?" against the cream background must be striking and immediate.`;
   }
 
   const coverDesignGuidelines = bookData.coverDesign ? `\nSPECIFIC DESIGN GUIDELINES FROM THE AUTHOR (PRIORITY):\n${bookData.coverDesign}\n` : '';
