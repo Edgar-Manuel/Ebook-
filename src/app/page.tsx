@@ -286,7 +286,7 @@ export default function Home() {
   const [pubFormats, setPubFormats] = useState<{ ebook: boolean; paperback: boolean }>({ ebook: true, paperback: false });
   const streamRef = useRef<string>('');
   const contentEndRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(false);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
