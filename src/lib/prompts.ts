@@ -1,9 +1,19 @@
 import type { BookData } from '@/types';
 
-export function getPrompt(step: number, data: Partial<BookData>): string {
+/**
+ * Prompt caching: Step 3 (chapter writing) returns cachedSystem with saga rules
+ * and writing guidelines that are identical across all 12 chapters of a book.
+ * Anthropic caches this block so calls 2-12 cost only 10% of input for that section.
+ */
+export interface PromptParts {
+  cachedSystem?: string;
+  user: string;
+}
+
+export function getPrompt(step: number, data: Partial<BookData>): PromptParts {
   switch (step) {
     case 1:
-      return `Actúa como un estratega de marketing de contenidos y experto en Amazon Kindle Direct Publishing (KDP) con más de 10 años de experiencia en lanzamientos de "Non-Fiction" Best Sellers.
+      return { user: `Actúa como un estratega de marketing de contenidos y experto en Amazon Kindle Direct Publishing (KDP) con más de 10 años de experiencia en lanzamientos de "Non-Fiction" Best Sellers.
 
 Genera 5 ideas de ebooks altamente rentables para alguien interesado en el nicho: "${data.niche}" con estos intereses/habilidades: "${data.interests}".
 
@@ -26,7 +36,7 @@ REGLAS DE GENERACIÓN (Basadas en Motivaciones Reales de Compra en Amazon):
 6. TARGET AUDIENCE: Define exactamente quién sufre el problema crónico que resolvemos.
 7. ANÁLISIS DE COMPETENCIA: Menciona un "hueco" común que la competencia no cubre (basado en quejas típicas en reseñas) y cómo este libro lo aprovechará.
 
-Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de valor real) y rechaza categóricamente ideas orientadas a bajo/medio contenido (nada de agendas, diarios o sudokus, ya que están sobresaturados). El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.`;
+Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de valor real) y rechaza categóricamente ideas orientadas a bajo/medio contenido (nada de agendas, diarios o sudokus, ya que están sobresaturados). El contenido se publicará en España y Latinoamérica, usa un español neutro-profesional.` };
 
     case 2: {
       const outlineTitle = data.selectedIdea?.title ?? '';
@@ -34,7 +44,7 @@ Prioriza soluciones hiper-específicas de "Alto Contenido" (libros largos y de v
       const isBook3Outline = outlineTitle.toUpperCase().includes('MÁS ALLÁ DEL ESPEJO');
 
       if (isBook3Outline) {
-        return `El siguiente es el índice FINAL APROBADO para el libro 3 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
+        return { user: `El siguiente es el índice FINAL APROBADO para el libro 3 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
 
 Título: "${data.selectedIdea?.title}"
 Subtítulo: "${data.selectedIdea?.subtitle}"
@@ -112,12 +122,12 @@ GENERA ESTE OUTLINE EXACTO:
 - Tus próximos pasos hacia una libertad definitiva
 - Tu Opinión Importa (CTA de reseña en Amazon)
 
-Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+Responde SOLO con el esquema estructural, sin explicaciones adicionales.` };
       }
 
       if (isBook2Outline) {
         // Return the pre-approved outline for Book 2 directly
-        return `El siguiente es el índice FINAL APROBADO para el libro 2 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
+        return { user: `El siguiente es el índice FINAL APROBADO para el libro 2 de la saga. Genera este outline EXACTO sin modificaciones, en el formato de texto plano indicado.
 
 Título: "${data.selectedIdea?.title}"
 Subtítulo: "${data.selectedIdea?.subtitle}"
@@ -209,10 +219,10 @@ GENERA ESTE OUTLINE EXACTO:
 - Carta del autor al lector
 - Tu Opinión Importa (CTA de reseña en Amazon)
 
-Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+Responde SOLO con el esquema estructural, sin explicaciones adicionales.` };
       }
 
-      return `Actúa como un Arquitecto Editorial experto en Amazon KDP. Diseña un índice COMPLETO para este libro.
+      return { user: `Actúa como un Arquitecto Editorial experto en Amazon KDP. Diseña un índice COMPLETO para este libro.
 
 Título: "${data.selectedIdea?.title}"
 Subtítulo: "${data.selectedIdea?.subtitle}"
@@ -242,7 +252,7 @@ REGLAS CRÍTICAS:
 2. COMPLETITUD: Genera TODOS los capítulos prometidos. No te detengas a mitad.
 3. NUNCA Spanglish. Todo en español limpio.
 4. Cada capítulo = una victoria para el lector. Títulos que prometan avance.
-5. Responde SOLO con el esquema estructural, sin explicaciones adicionales.`;
+5. Responde SOLO con el esquema estructural, sin explicaciones adicionales.` };
     }
 
     case 3: {
@@ -382,21 +392,20 @@ El autor es un guía informado, no un clínico.`;
         }
       }
 
-      return `Actúa como un Escritor Fantasma (Ghostwriter) de élite especializado en libros "Non-Fiction" Best Sellers de Amazon.
+      // ── CACHEABLE: stable across all 12 chapter calls of the same book ──
+      // Prompt caching: this block is cached by Anthropic. Calls 2-12 pay
+      // only 10% of the input cost for this section.
+      const cachedSystem = `Actúa como un Escritor Fantasma (Ghostwriter) de élite especializado en libros "Non-Fiction" Best Sellers de Amazon.
 
+CONTEXTO PERSISTENTE DEL LIBRO EN CURSO:
 Libro: "${data.selectedIdea?.title}"
-${isBook2 ? `Subtítulo: "${data.selectedIdea?.subtitle}"` : ''}
+${isBook2 || isBook3 ? `Subtítulo: "${data.selectedIdea?.subtitle}"` : ''}
 Audiencia (A quién le resolvemos el problema): "${data.selectedIdea?.targetAudience}"
 Autor: ${data.authorName || 'el autor'}
 ${isBook2 ? 'POSICIÓN EN LA SAGA: Libro 2 de la Serie "Reconstrucción Emocional". El Libro 1 ("El Espejo Roto") ya fue publicado y leído por el lector.' : ''}
 ${isBook3 ? 'POSICIÓN EN LA SAGA: Libro 3 de la Serie "Reconstrucción Emocional". El cierre donde el lector ya está en plena estabilidad y asumiendo su poder personal.' : ''}
 ${isBook4 ? 'TONO: Práctico, revelador, una "bofetada compasiva" informada por la neurociencia pero escrita en un lenguaje absolutamente cotidiano y táctico.' : ''}
-
-Sección a escribir: ${chapterNum === 0 ? 'Introducción' : chapterNum === 99 ? 'Conclusión' : `Capítulo ${chapterNum}`}: ${chapterTitle}
-Subtítulos a cubrir: ${subheadings}
-${sagaRules}${chapterSpecificRules}
-
-Escribe AL MENOS 1500 - 2000 palabras para este capítulo. Desarrolla los conceptos con muchísima profundidad.
+${sagaRules}
 
 REGLAS CRÍTICAS DE PSICOLOGÍA DEL LECTOR Y REDACCIÓN:
 - PROFUNDIDAD EXTREMA: No seas superficial. Desarrolla herramientas prácticas, guiones de diálogo interno y escenarios detallados.
@@ -418,7 +427,20 @@ REGLAS DE FORMATO KDP (OBLIGATORIAS):
 - Títulos de capítulo: SIEMPRE "Capítulo X: Título"
 - Separadores: Exactamente "---" (tres guiones)
 
+Cada llamada te pedirá escribir UN capítulo concreto siguiendo estas reglas.`;
+
+      // ── DYNAMIC: changes per chapter call ──
+      const user = `Escribe ahora el siguiente capítulo siguiendo el contexto persistente y las reglas del sistema.
+
+Sección a escribir: ${chapterNum === 0 ? 'Introducción' : chapterNum === 99 ? 'Conclusión' : `Capítulo ${chapterNum}`}: ${chapterTitle}
+Subtítulos a cubrir: ${subheadings}
+${chapterSpecificRules}
+
+Escribe AL MENOS 1500 - 2000 palabras para este capítulo. Desarrolla los conceptos con muchísima profundidad.
+
 Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
+
+      return { cachedSystem, user };
     }
 
     case 4: {
@@ -438,7 +460,7 @@ Escribe el capítulo completo AHORA en formato Markdown (extenso y detallado):`;
       if (hasConclusion) structureParts.push('una Conclusión');
       const structureDesc = structureParts.join(', ').replace(/, ([^,]*)$/, ' y $1');
 
-      return `Actúa como un maquetador profesional de ebooks y experto en KDP. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
+      return { user: `Actúa como un maquetador profesional de ebooks y experto en KDP. Revisa y formatea el contenido de este ebook para su publicación en Amazon Kindle.
 
 Libro: "${data.selectedIdea?.title}"
 Autor: "${data.authorName}"
@@ -461,7 +483,7 @@ Proporciona:
 5. **Páginas Finales (Back Matter)** - Plantilla "Acerca del Autor" (${data.authorName}) y sugerencias de llamadas a la acción (Call to Action). IMPORTANTE: NO incluyas ni sugieras poner el correo electrónico (email) del autor en ninguna parte del libro (ni en derechos de autor, ni en contacto, nada).
 6. **Checklist de Calidad y Experiencia de Lectura** - Comprobaciones antes de publicar para asegurar que este libro de "Alto Contenido" mantenga al lector enganchado en Kindle o en versión impresa (Tapablanda).
 
-Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.`;
+Haz que las recomendaciones de formato sean específicas y procesables. Recuerda escribir ABSOLUTAMENTE TODO EN ESPAÑOL. La exportación a .docx es manejada automáticamente por esta herramienta.` };
     }
 
     case 5: {
@@ -469,7 +491,7 @@ Haz que las recomendaciones de formato sean específicas y procesables. Recuerda
       const isBook4 = bookTitle.toUpperCase().includes('POR QUÉ DIGO QUE SÍ') || bookTitle.toUpperCase().includes('DIGO QUE SI');
 
       if (isBook4) {
-        return `Actúa como un diseñador de portadas minimalistas y experto en branding tipográfico. Tu objetivo es crear un Brief de diseño para la portada del libro "${data.selectedIdea?.title}".
+        return { user: `Actúa como un diseñador de portadas minimalistas y experto en branding tipográfico. Tu objetivo es crear un Brief de diseño para la portada del libro "${data.selectedIdea?.title}".
 
 REQUISITO ABSOLUTO: La portada debe ser 100% TIPOGRÁFICA. 
 PROHIBICIÓN TOTAL: No incluyas personajes, figuras humanas, siluetas, cerebros, corazones, paisajes, luces marianas ni elementos esotéricos o místicos.
@@ -485,10 +507,10 @@ DIRECCIÓN VISUAL PARA LA IA (Nano Banana Pro):
    - Subtítulo: "${data.selectedIdea?.subtitle}" en la parte superior o inferior, fuente pequeña y elegante en negro.
    - Autor: "${data.authorName}" en la parte inferior, centrado, fuente firme en negro.
 
-Escribe el Brief detallando estas instrucciones. Incluye una sección de "LO QUE NO DEBE APARECER" listando siluetas humanas y fondos oscuros.`;
+Escribe el Brief detallando estas instrucciones. Incluye una sección de "LO QUE NO DEBE APARECER" listando siluetas humanas y fondos oscuros.` };
       }
 
-      return `Actúa como un diseñador profesional de portadas de libros y experto en marketing. Crea un documento detallado (Brief) para diseñar una portada generada por IA usando Nano Banana Pro (generación de imágenes con Google Gemini):
+      return { user: `Actúa como un diseñador profesional de portadas de libros y experto en marketing. Crea un documento detallado (Brief) para diseñar una portada generada por IA usando Nano Banana Pro (generación de imágenes con Google Gemini):
 
 Book Title: "${data.selectedIdea?.title}"
 Subtitle: "${data.selectedIdea?.subtitle}"
@@ -508,11 +530,11 @@ Proporciona:
 8. **Análisis de la Competencia** - Cómo investigar portadas similares de los más vendidos en Amazon para refinar el concepto
 9. **Ajustes Post-Generación** - Consejos para ediciones menores después de la generación por IA (recorte, contraste, comprobación de legibilidad del texto)
 
-Haz que los consejos de diseño sean específicos, procesables y enfocados en destacar en el nicho "${data.niche}". Recuerda: la portada será generada completamente por IA, así que describe el concepto visual con mucho detalle para facilitar la creación del prompt. IMPRESCINDIBLE: ESCRIBE TODO EN ESPAÑOL.`;
+Haz que los consejos de diseño sean específicos, procesables y enfocados en destacar en el nicho "${data.niche}". Recuerda: la portada será generada completamente por IA, así que describe el concepto visual con mucho detalle para facilitar la creación del prompt. IMPRESCINDIBLE: ESCRIBE TODO EN ESPAÑOL.` };
     }
 
     case 6:
-      return `Actúa como un Estratega Experto en el Algoritmo de Amazon KDP y Posicionamiento SEO. Tu objetivo no es enseñar a "subir un libro", sino enseñar a "vender una solución".
+      return { user: `Actúa como un Estratega Experto en el Algoritmo de Amazon KDP y Posicionamiento SEO. Tu objetivo no es enseñar a "subir un libro", sino enseñar a "vender una solución".
 
 Recuerda esta premisa vital: "Publicar es algo técnico (darle a un botón), Vender es estratégico. Si solo publicas, eres un subidor de PDFs. Si vendes, creas activos digitales".
 
@@ -527,17 +549,21 @@ Nota: La app ya ha autogenerado el documento .docx maquetado y la portada 1600x2
 Genera una guía maestra y estratégica (NO un manual técnico aburrido) con este esquema:
 
 1. **Mentalidad de Venta KDP y Alto Contenido:** Breve recordatorio de que en Amazon vendemos soluciones de alto contenido. El comprador es el protagonista, no el ego del autor. Firma este activo como "${data.authorName}".
-2. **Validación del Nicho antes de Publicar (Inteligencia de Mercado):** Antes de darle a publicar, el autor DEBE verificar: ¿Hay al menos 3-5 libros autopublicados en el mismo subnicho que facturan $2,000+/mes? ¿Tienen menos de 300 reseñas (competencia manejable)? ¿Fueron publicados en los últimos 12 meses (mercado activo)? Explica que competencia NO es mala — valida que hay demanda real. Si no hay competencia, no hay mercado. Lo peligroso son nichos genéricos saturados (ej: "disciplina", "cómo perder peso"). Lo que buscamos son subnichos específicos con demanda + competencia manejable. Recomienda herramientas como Helium 10 Blackbox para validar BSR promedio, ingresos estimados y competidores.
-3. **El Empaque Fuerte (Optimización Extrema de Metadatos):** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, Autor, y en las 7 casillas de backend KDP). El título debe contener keywords de cola larga con intención de compra. Menciona el uso de herramientas de SEO como Helium 10.
-4. **El Gancho de la Descripción (Embudo de Ventas HTML):** Crea una descripción de venta KDP en formato HTML (con <b>, <h2>). Usa formato de EMBUDO DE VENTAS (AIDA), céntrate en el dolor del usuario y no en lo bonito que es el libro. Recuerda: el 90% de los libros que no venden tienen una descripción genérica hecha con IA sin optimizar. Supera eso.
-5. **Elección Estratégica de Categorías:** Cómo elegir categorías donde es matemáticamente más fácil conseguir la etiqueta de "Best Seller". Busca categorías hiper-específicas, no genéricas.
-6. **Contenido A+ (El factor "Excelencia"):** Describe exactamente qué 3 módulos de Contenido A+ debe añadir para aumentar el valor percibido y la tasa de conversión. Este es un factor clave: los compradores que hacen clic pero NO compran suelen irse por falta de A+ Content profesional, malas reviews o descripciones pobres.
-7. **Checklist Anti-Fracaso antes de Publicar:** Las 5 cosas que debe comprobar con visión de "comprador" antes de darle al botón: portada superior a la competencia, descripción AIDA, keywords de cola larga en backend, A+ Content, precio psicológicamente correcto.
+2. **CAMBIO CRÍTICO 2024-2026: Del Algoritmo A9 al A10:** Amazon pasó de ranking por keywords (A9) a ranking por RENDIMIENTO REAL del libro (A10). Ahora Amazon evalúa tu libro durante 30 DÍAS COMPLETOS, no solo el pico de lanzamiento. Lo que mide: ventas consistentes diarias (no un solo spike), tasa de conversión de la página del libro, tiempo que los lectores pasan en tu página, reseñas de compras verificadas. Los rankings ahora se actualizan 1 vez al día (no cada hora como antes). Esto significa que ya no puedes "hackear" una ventana horaria. Necesitas rendimiento sostenido.
+3. **Validación del Nicho antes de Publicar (Inteligencia de Mercado):** Antes de darle a publicar, el autor DEBE verificar: ¿Hay al menos 3-5 libros autopublicados en el mismo subnicho que facturan $2,000+/mes? ¿Tienen menos de 300 reseñas (competencia manejable)? ¿Fueron publicados en los últimos 12 meses (mercado activo)? Explica que competencia NO es mala - valida que hay demanda real. Si no hay competencia, no hay mercado. Lo peligroso son nichos genéricos saturados (ej: "disciplina", "cómo perder peso"). Lo que buscamos son subnichos específicos con demanda + competencia manejable. Recomienda herramientas como Helium 10 Blackbox para validar BSR promedio, ingresos estimados y competidores.
+4. **NUEVAS Reglas de Keywords 2026 (3 errores que DEBES evitar):** a) NO incluir términos de formato ("Kindle", "ebook", "paperback", "tapa blanda") - Amazon los detecta automáticamente. b) NO usar variaciones ortográficas ni errores deliberados - Amazon autocorrige las búsquedas de los usuarios. c) NO repetir palabras que ya están en tu título o subtítulo - Amazon ya las indexó, estás desperdiciando casillas. ENFOQUE CORRECTO: claridad sobre cantidad. Amazon A10 prioriza 1-2 keywords de alta relevancia sobre intentar rankear para 50 términos diferentes. Cada keyword debe ser una frase de cola larga con intención de búsqueda real. Usa el autocompletado de Amazon (escribe una palabra en la barra de búsqueda de Kindle Store y observa las sugerencias).
+5. **El Empaque Fuerte (Optimización de Metadatos A10):** Cómo usar las palabras clave exactas que la gente ya está buscando. Dónde colocarlas (Título, Subtítulo, Autor, y en las 7 casillas de backend KDP). El título debe contener keywords de cola larga con intención de compra. Menciona el uso de herramientas de SEO como Helium 10.
+6. **El Gancho de la Descripción:** Amazon ahora tiene un editor visual WYSIWYG para descripciones (ya no necesitas escribir HTML). Crea una descripción de venta KDP usando el formato de EMBUDO DE VENTAS (AIDA), céntrate en el dolor del usuario y no en lo bonito que es el libro. Usa negrita para los tropes/keywords principales. Recuerda: el 90% de los libros que no venden tienen una descripción genérica hecha con IA sin optimizar. Supera eso.
+7. **Elección Estratégica de Categorías (con monitoreo semanal):** Cómo elegir categorías donde es matemáticamente más fácil conseguir la etiqueta de "Best Seller". Busca categorías hiper-específicas, no genéricas. NUEVO: usa la herramienta gratuita BKlink para ver TODAS las categorías en las que rankea un libro competidor (no solo las públicas). Si en la primera semana no estás en el top 100 de al menos 1 categoría, CAMBIA de categorías inmediatamente desde tu panel de KDP.
+8. **Contenido A+ (El factor "Excelencia"):** Describe exactamente qué 3 módulos de Contenido A+ debe añadir para aumentar el valor percibido y la tasa de conversión. Este es un factor clave: los compradores que hacen clic pero NO compran suelen irse por falta de A+ Content profesional, malas reviews o descripciones pobres.
+9. **Author Central (10 minutos que duplican ventas a largo plazo):** Configura tu página de autor en Author Central desde el menú Marketing del panel KDP. Cuando los lectores te siguen, Amazon les envía un email automático CADA VEZ que publiques un libro nuevo. Es marketing gratuito de por vida. Incluye en tu bio: tipos de libros que escribes, algo personal, y un CTA para que te sigan.
+10. **Compliance 2026 (Proteger tu cuenta):** a) Declaración de IA: OBLIGATORIO declarar si el contenido fue generado o asistido por IA. Ser transparente no perjudica; ocultarlo y ser detectado puede suspender la cuenta. b) Keywords prohibidas: NUNCA uses "bestseller" (salvo badge oficial), "free", "Kindle Unlimited", nombres de otros autores, títulos de otros libros, ni claims no verificables ("premiado"). Amazon suprime libros sin aviso por estas infracciones.
+11. **Checklist Anti-Fracaso antes de Publicar:** Las 7 cosas que debe comprobar con visión de "comprador" antes de darle al botón: portada superior a la competencia, descripción AIDA formateada, keywords de cola larga en backend (sin los 3 errores de 2026), categorías hiper-específicas con competencia manejable, A+ Content profesional, Author Central configurado, declaración de IA correcta.
 
-Mantén un tono directo, profesional y enfocado al 100% en la rentabilidad y psicología de compra.`;
+Mantén un tono directo, profesional y enfocado al 100% en la rentabilidad y psicología de compra.` };
 
     case 7:
-      return `Actúa como un Experto en Pricing, Psicología de Ventas y Finanzas para infoproductos en Amazon KDP.
+      return { user: `Actúa como un Experto en Pricing, Psicología de Ventas y Finanzas para infoproductos en Amazon KDP.
 
 Recuerda esta premisa: "Publicar es gratis, pero vender requiere inversión (de tiempo, paciencia o capital). Que sea gratis no significa que sea rentable".
 
@@ -548,15 +574,15 @@ Audiencia Objetivo: "${data.selectedIdea?.targetAudience}"
 Desarrolla una Estrategia de Pricing enfocada en el valor percibido y el compromiso del cliente:
 
 1. **La Psicología del Precio (Sesgo Mental del Comprador):** El comprador de Amazon tiene un sesgo mental: ya sabe cuánto "debería" costar un libro de este nicho. Si el precio está por debajo, desconfía (parece basura). Si está muy por encima, no compra. Explica por qué regalar el libro (0.00€) atrae curiosos sin compromiso, y cómo un precio premium atrae compradores que realmente aplican la solución. Menciona que el precio afecta directamente al CTR de Amazon Ads: un precio mal calibrado hace que la gente vea tu anuncio pero NO haga clic.
-2. **El Precio Óptimo (Valor Percibido):** Recomienda el precio de lanzamiento y el precio final (ej. 2.99€ -> 6.99€ o 9.99€) justificando por qué este libro soluciona un problema que vale ese dinero. IMPORTANTE: Explica que cambiar el precio es un test A/B. Si las ventas no llegan, cambia UNA variable a la vez (primero portada, luego precio), nunca ambas. Analiza qué cobran los competidores autopublicados exitosos en el mismo subnicho.
-3. **Cálculo de Royalties, Break-Even ACOS y ROI:** Desglose matemático COMPLETO. Explica el tramo del 70% vs 35%. Ejemplo concreto: libro a $6.99 → regalía ~$1.90 → Break-Even ACOS = ($1.90 / $6.99) × 100 = 27%. Esto significa: si tu ACOS en Amazon Ads está por debajo de 27%, estás ganando dinero SOLO con los ads. Pero INCLUSO un ACOS de 50-70% puede ser rentable porque los ads generan ventas orgánicas adicionales (efecto bola de nieve). Calcula cuántas ventas a X€ necesitas para ganar 500€/mes y 1.000€/mes.
-4. **Estrategia KDP Select (Kindle Unlimited):** ¿Debe ser exclusivo de Amazon o ir "Wide"? Explica cómo las páginas leídas (KENP) también son ventas.
-5. **Inversión Mínima Viable (Nuestra Ventaja Injusta):** Explica que la inversión base para lanzar un buen libro suele ser de $1,000 ($400 escritor, $100 portada, $400 Amazon Ads, $100 herramientas clave). PERO gracias a que nuestro sistema ya le ha creado los textos y la portada gratis 100% original, el autor NO necesita invertir esos $500. Por lo tanto, DEBE usar ese ahorro directamente en destinar ~$400 dólares a Amazon Ads (repartido así: $2/día durante los primeros 2-3 meses = ~$180, más campañas manuales después) y ~$100 en herramientas (como Helium 10 para encontrar keywords de cola larga con menos competencia). En Amazon los libros no se venden solos; sin publicidad, no hay escalabilidad.
+2. **Estrategia de Precio en 2 Fases (Algoritmo A10 - 2026):** FASE 1 - LANZAMIENTO ($0.99 durante los primeros 30 días): El objetivo NO es maximizar beneficio por venta, sino maximizar VOLUMEN de compradores. A $0.99 la barrera de compra es mínima. Más compradores = mejor ranking = más visibilidad orgánica = efecto bola de nieve. Además, la mayoría de lectores de no-ficción están en Kindle Unlimited: cuando leen tu libro vía KU, te pagan por páginas leídas (KENP), no por el precio de venta. Un libro de 200 páginas leído completo vía KU genera ~$1, más que la regalía del 35% sobre $0.99. FASE 2 - POST-LANZAMIENTO (a partir del día 31): Subir a $2.99 (activa el tramo de regalías del 70%). Monitorear el sales rank durante 48h. Si el rank se mantiene estable (top 5,000 en tu categoría), testear $3.99 la semana siguiente. IMPORTANTE: Cada cambio de precio es un test A/B. Si las ventas caen, cambia UNA variable a la vez (primero portada, luego precio), nunca ambas. Analiza qué cobran los competidores autopublicados exitosos en el mismo subnicho.
+3. **Cálculo de Royalties, Break-Even ACOS y ROI (actualizado 2025-2026):** Desglose matemático COMPLETO. Explica el tramo del 70% vs 35%. CAMBIO JUNIO 2025: Amazon redujo las regalías de libros impresos (tapa blanda) bajo $13.99 del 60% al 50% por costes de impresión crecientes. Esto hace que las ganancias vía Kindle Unlimited (KENP) sean MÁS importantes que nunca. El KDP Select Global Fund alcanzó $53.2M en diciembre 2024 con pagos de ~$0.004-0.005 por página leída. Ejemplo concreto: libro a $6.99 → regalía ~$1.90 → Break-Even ACOS = ($1.90 / $6.99) x 100 = 27%. Esto significa: si tu ACOS en Amazon Ads está por debajo de 27%, estás ganando dinero SOLO con los ads. Pero INCLUSO un ACOS de 50-70% puede ser rentable porque los ads generan ventas orgánicas adicionales (efecto bola de nieve). Calcula cuántas ventas a X€ necesitas para ganar 500€/mes y 1.000€/mes.
+4. **Estrategia KDP Select (Kindle Unlimited):** ¿Debe ser exclusivo de Amazon o ir "Wide"? Explica cómo las páginas leídas (KENP) son ingresos adicionales a las ventas directas. En el precio de lanzamiento de $0.99, la regalía del 35% es solo $0.35, pero las lecturas KU de un libro completo de 200+ páginas generan ~$1. Esto significa que KU es tu principal fuente de ingresos durante la fase de lanzamiento.
+5. **Inversión Mínima Viable (Nuestra Ventaja Injusta):** Explica que la inversión base para lanzar un buen libro suele ser de $1,000 ($400 escritor, $100 portada, $400 Amazon Ads, $100 herramientas clave). PERO gracias a que nuestro sistema ya le ha creado los textos y la portada gratis 100% original, el autor NO necesita invertir esos $500. IMPORTANTE 2026: NO invertir en Amazon Ads hasta tener al menos 3 libros publicados. Con un solo libro, el coste de adquisición por anuncio raramente se recupera. Con 3+ libros, el "read-through" (lectores que compran los otros libros de la serie) convierte los ads en rentables. Mientras tanto, destinar ~$100 en herramientas (Helium 10 para keywords de cola larga) y enfocarse en la estrategia gratuita de email list + newsletter swaps para el lanzamiento.
 
-Sé claro, emplea números reales y quita la falsa idea de que se puede generar riqueza sin invertir nada en Ads.`;
+Sé claro, emplea números reales y quita la falsa idea de que se puede generar riqueza sin invertir nada en Ads (pero explica CUÁNDO es el momento correcto para invertir).` };
 
     case 8:
-      return `Actúa como un Director de Marketing y Tráfico experto en escalar Libros a Top 100 de Amazon, apoyado en los "4 Pilares del Éxito en KDP".
+      return { user: `Actúa como un Director de Marketing y Tráfico experto en escalar Libros a Top 100 de Amazon, apoyado en los "4 Pilares del Éxito en KDP".
 
 Recuerda tu mantra: "Publicar es un evento aislado. Vender es un sistema. El libro empieza a vivir el día que le das a publicar, no termina ahí".
 
@@ -569,33 +595,57 @@ Nicho: "${data.niche}"
 
 Diseña la Arquitectura del Sistema de Ventas (El plan para dejar de ser un creador pasivo y ser un vendedor activo):
 
-1. **La Mentalidad Post-Lanzamiento y los 4 Pilares:** Menciona brevemente los 4 pilares: 1. Nicho rentable, 2. Empaque fuerte, 3. Visibilidad (Ads), 4. Escalabilidad. Analiza: si no hay ventas, ¿es falta de tráfico o falta de conversión? Este es un negocio de PACIENCIA y LARGO PLAZO. Los primeros 30 días pueden no ser rentables, pero estás construyendo un activo que genera ingresos durante años.
+CONTEXTO ALGORITMO A10 (2024-2026): Amazon ya no rankea por keywords sino por RENDIMIENTO REAL. Evalúa tu libro durante 30 DÍAS COMPLETOS. Rankings se actualizan 1x/día (no cada hora). Tu estrategia debe crear rendimiento sostenido, no un pico aislado de 3 días.
 
-2. **El Pilar de la Visibilidad: Amazon Ads PASO A PASO:**
-   a) **Campaña Automática (Día 1):** Ir a advertising.amazon.com. Crear campaña Sponsored Products automática. Presupuesto: $2/día. Puja inicial: $0.15. Estrategia de puja: "Solo reducir" (NUNCA dinámicas). Nombre: "Auto - ${data.selectedIdea?.title} - [fecha]". Objetivo: generar inteligencia de negocio. Amazon analizará tu libro y lo mostrará según sus criterios.
-   b) **Esperar 5-6 días mínimo.** NO tocar nada antes. Amazon necesita tiempo para generar datos. Si no hay impresiones en 24h, NO es un problema.
-   c) **Campaña Manual (Día 7+):** Copiar las keywords rentables que reveló la campaña automática. Crear campaña manual por palabras clave. Necesitas 30-50 keywords de cola larga. Usar amplia + frase + exacta. Misma puja $0.15, misma estrategia "solo reducir".
-   d) **Keywords Negativas:** Revisar la campaña automática. Si Amazon muestra tu libro para keywords irrelevantes, añadirlas como negativas. Ej: si tu libro es para adultos y aparece en "libros para niños", negativizar "niños".
-   e) **Optimización continua:** Subir puja gradualmente ($0.05-$0.10 cada vez) si las impresiones son bajas. Pasar keywords rentables de automática a manual. Pausar keywords que gastan sin convertir.
+1. **La Mentalidad Post-Lanzamiento y los 4 Pilares:** Menciona brevemente los 4 pilares: 1. Nicho rentable, 2. Empaque fuerte, 3. Visibilidad (orgánica primero, ads después), 4. Escalabilidad. Analiza: si no hay ventas, ¿es falta de tráfico o falta de conversión? Este es un negocio de PACIENCIA y LARGO PLAZO. Los primeros 30 días pueden no ser rentables, pero estás construyendo un activo que genera ingresos durante años.
 
-3. **Las Métricas que DEBES Entender (Dashboard de Amazon Ads):**
-   - **Impresiones:** Veces que tu libro aparece. Si son bajas: keywords sin relevancia O puja muy baja frente a competidores. Solución: más keywords de cola larga con menos competencia.
-   - **CTR (Click Through Rate):** Clics / Impresiones. 0.5-1% = BIEN. >1% = EXCELENTE. <0.3% = PROBLEMA (portada poco atractiva O precio mal calibrado). Solución: Test A/B — cambiar primero portada, esperar datos, luego ajustar precio si no mejora.
-   - **CPC (Coste por Clic):** Varía por mercado. España ~$0.25, US ~$0.80-1.10. Ambos pueden ser rentables.
-   - **Tasa de Conversión (Pedidos/Clics):** 8-10% = BIEN. 15-20% = EXCELENTE. <3-5% = PROBLEMA (A+ Content pobre, descripción débil, malas reviews o errores gramaticales).
-   - **ACOS:** Gasto / Ventas × 100. Calcular break-even ACOS del libro (regalía / precio × 100). ACOS por debajo del break-even = ganancia directa. PERO: ACOS de 50-70% también puede ser rentable porque los ads generan ventas ORGÁNICAS adicionales. Los ads posicionan el libro de forma esponsorizada Y orgánica simultáneamente (efecto bola de nieve).
+2. **ANTES DE PUBLICAR: Construir Tu Audiencia (La Base de Todo):**
+   a) **Lead Magnet:** Crear un libro corto GRATUITO (~10,000 palabras) en el mismo nicho que tu libro de pago. Subirlo a BookFunnel para que los lectores lo reciban a cambio de su email. Crear una landing page simple: "Descarga gratis mi guía sobre [tema]".
+   b) **Objetivo: 1,500-2,000 suscriptores de email** antes de publicar tu libro de pago. ¿Por qué ese número? Porque desbloquea la estrategia gratuita más potente de KDP: los newsletter swaps.
+   c) **3 métodos para crecer la lista:** 1) BookFunnel Group Promos (decenas de autores comparten sus lead magnets mutuamente). 2) Grupos de Facebook de autores para intercambio de listas. 3) Newsletter spots pagados ($10-60 para que autores con listas grandes promocionen tu lead magnet a sus suscriptores).
+   d) Sin audiencia previa, dependes 100% de que Amazon te descubra aleatoriamente entre 12 millones de libros. Con audiencia, TÚ controlas tu lanzamiento.
 
-4. **Estandarizar la Excelencia (Test A/B a los 14 días):** Si no hay ventas: cambiar UNA variable a la vez. Primero portada (esperar datos). Si no mejora, restaurar portada y cambiar precio. Nunca cambiar ambas a la vez porque no sabrás qué funcionó. Revisar: descripción, A+ Content, keywords backend.
+3. **LA SEMANA DE LANZAMIENTO (7 días de ejecución):**
+   a) **Newsletter Swaps:** Programa 28 intercambios de boletines durante la semana de lanzamiento (4 por día x 7 días). Cada swap = tú promocionas el libro de otro autor a tu lista, y ese autor promociona tu libro a la suya. Usa la plataforma BookClicker para encontrar partners. Al evaluar partners mira: tamaño de lista (mín. 1,000), open rate (mín. 20%), click-through rate (mín. 6%). Prioriza swaps tipo "solo" (solo tu libro) y "feature" (tu libro primero) sobre "mention" (tu libro entre varios). RESERVA estos swaps 2-4 semanas ANTES del lanzamiento.
+   b) **Día 1 - Lanzamiento:** Publicar + enviar email a tu lista propia + 4 newsletter swaps salen ese día + email a tu equipo ARC.
+   c) **Días 2-7:** 4 newsletter swaps más cada día. Tráfico constante y sostenido = exactamente lo que el algoritmo A10 recompensa.
+   d) **Precio de lanzamiento: $0.99** durante los 30 primeros días (maximizar volumen, no beneficio por venta). KU page reads generan más que la regalía del 35%.
 
-5. **El Funnel Externo (Opcional pero escalable):** Cómo usar TikTok, Reels o Shorts hablando SOLO de los problemas del cliente (NO hablando del libro) y mandándolos al link de Amazon.
+4. **Equipo ARC (Reseñas en 72 horas):**
+   2 semanas antes del lanzamiento, enviar un email a tu lista pidiendo 20-30 voluntarios para leer el libro anticipadamente a cambio de una reseña HONESTA en Amazon. Enviarles el libro vía email o BookFunnel. El día de lanzamiento, recordarles que dejen su reseña. Objetivo: 10-20 reseñas verificadas en los primeros 3 días. NUNCA pedir reseñas de 5 estrellas ni decirles qué escribir. Amazon tiene IA que detecta reseñas falsas, incentivadas o coordinadas. Reseñas genuinas de ARC readers están 100% permitidas.
 
-6. **La Regla de Oro de las Reviews:** La calidad del libro trae reseñas orgánicas. Pero hay que incentivar la acción con un CTA al final del libro. Las reviews afectan directamente la tasa de conversión (prueba social). Un libro con malas reviews = la gente hace clic pero NO compra.
+5. **LA VENTANA DE 30 DÍAS (Optimización Post-Lanzamiento):**
+   a) **Semana 1:** Monitorear categorías. Usa BKlink (gratis) para ver todas las categorías de un libro competidor. Si no estás en top 100 de al menos 1 categoría, cambia categorías desde tu panel KDP inmediatamente.
+   b) **Semanas 2-3:** Testear keywords. Busca cada keyword en Amazon Kindle Store. ¿Tu libro aparece en las primeras páginas? Si no, cambia esa keyword por las frases que ves en títulos de los top 10 de tu categoría.
+   c) **Semana 4:** Subir precio a $2.99 (activa regalías del 70%). Si el rank se mantiene estable 48h, testear $3.99.
+   d) **Descripción:** Usar el nuevo editor visual WYSIWYG de Amazon para formatear correctamente con negrita, saltos de línea y estructura AIDA.
 
-7. **El Pilar de la Escalabilidad (La Saga):** Cómo este libro debe llevar a comprar el siguiente libro dentro de la misma saga/categoría. Menciona Lead Magnets, audiolibros vía ACX, traducciones a otros mercados (inglés, francés, alemán — Amazon tiene múltiples marketplaces), y que el autor conserva el 100% de sus derechos.
+6. **Amazon Ads (SOLO cuando tengas 3+ libros publicados):**
+   Con un solo libro, los ads raramente son rentables. Con 3+ libros, el read-through (lectores que compran el resto de la serie) convierte los ads en un sistema escalable.
+   a) **Campaña Automática (Día 1 de ads):** advertising.amazon.com. Sponsored Products automática. Presupuesto: $10/día. Puja: $0.15. Estrategia: "Solo reducir" (NUNCA dinámicas). Nombre: "Auto - ${data.selectedIdea?.title} - [fecha]".
+   b) **Esperar 5-6 días.** NO tocar nada. Amazon necesita datos.
+   c) **Campaña Manual (Día 7+):** Copiar keywords rentables de la automática. 30-50 keywords de cola larga. Usar amplia + frase + exacta. Misma puja, misma estrategia.
+   d) **Keywords Negativas:** Revisar y negativizar keywords irrelevantes.
+   e) **Escalar gradualmente:** De $10/día a $50 cuando veas retorno positivo. Luego $100, $300 cuando tu catálogo lo sostenga.
 
-Proporciona ejemplos concretos con números reales. Sé directo y accionable.`;
+7. **Métricas que DEBES Entender (Dashboard de Amazon Ads):**
+   - **Impresiones:** Si son bajas: keywords irrelevantes O puja muy baja. Solución: más keywords de cola larga.
+   - **CTR:** 0.5-1% = BIEN. >1% = EXCELENTE. <0.3% = PROBLEMA (portada o precio). Test A/B: primero portada, luego precio.
+   - **CPC:** España ~$0.25, US ~$0.80-1.10. Ambos rentables si hay read-through.
+   - **Tasa de Conversión:** 8-10% = BIEN. 15-20% = EXCELENTE. <3-5% = revisar A+ Content, descripción, reviews.
+   - **ACOS:** ACOS bajo break-even = ganancia directa. ACOS 50-70% TAMBIÉN puede ser rentable por ventas orgánicas adicionales que generan los ads (efecto bola de nieve).
+
+8. **Estandarizar la Excelencia (Test A/B a los 14 días):** Si no hay ventas: cambiar UNA variable a la vez. Primero portada (esperar datos). Si no mejora, restaurar portada y cambiar precio. Nunca cambiar ambas a la vez. Revisar: descripción, A+ Content, keywords backend.
+
+9. **El Funnel Externo (Opcional pero escalable):** Cómo usar TikTok, Reels o Shorts hablando SOLO de los problemas del cliente (NO hablando del libro) y mandándolos al link de Amazon.
+
+10. **La Regla de Oro de las Reviews:** La calidad del libro trae reseñas orgánicas + el equipo ARC acelera las primeras. CTA al final del libro. Las reviews afectan directamente la tasa de conversión. Un libro con malas reviews = la gente hace clic pero NO compra.
+
+11. **El Pilar de la Escalabilidad (La Saga y el Efecto Compuesto):** Los ingresos reales vienen de tener 5-10 libros publicados. Cada lanzamiento nuevo impulsa las ventas de los libros anteriores (efecto compuesto). Objetivo: publicar 1 libro/mes para mantener relevancia y momentum. Cómo este libro debe llevar a comprar el siguiente libro dentro de la misma saga/categoría. Menciona Lead Magnets, audiolibros vía ACX, traducciones a otros mercados (inglés, francés, alemán - Amazon tiene múltiples marketplaces), y que el autor conserva el 100% de sus derechos.
+
+Proporciona ejemplos concretos con números reales. Sé directo y accionable.` };
 
     default:
-      return 'Please provide a valid step number.';
+      return { user: 'Please provide a valid step number.' };
   }
 }

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/messages';
-import { getPrompt } from '@/lib/prompts';
+import { getPrompt, type PromptParts } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
 export const runtime = 'edge';
@@ -191,7 +191,27 @@ export async function POST(req: Request) {
       });
     }
 
-    const prompt = getPrompt(step, data);
+    const promptParts: PromptParts = getPrompt(step, data);
+
+    // Build system blocks with prompt caching.
+    // Breakpoint 1: SYSTEM_PROMPT (universal book rules) — cached across all calls.
+    // Breakpoint 2: per-step static context (saga rules + writing rules for Step 3)
+    //   — cached across the 12 chapter calls of the same book, so calls 2-12
+    //   pay only 10% of the input cost for this block.
+    const systemBlocks: NonNullable<MessageCreateParamsStreaming['system']> = [
+      {
+        type: 'text',
+        text: SYSTEM_PROMPT,
+        cache_control: { type: 'ephemeral' },
+      },
+    ];
+    if (promptParts.cachedSystem && promptParts.cachedSystem.trim().length > 0) {
+      systemBlocks.push({
+        type: 'text',
+        text: promptParts.cachedSystem,
+        cache_control: { type: 'ephemeral' },
+      });
+    }
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
@@ -202,14 +222,8 @@ export async function POST(req: Request) {
             model: config.model,
             max_tokens: config.maxTokens,
             stream: true as const,
-            messages: [{ role: 'user', content: prompt }],
-            system: [
-              {
-                type: 'text',
-                text: SYSTEM_PROMPT,
-                cache_control: { type: 'ephemeral' },
-              },
-            ],
+            messages: [{ role: 'user', content: promptParts.user }],
+            system: systemBlocks,
             ...(config.useThinking ? { thinking: { type: 'adaptive' } } : {}),
           };
 
