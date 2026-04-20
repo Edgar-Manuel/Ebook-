@@ -40,13 +40,21 @@ interface StrategyDef {
 
 const MODELS: ModelInfo[] = [
   {
-    id: 'opus-4.6',
-    name: 'Claude Opus 4.6',
+    id: 'opus-4.7',
+    name: 'Claude Opus 4.7',
     inputCostPer1M: 15,
     outputCostPer1M: 75,
     quality: 10,
     speed: 5,
     badge: 'Best Quality',
+  },
+  {
+    id: 'opus-4.6',
+    name: 'Claude Opus 4.6',
+    inputCostPer1M: 15,
+    outputCostPer1M: 75,
+    quality: 9,
+    speed: 5,
   },
   {
     id: 'sonnet-4.6',
@@ -86,7 +94,7 @@ const STRATEGIES: StrategyDef[] = [
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
       2: { model: 'sonnet-4.6', thinking: false, maxTokens: 8000 },
-      3: { model: 'opus-4.6',   thinking: true,  maxTokens: 6000 },
+      3: { model: 'opus-4.7',   thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
       6: { model: 'haiku-4.5',  thinking: false, maxTokens: 3500 },

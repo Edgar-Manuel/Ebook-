@@ -9,15 +9,15 @@ const client = new Anthropic();
 
 // Map shorthand model IDs (from CostOptimizer) to full Anthropic model IDs
 const MODEL_ID_MAP: Record<string, string> = {
+  'opus-4.7':   'claude-opus-4-7',
   'opus-4.6':   'claude-opus-4-6',
   'sonnet-4.6': 'claude-sonnet-4-6',
   'sonnet-4.5': 'claude-sonnet-4-5',
   'haiku-4.5':  'claude-haiku-4-5-20251001',
-  'haiku-3.5':  'claude-haiku-4-5-20251001', // retired — fallback to haiku 4.5
+  'haiku-3.5':  'claude-haiku-4-5-20251001',
 };
 
-// Only these models support adaptive thinking
-const SUPPORTS_THINKING = new Set(['opus-4.6', 'sonnet-4.6']);
+const SUPPORTS_THINKING = new Set(['opus-4.7', 'opus-4.6', 'sonnet-4.6']);
 
 // Smart model routing: assign each step the right model for cost/quality
 const STEP_CONFIG: Record<
