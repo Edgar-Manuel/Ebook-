@@ -8,15 +8,38 @@ import NicheRoulette from '@/components/NicheRoulette';
 import { postProcessBookText } from '@/lib/postprocess';
 
 const STEPS = [
-  { number: 1, title: 'Book Ideas', icon: '💡', desc: 'Generate profitable book ideas with AI' },
-  { number: 2, title: 'Outline', icon: '📋', desc: 'Create detailed chapter structure' },
-  { number: 3, title: 'Write Book', icon: '✍️', desc: 'AI writes each chapter' },
-  { number: 4, title: 'Format', icon: '📄', desc: 'Format for Kindle publishing' },
-  { number: 5, title: 'Cover Design', icon: '🎨', desc: 'AI generates your cover with Nano Banana Pro' },
-  { number: 6, title: 'KDP Setup', icon: '📚', desc: 'Amazon Kindle setup guide' },
-  { number: 7, title: 'Pricing', icon: '💰', desc: 'Pricing strategy & royalties' },
-  { number: 8, title: 'Marketing', icon: '📣', desc: 'Marketing & promotion plan' },
+  { number: 1, title: 'Ideas',      sub: 'Genera y elige tu libro',   desc: 'Generate profitable book ideas with AI' },
+  { number: 2, title: 'Estructura', sub: 'Índice y capítulos',        desc: 'Create detailed chapter structure' },
+  { number: 3, title: 'Escritura',  sub: 'IA redacta cada capítulo',  desc: 'AI writes each chapter' },
+  { number: 4, title: 'Formato',    sub: 'Prepara el documento',      desc: 'Format for Kindle publishing' },
+  { number: 5, title: 'Portada',    sub: 'Diseño con IA',             desc: 'AI generates your cover with Nano Banana Pro' },
+  { number: 6, title: 'KDP Setup',  sub: 'Publicación en Amazon',     desc: 'Amazon Kindle setup guide' },
+  { number: 7, title: 'Precios',    sub: 'Estrategia de royalties',   desc: 'Pricing strategy & royalties' },
+  { number: 8, title: 'Marketing',  sub: 'Plan de lanzamiento',       desc: 'Marketing & promotion plan' },
 ];
+
+// ─── SVG Icons ──────────────────────────────────────────────────────────────
+
+function SvgIcon({ name, size = 16, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
+  const icons: Record<string, React.ReactNode> = {
+    book: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>,
+    bulb: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/></svg>,
+    list: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+    pen: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+    file: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+    image: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+    amazon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+    tag: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    horn: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>,
+    library: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>,
+    settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+    download: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    dice: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><circle cx="8" cy="8" r="1" fill={color}/><circle cx="16" cy="8" r="1" fill={color}/><circle cx="12" cy="12" r="1" fill={color}/><circle cx="8" cy="16" r="1" fill={color}/><circle cx="16" cy="16" r="1" fill={color}/></svg>,
+  };
+  return <>{icons[name] || null}</>;
+}
 
 const initialBookData: BookData = {
   niche: '',
@@ -224,40 +247,39 @@ function renderAIContent(text: string): React.ReactNode {
 
     if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
       return (
-        <h2 key={i} className="text-indigo-300 font-bold text-xl mt-4 mb-2">
+        <h2 key={i} className="font-serif text-eb-gold-lt font-semibold text-lg mt-5 mb-2">
           {trimmed.replace(/^#+\s/, '')}
         </h2>
       );
     }
     if (trimmed.startsWith('### ')) {
       return (
-        <h3 key={i} className="text-purple-300 font-semibold text-lg mt-3 mb-1">
+        <h3 key={i} className="font-serif text-eb-blue-lt font-semibold mt-4 mb-1">
           {trimmed.replace(/^#+\s/, '')}
         </h3>
       );
     }
     if (trimmed.startsWith('#### ')) {
       return (
-        <h4 key={i} className="text-sky-300 font-semibold mt-2 mb-1">
+        <h4 key={i} className="text-eb-blue-lt font-semibold mt-3 mb-1 text-sm">
           {trimmed.replace(/^#+\s/, '')}
         </h4>
       );
     }
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.match(/^\d+\.\s/)) {
       return (
-        <li key={i} className="ml-4 mb-1 text-slate-300 list-disc">
+        <li key={i} className="ml-5 mb-1 text-eb-text list-disc text-[0.925rem] leading-relaxed">
           {trimmed.replace(/^[-*]\s/, '').replace(/^\d+\.\s/, '')}
         </li>
       );
     }
 
-    // Bold text
     const parts = trimmed.split(/(\*\*.*?\*\*)/g);
     return (
-      <p key={i} className="mb-2 text-slate-300 leading-relaxed">
+      <p key={i} className="mb-2 text-eb-text leading-[1.8] text-[0.925rem]">
         {parts.map((part, j) =>
           part.startsWith('**') && part.endsWith('**') ? (
-            <strong key={j} className="text-white font-semibold">
+            <strong key={j} className="text-[#e8edf5] font-semibold">
               {part.slice(2, -2)}
             </strong>
           ) : (
@@ -1355,7 +1377,7 @@ ${bookData.marketingContent || 'No generado'}
                   : 'bg-slate-800/50 text-slate-500'
               }`}
             >
-              <span>{s.icon}</span>
+              <span>{s.number}</span>
               <span className="hidden sm:inline">{s.title}</span>
               <span className="sm:hidden">{s.number}</span>
             </button>
@@ -1378,7 +1400,7 @@ ${bookData.marketingContent || 'No generado'}
             {/* Step Card */}
             <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 animate-fade-in">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">{STEPS[step - 1].icon}</span>
+                <span className="text-2xl text-eb-gold"><SvgIcon name={['','bulb','list','pen','file','image','amazon','tag','horn'][step]} size={28} color="#c8963a"/></span>
                 <div>
                   <h2 className="text-white font-bold text-lg">{STEPS[step - 1].title}</h2>
                   <p className="text-slate-400 text-sm">{STEPS[step - 1].desc}</p>
@@ -1665,7 +1687,7 @@ ${bookData.marketingContent || 'No generado'}
                       </>
                     ) : (
                       <>
-                        {STEPS[step - 1].icon} Generate{' '}
+                        Generate{' '}
                         {step === 4
                           ? 'Format Guide'
                           : step === 5
@@ -2192,7 +2214,7 @@ ${bookData.marketingContent || 'No generado'}
                         </div>
                       ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
                         <div className="flex flex-col items-center justify-center h-64 text-center">
-                          <div className="text-6xl mb-4 opacity-30">{STEPS[step - 1].icon}</div>
+                          <div className="mb-4 opacity-30"><SvgIcon name={['','bulb','list','pen','file','image','amazon','tag','horn'][step]} size={48} color="#5e7291"/></div>
                           <p className="text-slate-500 text-lg font-medium">
                             {STEPS[step - 1].title}
                           </p>
