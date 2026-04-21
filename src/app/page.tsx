@@ -8,15 +8,38 @@ import NicheRoulette from '@/components/NicheRoulette';
 import { postProcessBookText } from '@/lib/postprocess';
 
 const STEPS = [
-  { number: 1, title: 'Book Ideas', icon: '💡', desc: 'Generate profitable book ideas with AI' },
-  { number: 2, title: 'Outline', icon: '📋', desc: 'Create detailed chapter structure' },
-  { number: 3, title: 'Write Book', icon: '✍️', desc: 'AI writes each chapter' },
-  { number: 4, title: 'Format', icon: '📄', desc: 'Format for Kindle publishing' },
-  { number: 5, title: 'Cover Design', icon: '🎨', desc: 'AI generates your cover with Nano Banana Pro' },
-  { number: 6, title: 'KDP Setup', icon: '📚', desc: 'Amazon Kindle setup guide' },
-  { number: 7, title: 'Pricing', icon: '💰', desc: 'Pricing strategy & royalties' },
-  { number: 8, title: 'Marketing', icon: '📣', desc: 'Marketing & promotion plan' },
+  { number: 1, title: 'Ideas',      sub: 'Genera y elige tu libro',   desc: 'Generate profitable book ideas with AI' },
+  { number: 2, title: 'Estructura', sub: 'Índice y capítulos',        desc: 'Create detailed chapter structure' },
+  { number: 3, title: 'Escritura',  sub: 'IA redacta cada capítulo',  desc: 'AI writes each chapter' },
+  { number: 4, title: 'Formato',    sub: 'Prepara el documento',      desc: 'Format for Kindle publishing' },
+  { number: 5, title: 'Portada',    sub: 'Diseño con IA',             desc: 'AI generates your cover with Nano Banana Pro' },
+  { number: 6, title: 'KDP Setup',  sub: 'Publicación en Amazon',     desc: 'Amazon Kindle setup guide' },
+  { number: 7, title: 'Precios',    sub: 'Estrategia de royalties',   desc: 'Pricing strategy & royalties' },
+  { number: 8, title: 'Marketing',  sub: 'Plan de lanzamiento',       desc: 'Marketing & promotion plan' },
 ];
+
+// ─── SVG Icons ──────────────────────────────────────────────────────────────
+
+function SvgIcon({ name, size = 16, color = 'currentColor' }: { name: string; size?: number; color?: string }) {
+  const icons: Record<string, React.ReactNode> = {
+    book: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>,
+    bulb: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/></svg>,
+    list: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+    pen: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
+    file: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+    image: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+    amazon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+    tag: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    horn: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>,
+    library: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>,
+    settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+    download: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    dice: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><circle cx="8" cy="8" r="1" fill={color}/><circle cx="16" cy="8" r="1" fill={color}/><circle cx="12" cy="12" r="1" fill={color}/><circle cx="8" cy="16" r="1" fill={color}/><circle cx="16" cy="16" r="1" fill={color}/></svg>,
+  };
+  return <>{icons[name] || null}</>;
+}
 
 const initialBookData: BookData = {
   niche: '',
@@ -224,40 +247,39 @@ function renderAIContent(text: string): React.ReactNode {
 
     if (trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
       return (
-        <h2 key={i} className="text-indigo-300 font-bold text-xl mt-4 mb-2">
+        <h2 key={i} className="font-serif text-eb-gold-lt font-semibold text-lg mt-5 mb-2">
           {trimmed.replace(/^#+\s/, '')}
         </h2>
       );
     }
     if (trimmed.startsWith('### ')) {
       return (
-        <h3 key={i} className="text-purple-300 font-semibold text-lg mt-3 mb-1">
+        <h3 key={i} className="font-serif text-eb-blue-lt font-semibold mt-4 mb-1">
           {trimmed.replace(/^#+\s/, '')}
         </h3>
       );
     }
     if (trimmed.startsWith('#### ')) {
       return (
-        <h4 key={i} className="text-sky-300 font-semibold mt-2 mb-1">
+        <h4 key={i} className="text-eb-blue-lt font-semibold mt-3 mb-1 text-sm">
           {trimmed.replace(/^#+\s/, '')}
         </h4>
       );
     }
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.match(/^\d+\.\s/)) {
       return (
-        <li key={i} className="ml-4 mb-1 text-slate-300 list-disc">
+        <li key={i} className="ml-5 mb-1 text-eb-text list-disc text-[0.925rem] leading-relaxed">
           {trimmed.replace(/^[-*]\s/, '').replace(/^\d+\.\s/, '')}
         </li>
       );
     }
 
-    // Bold text
     const parts = trimmed.split(/(\*\*.*?\*\*)/g);
     return (
-      <p key={i} className="mb-2 text-slate-300 leading-relaxed">
+      <p key={i} className="mb-2 text-eb-text leading-[1.8] text-[0.925rem]">
         {parts.map((part, j) =>
           part.startsWith('**') && part.endsWith('**') ? (
-            <strong key={j} className="text-white font-semibold">
+            <strong key={j} className="text-[#e8edf5] font-semibold">
               {part.slice(2, -2)}
             </strong>
           ) : (
@@ -1087,108 +1109,92 @@ ${bookData.marketingContent || 'No generado'}
   const totalChapters = bookData.chapters.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950">
-      {/* Header */}
-      <header className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xl">
-              📖
-            </div>
-            <div>
-              <h1 className="text-white font-bold text-lg gradient-text">EbookAI</h1>
-              <p className="text-slate-500 text-xs">Automated Ebook Creator</p>
+    <div className="flex h-screen overflow-hidden font-sans bg-eb-bg">
+      {/* ─── Sidebar ─── */}
+      <aside className="w-60 flex-shrink-0 bg-eb-surface border-r border-eb-border flex flex-col h-full overflow-y-auto">
+        <div className="px-6 py-5 border-b border-eb-border flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-eb-gold-dim to-eb-gold flex items-center justify-center">
+            <SvgIcon name="book" size={15} color="#fff"/>
+          </div>
+          <div className="font-serif text-base font-semibold text-eb-text">EbookAI</div>
+        </div>
+        {bookData.selectedIdea && (
+          <div className="px-5 py-3.5 border-b border-eb-border">
+            <div className="text-[0.65rem] text-eb-muted uppercase tracking-widest mb-1">Libro actual</div>
+            <div className="text-[0.8rem] text-eb-gold-lt font-serif font-semibold leading-tight">
+              {bookData.selectedIdea.title.length > 40 ? bookData.selectedIdea.title.slice(0, 40) + '…' : bookData.selectedIdea.title}
             </div>
           </div>
-          {bookData.selectedIdea && (
-            <div className="hidden md:flex items-center gap-2 bg-slate-800/50 rounded-xl px-4 py-2">
-              <span className="text-slate-400 text-xs">Working on:</span>
-              <span className="text-indigo-300 text-sm font-medium truncate max-w-xs">
-                {bookData.selectedIdea.title}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setHeaderPanel(headerPanel === 'ideas' ? null : 'ideas')}
-              title="Ideas guardadas"
-              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'ideas' ? 'bg-amber-900/40 text-amber-300 border-amber-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
-            >
-              <span>💡</span>
-              <span className="hidden sm:inline">Ideas</span>
-              {bookData.allIdeas.length > 0 && (
-                <span className="bg-amber-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.allIdeas.length}</span>
-              )}
-            </button>
-            <button
-              onClick={() => setHeaderPanel(headerPanel === 'library' ? null : 'library')}
-              title="Biblioteca de libros"
-              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'library' ? 'bg-indigo-900/40 text-indigo-300 border-indigo-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
-            >
-              <span>🏛️</span>
-              <span className="hidden sm:inline">Biblioteca</span>
-              {bookData.library.length > 0 && (
-                <span className="bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.library.length}</span>
-              )}
-            </button>
-            <button
-              onClick={() => setHeaderPanel(headerPanel === 'nextBooks' ? null : 'nextBooks')}
-              title="Próximos libros"
-              className={`flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs transition-all border ${headerPanel === 'nextBooks' ? 'bg-purple-900/40 text-purple-300 border-purple-700/50' : 'bg-slate-800/50 text-slate-400 border-transparent hover:bg-slate-700/50'}`}
-            >
-              <span>📚</span>
-              <span className="hidden sm:inline">Próximos</span>
-              {bookData.savedIdeas.length > 0 && (
-                <span className="bg-purple-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{bookData.savedIdeas.length}</span>
-              )}
-            </button>
-            <div className="w-px h-5 bg-slate-700/50 mx-1" />
-            <button
-              onClick={resetProject}
-              title="New Project"
-              className="bg-slate-800/50 hover:bg-red-900/30 hover:text-red-400 rounded-xl px-3 py-1.5 text-xs text-slate-400 transition-all border border-transparent hover:border-red-900/50"
-            >
-              <span>🗑️</span>
-              <span className="hidden sm:inline"> Reset</span>
-            </button>
-            {modelConfig && (
-              <button
-                onClick={() => setPhase('setup')}
-                title="Change strategy"
-                className="hidden md:flex items-center gap-1.5 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl px-3 py-1.5 text-xs text-slate-400 transition-colors"
-              >
-                <span>⚙️</span>
-                <span>{modelConfig.strategyName}</span>
+        )}
+        <div className="py-3 flex-1">
+          {STEPS.map((s) => {
+            const done = s.number < step;
+            const active = s.number === step;
+            const locked = s.number > Math.max(step, furthestStep);
+            return (
+              <button key={s.number} onClick={() => { if (!locked) { setStep(s.number as Step); setStreamedText(''); } }}
+                className={`w-full text-left px-5 py-2.5 flex items-center gap-3 transition-all font-sans border-l-2 border-none ${active ? 'bg-eb-gold/[0.08] !border-l-eb-gold' : '!border-l-transparent'} ${locked ? 'opacity-35 cursor-default' : 'cursor-pointer'}`}
+                style={{ borderLeft: active ? '2px solid #c8963a' : '2px solid transparent' }}>
+                <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[0.7rem] font-semibold ${done ? 'bg-eb-green text-white' : active ? 'bg-eb-gold text-[#0a0600]' : 'bg-eb-surface-2 border border-eb-border-2 text-eb-muted'}`}>
+                  {done ? <SvgIcon name="check" size={11} color="#fff"/> : s.number}
+                </div>
+                <div>
+                  <div className={`text-[0.825rem] ${active ? 'font-semibold text-eb-gold-lt' : done ? 'text-eb-text' : 'text-eb-muted'}`}>{s.title}</div>
+                  <div className="text-[0.7rem] text-eb-muted-2 mt-px">{s.sub}</div>
+                </div>
               </button>
-            )}
-            <div className="flex items-center gap-2 text-slate-400 text-sm">
-              <span>Step {step}</span>
-              <span className="text-slate-600">/</span>
-              <span>8</span>
-            </div>
+            );
+          })}
+        </div>
+        <div className="px-5 py-4 border-t border-eb-border flex flex-col gap-1.5">
+          <button onClick={() => setHeaderPanel(headerPanel === 'library' ? null : 'library')}
+            className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-[0.78rem] text-eb-muted hover:bg-eb-surface-2 transition-colors w-full text-left font-sans bg-transparent border-none cursor-pointer">
+            <SvgIcon name="library" size={14}/> Biblioteca
+            {bookData.library.length > 0 && <span className="ml-auto text-[9px] font-bold bg-eb-gold/20 text-eb-gold rounded-full w-4 h-4 flex items-center justify-center">{bookData.library.length}</span>}
+          </button>
+          <button onClick={() => setPhase('setup')}
+            className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-[0.78rem] text-eb-muted hover:bg-eb-surface-2 transition-colors w-full text-left font-sans bg-transparent border-none cursor-pointer">
+            <SvgIcon name="settings" size={14}/> Configuración
+          </button>
+          <button onClick={resetProject}
+            className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-[0.78rem] text-[#b04040] hover:bg-red-950/40 transition-colors w-full text-left font-sans bg-transparent border-none cursor-pointer">
+            <SvgIcon name="trash" size={14} color="#b04040"/> Nuevo proyecto
+          </button>
+        </div>
+      </aside>
+
+      {/* ─── Main ─── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top bar */}
+        <div className="border-b border-eb-border px-7 py-3.5 flex items-center justify-between bg-eb-surface flex-shrink-0">
+          <div className="text-[0.8rem] text-eb-muted">
+            {STEPS[step - 1]?.title} · {STEPS[step - 1]?.sub}
+          </div>
+          <div className="flex gap-2 items-center">
+            {step > 1 && <button onClick={goPrev} className="px-3 py-1.5 text-xs rounded-lg bg-transparent hover:bg-eb-surface-2 text-eb-muted hover:text-eb-text transition-colors font-sans font-medium border-none cursor-pointer">← Anterior</button>}
+            {step < 8 && <button onClick={goNext} disabled={step < 6 && !canProceed} className="px-3 py-1.5 text-xs rounded-xl bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] font-sans font-medium border-none cursor-pointer disabled:opacity-40 transition-colors">Continuar →</button>}
           </div>
         </div>
-      </header>
 
       {/* Header Dropdown Panels */}
       {headerPanel && (
-        <div className="border-b border-slate-800/50 bg-slate-900/95 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="border-b border-eb-border bg-eb-surface/95 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-5 py-4">
             {/* Ideas Panel */}
             {headerPanel === 'ideas' && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-amber-300 font-semibold text-sm flex items-center gap-2">
-                    <span>💡</span> Todas las Ideas Generadas
+                  <h3 className="text-eb-gold-lt font-semibold text-sm flex items-center gap-2">
+                    <SvgIcon name="bulb" size={14} color="#e8b85a"/> Todas las Ideas Generadas
                   </h3>
-                  <span className="text-slate-500 text-xs">{bookData.allIdeas.length} ideas guardadas</span>
+                  <span className="text-eb-muted text-xs">{bookData.allIdeas.length} ideas guardadas</span>
                 </div>
                 {bookData.allIdeas.length === 0 ? (
-                  <p className="text-slate-500 text-xs">Genera ideas en el Step 1 y se guardarán aquí automáticamente.</p>
+                  <p className="text-eb-muted text-xs">Genera ideas en el Step 1 y se guardarán aquí automáticamente.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
                     {bookData.allIdeas.map((idea, idx) => (
-                      <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+                      <div key={idx} className="bg-eb-surface-2 border border-eb-border rounded-lg p-3">
                         <input
                           type="text"
                           value={idea.title}
@@ -1196,7 +1202,7 @@ ${bookData.marketingContent || 'No generado'}
                             ...p,
                             allIdeas: p.allIdeas.map((s, i) => i === idx ? { ...s, title: e.target.value } : s)
                           }))}
-                          className="w-full bg-transparent border-none text-white text-xs font-semibold focus:outline-none focus:bg-slate-900/60 rounded px-1 -mx-1"
+                          className="w-full bg-transparent border-none text-eb-text text-xs font-semibold focus:outline-none focus:bg-eb-surface-3 rounded px-1 -mx-1"
                         />
                         <input
                           type="text"
@@ -1205,23 +1211,23 @@ ${bookData.marketingContent || 'No generado'}
                             ...p,
                             allIdeas: p.allIdeas.map((s, i) => i === idx ? { ...s, subtitle: e.target.value } : s)
                           }))}
-                          className="w-full bg-transparent border-none text-slate-400 text-[10px] mt-1 focus:outline-none focus:bg-slate-900/60 rounded px-1 -mx-1"
+                          className="w-full bg-transparent border-none text-eb-muted text-[10px] mt-1 focus:outline-none focus:bg-eb-surface-3 rounded px-1 -mx-1"
                           placeholder="Añadir subtítulo..."
                         />
                         <div className="flex gap-1.5 mt-2">
                           {!bookData.savedIdeas.some(s => s.title === idea.title) ? (
                             <button
                               onClick={() => setBookData((p) => ({ ...p, savedIdeas: [...p.savedIdeas, idea] }))}
-                              className="text-[9px] font-bold bg-purple-700 hover:bg-purple-600 text-white px-2 py-1 rounded transition-colors"
+                              className="text-[9px] font-bold bg-eb-gold hover:brightness-110 text-[#0a0600] px-2 py-1 rounded transition-colors"
                             >
                               + Próximo Libro
                             </button>
                           ) : (
-                            <span className="text-[9px] font-bold text-purple-400 bg-purple-950/30 border border-purple-900/50 px-2 py-1 rounded">GUARDADO</span>
+                            <span className="text-[9px] font-bold text-eb-gold bg-eb-gold/10 border border-eb-gold/20 px-2 py-1 rounded">GUARDADO</span>
                           )}
                           <button
                             onClick={() => setBookData((p) => ({ ...p, allIdeas: p.allIdeas.filter((_, i) => i !== idx) }))}
-                            className="text-[9px] font-bold bg-slate-700 hover:bg-red-900/50 hover:text-red-300 text-slate-400 px-2 py-1 rounded transition-colors"
+                            className="text-[9px] font-bold bg-eb-surface-3 hover:bg-red-900/50 hover:text-red-300 text-eb-muted px-2 py-1 rounded transition-colors"
                           >
                             Borrar
                           </button>
@@ -1237,23 +1243,23 @@ ${bookData.marketingContent || 'No generado'}
             {headerPanel === 'library' && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-indigo-300 font-semibold text-sm flex items-center gap-2">
-                    <span>🏛️</span> Biblioteca de Libros
+                  <h3 className="text-eb-blue-lt font-semibold text-sm flex items-center gap-2">
+                    <SvgIcon name="library" size={14} color="#7aadde"/> Biblioteca de Libros
                   </h3>
-                  <span className="text-slate-500 text-xs">{bookData.library.length} libros</span>
+                  <span className="text-eb-muted text-xs">{bookData.library.length} libros</span>
                 </div>
                 {bookData.library.length === 0 ? (
-                  <p className="text-slate-500 text-xs">Tus libros finalizados aparecerán aquí.</p>
+                  <p className="text-eb-muted text-xs">Tus libros finalizados aparecerán aquí.</p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
                     {bookData.library.map((libBook, idx) => (
                       <button
                         key={idx}
                         onClick={() => { setViewingLibraryBook(libBook); setHeaderPanel(null); }}
-                        className="text-left bg-slate-800/60 border border-slate-700/40 rounded-lg p-3 hover:border-indigo-700/50 transition-colors"
+                        className="text-left bg-eb-surface-2 border border-eb-border rounded-lg p-3 hover:border-eb-border-2 transition-colors"
                       >
-                        <p className="text-white text-xs font-semibold truncate">{libBook.selectedIdea?.title}</p>
-                        <p className="text-slate-500 text-[10px] mt-1">{libBook.authorName}</p>
+                        <p className="text-eb-text text-xs font-semibold truncate">{libBook.selectedIdea?.title}</p>
+                        <p className="text-eb-muted text-[10px] mt-1">{libBook.authorName}</p>
                       </button>
                     ))}
                   </div>
@@ -1265,17 +1271,17 @@ ${bookData.marketingContent || 'No generado'}
             {headerPanel === 'nextBooks' && (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-purple-300 font-semibold text-sm flex items-center gap-2">
-                    <span>📚</span> Próximos Libros (Saga)
+                  <h3 className="text-eb-gold-lt font-semibold text-sm flex items-center gap-2">
+                    <SvgIcon name="book" size={14} color="#e8b85a"/> Próximos Libros (Saga)
                   </h3>
-                  <span className="text-slate-500 text-xs">{bookData.savedIdeas.length} pendientes</span>
+                  <span className="text-eb-muted text-xs">{bookData.savedIdeas.length} pendientes</span>
                 </div>
                 {bookData.savedIdeas.length === 0 ? (
-                  <p className="text-slate-500 text-xs">Guarda ideas como &quot;Próximo Libro&quot; y aparecerán aquí.</p>
+                  <p className="text-eb-muted text-xs">Guarda ideas como &quot;Próximo Libro&quot; y aparecerán aquí.</p>
                 ) : (
                   <div className="space-y-2 max-h-80 overflow-y-auto">
                     {bookData.savedIdeas.map((idea, idx) => (
-                      <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3">
+                      <div key={idx} className="bg-eb-surface-2 border border-eb-border rounded-lg p-3">
                         <div className="space-y-1.5">
                           <input
                             type="text"
@@ -1284,7 +1290,7 @@ ${bookData.marketingContent || 'No generado'}
                               ...p,
                               savedIdeas: p.savedIdeas.map((s, i) => i === idx ? { ...s, title: e.target.value } : s)
                             }))}
-                            className="w-full bg-slate-900/60 border border-slate-600/40 rounded px-2 py-1 text-white text-xs font-semibold focus:outline-none focus:border-purple-500"
+                            className="w-full bg-eb-surface-3 border border-eb-border rounded px-2 py-1 text-eb-text text-xs font-semibold focus:outline-none focus:border-eb-gold"
                             placeholder="Título del libro"
                           />
                           <input
@@ -1294,7 +1300,7 @@ ${bookData.marketingContent || 'No generado'}
                               ...p,
                               savedIdeas: p.savedIdeas.map((s, i) => i === idx ? { ...s, subtitle: e.target.value } : s)
                             }))}
-                            className="w-full bg-slate-900/60 border border-slate-600/40 rounded px-2 py-1 text-slate-400 text-[10px] focus:outline-none focus:border-purple-500"
+                            className="w-full bg-eb-surface-3 border border-eb-border rounded px-2 py-1 text-eb-muted text-[10px] focus:outline-none focus:border-eb-gold"
                             placeholder="Subtítulo"
                           />
                         </div>
@@ -1314,13 +1320,13 @@ ${bookData.marketingContent || 'No generado'}
                               setStep(2);
                               setHeaderPanel(null);
                             }}
-                            className="text-[9px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded transition-colors"
+                            className="text-[9px] font-bold bg-eb-gold hover:brightness-110 text-[#0a0600] px-2 py-1 rounded transition-colors"
                           >
                             Empezar Libro
                           </button>
                           <button
                             onClick={() => setBookData((p) => ({ ...p, savedIdeas: p.savedIdeas.filter((_, i) => i !== idx) }))}
-                            className="text-[9px] font-bold bg-slate-700 hover:bg-red-900/50 hover:text-red-300 text-slate-400 px-2 py-1 rounded transition-colors"
+                            className="text-[9px] font-bold bg-eb-surface-3 hover:bg-red-900/50 hover:text-red-300 text-eb-muted px-2 py-1 rounded transition-colors"
                           >
                             Quitar
                           </button>
@@ -1335,53 +1341,21 @@ ${bookData.marketingContent || 'No generado'}
         </div>
       )}
 
-      {/* Step Progress */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center gap-1 md:gap-2 overflow-x-auto pb-2">
-          {STEPS.map((s) => (
-            <button
-              key={s.number}
-              onClick={() => {
-                if (s.number <= Math.max(step, furthestStep)) {
-                  setStep(s.number as Step);
-                  setStreamedText('');
-                }
-              }}
-              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                s.number === step
-                  ? 'step-active text-white'
-                  : s.number <= furthestStep
-                  ? 'step-complete text-white opacity-80 cursor-pointer'
-                  : 'bg-slate-800/50 text-slate-500'
-              }`}
-            >
-              <span>{s.icon}</span>
-              <span className="hidden sm:inline">{s.title}</span>
-              <span className="sm:hidden">{s.number}</span>
-            </button>
-          ))}
-        </div>
-        {/* Progress bar */}
-        <div className="mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500"
-            style={{ width: `${((step - 1) / 7) * 100}%` }}
-          />
-        </div>
-      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="flex-1 overflow-y-auto px-7 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl">
           {/* Left Panel - Controls */}
           <div className="lg:col-span-1 space-y-4">
             {/* Step Card */}
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-6 animate-fade-in">
+            <div className="bg-eb-surface border border-eb-border rounded-[14px] p-5 animate-fade-in">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl">{STEPS[step - 1].icon}</span>
+                <div className="w-10 h-10 rounded-xl bg-eb-surface-2 border border-eb-border flex items-center justify-center">
+                  <SvgIcon name={['','bulb','list','pen','file','image','amazon','tag','horn'][step]} size={20} color="#c8963a"/>
+                </div>
                 <div>
-                  <h2 className="text-white font-bold text-lg">{STEPS[step - 1].title}</h2>
-                  <p className="text-slate-400 text-sm">{STEPS[step - 1].desc}</p>
+                  <h2 className="text-eb-text font-bold text-base">{STEPS[step - 1].title}</h2>
+                  <p className="text-eb-muted text-xs">{STEPS[step - 1].desc}</p>
                 </div>
               </div>
 
@@ -1392,54 +1366,54 @@ ${bookData.marketingContent || 'No generado'}
                     onSelectNiche={(niche, hook) => setBookData((p) => ({ ...p, niche, interests: hook }))} 
                   />
                   <div>
-                    <label className="text-slate-300 text-sm font-medium mb-1 block">
-                      Niche / Topic
+                    <label className="text-eb-muted text-xs font-medium mb-1.5 block">
+                      Nicho / Tema
                     </label>
                     <input
                       type="text"
                       value={bookData.niche}
                       onChange={(e) => setBookData((p) => ({ ...p, niche: e.target.value }))}
-                      placeholder="e.g., Personal Finance, Fitness, Productivity"
-                      className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                      placeholder="Ej: Finanzas personales, Fitness, Productividad"
+                      className="w-full bg-eb-surface-2 border border-eb-border rounded-lg px-3 py-2.5 text-eb-text placeholder-eb-muted-2 text-sm focus:outline-none focus:border-eb-gold transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="text-slate-300 text-sm font-medium mb-1 block">
-                      Your Interests / Skills
+                    <label className="text-eb-muted text-xs font-medium mb-1.5 block">
+                      Tus Intereses / Habilidades
                     </label>
                     <textarea
                       value={bookData.interests}
                       onChange={(e) =>
                         setBookData((p) => ({ ...p, interests: e.target.value }))
                       }
-                      placeholder="e.g., I know about budgeting, investing basics, side hustles..."
+                      placeholder="Ej: Sé sobre presupuestos, inversión básica, negocios..."
                       rows={3}
-                      className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+                      className="w-full bg-eb-surface-2 border border-eb-border rounded-lg px-3 py-2.5 text-eb-text placeholder-eb-muted-2 text-sm focus:outline-none focus:border-eb-gold transition-colors resize-none"
                     />
                   </div>
                   <div>
-                    <label className="text-slate-300 text-sm font-medium mb-1 block">
+                    <label className="text-eb-muted text-xs font-medium mb-1.5 block">
                       Autor / Seudónimo
                     </label>
                     <input
                       type="text"
                       value={bookData.authorName || ''}
                       onChange={(e) => setBookData((p) => ({ ...p, authorName: e.target.value }))}
-                      placeholder="e.g., Edgar Manchón"
-                      className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                      placeholder="Ej: Edgar Manchón"
+                      className="w-full bg-eb-surface-2 border border-eb-border rounded-lg px-3 py-2.5 text-eb-text placeholder-eb-muted-2 text-sm focus:outline-none focus:border-eb-gold transition-colors"
                     />
                   </div>
                   <button
                     onClick={() => generate()}
                     disabled={isGenerating || !bookData.niche}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0600] font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {isGenerating ? (
                       <>
-                        <span className="animate-spin">⟳</span> Generating...
+                        <span className="animate-spin">⟳</span> Generando...
                       </>
                     ) : (
-                      <>💡 Generate Book Ideas</>
+                      <><SvgIcon name="bulb" size={14} color="#0a0600"/> Generar Ideas de Libro</>
                     )}
                   </button>
                 </div>
@@ -1448,15 +1422,15 @@ ${bookData.marketingContent || 'No generado'}
               {step === 2 && (
                 <div className="space-y-3">
                   {bookData.selectedIdea ? (
-                    <div className="bg-indigo-950/50 border border-indigo-700/30 rounded-xl p-3">
+                    <div className="bg-eb-gold/[0.06] border border-eb-gold/20 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] text-slate-500 uppercase tracking-wider">Título</span>
+                        <span className="text-[10px] text-eb-muted uppercase tracking-wider">Título</span>
                         <button
                           onClick={() => setEditingTitle(!editingTitle)}
-                          className="text-slate-500 hover:text-indigo-400 text-xs transition-colors"
+                          className="text-eb-muted hover:text-eb-gold text-xs transition-colors flex items-center gap-1"
                           title="Editar título y subtítulo"
                         >
-                          {editingTitle ? '✓ Listo' : '✏️ Editar'}
+                          {editingTitle ? <><SvgIcon name="check" size={10}/> Listo</> : <><SvgIcon name="pen" size={10}/> Editar</>}
                         </button>
                       </div>
                       {editingTitle ? (
@@ -1468,7 +1442,7 @@ ${bookData.marketingContent || 'No generado'}
                               ...prev,
                               selectedIdea: prev.selectedIdea ? { ...prev.selectedIdea, title: e.target.value } : null
                             }))}
-                            className="w-full bg-slate-800 border border-indigo-500/50 rounded-lg px-3 py-2 text-indigo-300 text-sm font-semibold focus:outline-none focus:border-indigo-400"
+                            className="w-full bg-eb-surface-2 border border-eb-gold/30 rounded-lg px-3 py-2 text-eb-gold-lt text-sm font-semibold focus:outline-none focus:border-eb-gold"
                           />
                           <input
                             type="text"
@@ -1478,36 +1452,36 @@ ${bookData.marketingContent || 'No generado'}
                               selectedIdea: prev.selectedIdea ? { ...prev.selectedIdea, subtitle: e.target.value } : null
                             }))}
                             placeholder="Subtítulo"
-                            className="w-full bg-slate-800 border border-slate-600/50 rounded-lg px-3 py-1.5 text-slate-400 text-xs focus:outline-none focus:border-indigo-400"
+                            className="w-full bg-eb-surface-2 border border-eb-border rounded-lg px-3 py-1.5 text-eb-muted text-xs focus:outline-none focus:border-eb-gold"
                           />
                         </div>
                       ) : (
                         <>
-                          <p className="text-indigo-300 font-semibold text-sm">
+                          <p className="text-eb-gold-lt font-semibold text-sm">
                             {bookData.selectedIdea.title}
                           </p>
-                          <p className="text-slate-400 text-xs mt-1">
+                          <p className="text-eb-muted text-xs mt-1">
                             {bookData.selectedIdea.subtitle}
                           </p>
                         </>
                       )}
                     </div>
                   ) : (
-                    <p className="text-yellow-400 text-sm">
-                      ⚠️ Please select a book idea from Step 1 first
+                    <p className="text-eb-gold text-sm">
+                      Selecciona una idea en el Paso 1 primero
                     </p>
                   )}
                   <button
                     onClick={() => generate()}
                     disabled={isGenerating || !bookData.selectedIdea}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0600] font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {isGenerating ? (
                       <>
-                        <span className="animate-spin">⟳</span> Creating Outline...
+                        <span className="animate-spin">⟳</span> Creando Estructura...
                       </>
                     ) : (
-                      <>📋 Generate Outline</>
+                      <><SvgIcon name="list" size={14} color="#0a0600"/> Generar Estructura</>
                     )}
                   </button>
                 </div>
@@ -1515,17 +1489,17 @@ ${bookData.marketingContent || 'No generado'}
 
               {step === 3 && (
                 <div className="space-y-3">
-                  <div className="bg-slate-800/50 rounded-xl p-3">
+                  <div className="bg-eb-surface-2 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-slate-300 text-sm font-medium">Progress</span>
-                      <span className="text-indigo-400 text-sm">
-                        {chaptersWritten}/{totalChapters || '?'} chapters
+                      <span className="text-eb-text text-xs font-medium">Progreso</span>
+                      <span className="text-eb-gold text-xs">
+                        {chaptersWritten}/{totalChapters || '?'} capítulos
                       </span>
                     </div>
                     {totalChapters > 0 && (
-                      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-eb-surface-3 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
+                          className="h-full bg-eb-gold rounded-full transition-all"
                           style={{ width: `${(chaptersWritten / totalChapters) * 100}%` }}
                         />
                       </div>
@@ -1534,8 +1508,8 @@ ${bookData.marketingContent || 'No generado'}
 
                   {bookData.chapters.length > 0 && (
                     <div>
-                      <label className="text-slate-300 text-sm font-medium mb-2 block">
-                        Select Chapter to Write
+                      <label className="text-eb-muted text-xs font-medium mb-2 block">
+                        Seleccionar capítulo
                       </label>
                       <div className="space-y-1 max-h-48 overflow-y-auto">
                         {bookData.chapters.map((ch) => (
@@ -1549,17 +1523,17 @@ ${bookData.marketingContent || 'No generado'}
                             }
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
                               bookData.currentWritingChapter === ch.number
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                                ? 'bg-eb-gold/20 text-eb-gold-lt border border-eb-gold/30'
+                                : 'bg-eb-surface-2 text-eb-text hover:bg-eb-surface-3 border border-transparent'
                             }`}
                           >
                             <span className="flex items-center gap-2">
                               {bookData.writtenChapters[ch.number] ? (
-                                <span className="text-green-400">✓</span>
+                                <SvgIcon name="check" size={11} color="#3a9e76"/>
                               ) : (
-                                <span className="text-slate-500">○</span>
+                                <span className="text-eb-muted-2">○</span>
                               )}
-                              Ch.{ch.number}: {ch.title}
+                              Cap.{ch.number}: {ch.title}
                             </span>
                           </button>
                         ))}
@@ -1570,14 +1544,14 @@ ${bookData.marketingContent || 'No generado'}
                   <button
                     onClick={() => generate()}
                     disabled={isGenerating || bookData.chapters.length === 0}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0600] font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {isGenerating ? (
                       <>
-                        <span className="animate-spin">⟳</span> Writing Chapter...
+                        <span className="animate-spin">⟳</span> Escribiendo...
                       </>
                     ) : (
-                      <>✍️ Write {bookData.currentWritingChapter === 0 ? 'Introducción' : bookData.currentWritingChapter === 99 ? 'Conclusión' : `Chapter ${bookData.currentWritingChapter}`}</>
+                      <><SvgIcon name="pen" size={14} color="#0a0600"/> Escribir {bookData.currentWritingChapter === 0 ? 'Introducción' : bookData.currentWritingChapter === 99 ? 'Conclusión' : `Capítulo ${bookData.currentWritingChapter}`}</>
                     )}
                   </button>
 
@@ -1585,18 +1559,16 @@ ${bookData.marketingContent || 'No generado'}
                     <button
                       onClick={async () => {
                         for (const ch of bookData.chapters) {
-                          // Re-read fresh state before each chapter
                           const fresh = await new Promise<BookData>(r => setBookData(p => { r(p); return p; }));
                           if (fresh.writtenChapters[ch.number]) continue;
                           setBookData((p) => ({ ...p, currentWritingChapter: ch.number }));
-                          // generate() already awaits the full stream completion
                           await generate({ currentWritingChapter: ch.number });
                         }
                       }}
                       disabled={isGenerating}
-                      className="w-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-sm py-2.5 rounded-xl transition-all"
+                      className="w-full bg-eb-surface-3 hover:bg-eb-border text-eb-text text-sm py-2.5 rounded-lg transition-all border border-eb-border disabled:opacity-50"
                     >
-                      ⚡ Write All Remaining Chapters
+                      Escribir todos los capítulos restantes
                     </button>
                   )}
                 </div>
@@ -1605,51 +1577,50 @@ ${bookData.marketingContent || 'No generado'}
               {step >= 4 && step <= 8 && (
                 <div className="space-y-3">
                   {bookData.selectedIdea && (
-                    <div className="bg-indigo-950/50 border border-indigo-700/30 rounded-xl p-3">
-                      <p className="text-indigo-300 font-semibold text-sm truncate">
+                    <div className="bg-eb-gold/[0.06] border border-eb-gold/20 rounded-lg p-3">
+                      <p className="text-eb-gold-lt font-semibold text-sm truncate">
                         {bookData.selectedIdea.title}
                       </p>
                     </div>
                   )}
 
-                  {/* Step 5 extra: AI cover generation with Nano Banana Pro */}
                   {step === 5 && (
                     <>
-                      <div className="bg-slate-800/60 border border-slate-600/40 rounded-xl p-3 text-xs text-slate-400 space-y-1">
-                        <p className="text-slate-300 font-medium">🍌 Nano Banana Pro</p>
-                        <p>Generates your cover as a real 1600×2560 JPG — ready for KDP upload.</p>
-                        <p className="text-slate-500">Requires <code className="text-indigo-400">GOOGLE_API_KEY</code> in .env</p>
+                      <div className="bg-eb-surface-2 border border-eb-border rounded-lg p-3 text-xs text-eb-muted space-y-1">
+                        <p className="text-eb-text font-medium flex items-center gap-1.5"><SvgIcon name="image" size={12} color="#e8b85a"/> Nano Banana Pro</p>
+                        <p>Genera tu portada como JPG real 1600×2560 — lista para KDP.</p>
+                        <p className="text-eb-muted-2">Requiere <code className="text-eb-gold">GOOGLE_API_KEY</code> en .env</p>
                       </div>
                       <button
                         onClick={generateCover}
                         disabled={isGeneratingCover || !bookData.selectedIdea}
-                        className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0600] font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                       >
                         {isGeneratingCover ? (
                           <>
-                            <span className="animate-spin">⟳</span> Generating Cover...
+                            <span className="animate-spin">⟳</span> Generando portada...
                           </>
                         ) : bookData.coverImage ? (
-                          <>🍌 Regenerate Cover</>
+                          <><SvgIcon name="image" size={14} color="#0a0600"/> Regenerar Portada</>
                         ) : (
-                          <>🍌 Generate Cover with Nano Banana Pro</>
+                          <><SvgIcon name="image" size={14} color="#0a0600"/> Generar Portada con Nano Banana Pro</>
                         )}
                       </button>
                       {bookData.coverImage && (
                         <button
                           onClick={downloadCover}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                          className="w-full bg-eb-green hover:brightness-110 text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                         >
-                          📥 Download Cover JPG (1600×2560)
+                          <SvgIcon name="download" size={14}/> Descargar Portada JPG (1600×2560)
                         </button>
                       )}
                       {coverError && (
-                        <div className="bg-red-950/50 border border-red-700/30 rounded-xl p-3">
-                          <p className="text-red-400 text-xs">❌ {coverError}</p>
+                        <div className="bg-red-950/50 border border-red-700/30 rounded-lg p-3">
+                          <p className="text-red-400 text-xs">{coverError}</p>
                         </div>
                       )}
-                      <div className="border-t border-slate-700/50 pt-3">
-                        <p className="text-slate-500 text-xs mb-2">Also get design brief text:</p>
+                      <div className="border-t border-eb-border pt-3">
+                        <p className="text-eb-muted text-xs mb-2">También obtener brief de diseño:</p>
                       </div>
                     </>
                   )}
@@ -1657,24 +1628,25 @@ ${bookData.marketingContent || 'No generado'}
                   <button
                     onClick={() => generate()}
                     disabled={isGenerating}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0600] font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {isGenerating ? (
                       <>
-                        <span className="animate-spin">⟳</span> Generating...
+                        <span className="animate-spin">⟳</span> Generando...
                       </>
                     ) : (
                       <>
-                        {STEPS[step - 1].icon} Generate{' '}
+                        <SvgIcon name={step === 4 ? 'file' : step === 5 ? 'image' : step === 6 ? 'amazon' : step === 7 ? 'tag' : 'horn'} size={14} color="#0a0600"/>
+                        {' '}Generar{' '}
                         {step === 4
-                          ? 'Format Guide'
+                          ? 'Guía de Formato'
                           : step === 5
-                          ? 'Design Tips'
+                          ? 'Tips de Diseño'
                           : step === 6
-                          ? 'KDP Guide'
+                          ? 'Guía KDP'
                           : step === 7
-                          ? 'Pricing Strategy'
-                          : 'Marketing Plan'}
+                          ? 'Estrategia de Precios'
+                          : 'Plan de Marketing'}
                       </>
                     )}
                   </button>
@@ -1682,16 +1654,16 @@ ${bookData.marketingContent || 'No generado'}
                     <button
                       onClick={exportDocx}
                       disabled={isExporting || !bookData.selectedIdea || (!pubFormats.ebook && !pubFormats.paperback)}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-eb-green hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                     >
                       {isExporting ? (
                         <>
                           <span className="animate-spin">⟳</span> Exportando...
                         </>
                       ) : exportSuccess ? (
-                        <>✅ Descargado!</>
+                        <><SvgIcon name="check" size={14}/> Descargado!</>
                       ) : (
-                        <>📥 Exportar .DOCX</>
+                        <><SvgIcon name="download" size={14}/> Exportar .DOCX</>
                       )}
                     </button>
                   )}
@@ -1699,43 +1671,44 @@ ${bookData.marketingContent || 'No generado'}
               )}
 
               {error && (
-                <div className="mt-3 bg-red-950/50 border border-red-700/30 rounded-xl p-3">
-                  <p className="text-red-400 text-sm">❌ {error}</p>
+                <div className="mt-3 bg-red-950/50 border border-red-700/30 rounded-lg p-3">
+                  <p className="text-red-400 text-xs">{error}</p>
                 </div>
               )}
             </div>
 
             {/* Book Summary Card */}
             {bookData.selectedIdea && (
-              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5">
-                <h3 className="text-slate-300 font-semibold text-sm mb-3">📖 Resumen Actual</h3>
+              <div className="bg-eb-surface border border-eb-border rounded-[14px] p-5">
+                <h3 className="text-eb-text font-semibold text-[0.85rem] mb-3 flex items-center gap-2">
+                  <SvgIcon name="book" size={14} color="#7aadde"/> Resumen Actual
+                </h3>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-slate-500">Título</p>
-                    <p className="text-white text-sm font-medium">{bookData.selectedIdea.title}</p>
+                    <p className="text-[10px] text-eb-muted uppercase tracking-wider">Título</p>
+                    <p className="text-eb-text text-sm font-medium">{bookData.selectedIdea.title}</p>
                   </div>
                   {bookData.selectedIdea.subtitle && (
                     <div>
-                      <p className="text-xs text-slate-500">Subtítulo</p>
-                      <p className="text-slate-300 text-sm">{bookData.selectedIdea.subtitle}</p>
+                      <p className="text-[10px] text-eb-muted uppercase tracking-wider">Subtítulo</p>
+                      <p className="text-eb-muted text-sm">{bookData.selectedIdea.subtitle}</p>
                     </div>
                   )}
                   {bookData.chapters.length > 0 && (
                     <div>
-                      <p className="text-xs text-slate-500">Capítulos</p>
-                      <p className="text-indigo-400 text-sm">{bookData.chapters.length} capítulos</p>
+                      <p className="text-[10px] text-eb-muted uppercase tracking-wider">Capítulos</p>
+                      <p className="text-eb-gold text-sm">{bookData.chapters.length} capítulos</p>
                     </div>
                   )}
                   {chaptersWritten > 0 && (
                     <div>
-                      <p className="text-xs text-slate-500">Escritos</p>
-                      <p className="text-green-400 text-sm">
-                        {chaptersWritten}/{bookData.chapters.length} capítulos ✓
+                      <p className="text-[10px] text-eb-muted uppercase tracking-wider">Escritos</p>
+                      <p className="text-eb-green text-sm flex items-center gap-1">
+                        {chaptersWritten}/{bookData.chapters.length} capítulos <SvgIcon name="check" size={11} color="#3a9e76"/>
                       </p>
                     </div>
                   )}
                 </div>
-                {/* Quick navigation buttons when there's NO progress yet */}
                 {(!bookData.chapters || bookData.chapters.length === 0) && (
                   <div className="mt-4">
                     <button
@@ -1743,13 +1716,12 @@ ${bookData.marketingContent || 'No generado'}
                         setStep(2);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="w-full px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90 text-white text-sm font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2 bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
                     >
-                      <span>📋</span> Continuar a Crear Outline
+                      <SvgIcon name="list" size={14} color="#0a0600"/> Continuar a Crear Estructura
                     </button>
                   </div>
                 )}
-                {/* Quick navigation buttons when there's progress */}
                 {bookData.chapters?.length > 0 && (
                   <div className="mt-4 space-y-2">
                     {step !== furthestStep && (
@@ -1758,7 +1730,7 @@ ${bookData.marketingContent || 'No generado'}
                           setStep(furthestStep);
                           setStreamedText('');
                         }}
-                        className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2 bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2"
                       >
                         Continuar donde lo dejaste
                         <span className="text-xs opacity-75">
@@ -1772,7 +1744,7 @@ ${bookData.marketingContent || 'No generado'}
                           setStep(3);
                           setStreamedText('');
                         }}
-                        className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2 bg-eb-surface-3 hover:bg-eb-border text-eb-text text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2 border border-eb-border"
                       >
                         Ir a escribir capítulos
                         <span className="text-xs opacity-75">
@@ -1787,18 +1759,18 @@ ${bookData.marketingContent || 'No generado'}
 
             {/* Library / Created Books Card */}
             {bookData.library.length > 0 && (
-              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 animate-fade-in mt-4">
-                <h3 className="text-green-400 font-semibold text-sm mb-3 flex items-center gap-2">
-                  <span>🏛️</span> Biblioteca de Libros
+              <div className="bg-eb-surface border border-eb-border rounded-[14px] p-5 animate-fade-in">
+                <h3 className="text-eb-green font-semibold text-[0.85rem] mb-3 flex items-center gap-2">
+                  <SvgIcon name="library" size={14} color="#3a9e76"/> Biblioteca de Libros
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {bookData.library.map((libBook, idx) => (
-                    <div key={idx} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-3 relative group transition-all hover:bg-slate-800/60 cursor-pointer"
+                    <div key={idx} className="bg-eb-surface-2 border border-eb-border rounded-lg p-3 relative group transition-all hover:border-eb-border-2 cursor-pointer"
                          onClick={() => setViewingLibraryBook(libBook)}>
-                      <p className="text-white text-xs font-semibold pr-6 line-clamp-1">{libBook.selectedIdea?.title}</p>
-                      <p className="text-slate-500 text-[10px] mt-1">{libBook.authorName}</p>
-                      <div className="absolute top-2 right-2 text-green-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                        👁️
+                      <p className="text-eb-text text-xs font-semibold pr-6 line-clamp-1">{libBook.selectedIdea?.title}</p>
+                      <p className="text-eb-muted text-[10px] mt-1">{libBook.authorName}</p>
+                      <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <SvgIcon name="book" size={12} color="#3a9e76"/>
                       </div>
                     </div>
                   ))}
@@ -1808,24 +1780,24 @@ ${bookData.marketingContent || 'No generado'}
 
             {/* Saved Ideas Card */}
             {bookData.savedIdeas.length > 0 && (
-              <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 animate-fade-in">
-                <h3 className="text-indigo-400 font-semibold text-sm mb-3 flex items-center gap-2">
-                  <span>📚</span> Próximos Libros
+              <div className="bg-eb-surface border border-eb-border rounded-[14px] p-5 animate-fade-in">
+                <h3 className="text-eb-gold font-semibold text-[0.85rem] mb-3 flex items-center gap-2">
+                  <SvgIcon name="book" size={14} color="#c8963a"/> Próximos Libros
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {bookData.savedIdeas.map((idea, idx) => (
-                    <div key={idx} className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-3 relative group transition-all hover:bg-slate-800/60">
-                      <p className="text-white text-xs font-semibold pr-6">{idea.title}</p>
-                      <p className="text-slate-500 text-[10px] mt-1 line-clamp-2">{idea.description}</p>
+                    <div key={idx} className="bg-eb-surface-2 border border-eb-border rounded-lg p-3 relative group transition-all hover:border-eb-border-2">
+                      <p className="text-eb-text text-xs font-semibold pr-6">{idea.title}</p>
+                      <p className="text-eb-muted text-[10px] mt-1 line-clamp-2">{idea.description}</p>
                       <button
                         onClick={() => setBookData(p => ({
                           ...p,
                           savedIdeas: p.savedIdeas.filter((_, i) => i !== idx)
                         }))}
-                        className="absolute top-2 right-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Remove"
+                        className="absolute top-2 right-2 text-eb-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Quitar"
                       >
-                        ✕
+                        <SvgIcon name="trash" size={11}/>
                       </button>
                       <div className="mt-2 flex justify-end">
                         <button
@@ -1843,10 +1815,10 @@ ${bookData.marketingContent || 'No generado'}
                             }));
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                           }}
-                          className="text-[10px] bg-indigo-600/20 hover:bg-indigo-600 hover:border-indigo-500 border border-indigo-500/30 text-indigo-300 hover:text-white px-3 py-1 rounded-md transition-all font-medium flex items-center gap-1"
+                          className="text-[10px] bg-eb-gold/10 hover:bg-eb-gold hover:text-[#0a0600] border border-eb-gold/30 text-eb-gold px-3 py-1 rounded-md transition-all font-medium flex items-center gap-1"
                           title="Empieza a escribir este libro ahora mismo"
                         >
-                          <span>🚀</span> Empezar Libro
+                          Empezar Libro
                         </button>
                       </div>
                     </div>
@@ -1854,44 +1826,26 @@ ${bookData.marketingContent || 'No generado'}
                 </div>
               </div>
             )}
-
-            {/* Navigation */}
-            <div className="flex gap-3">
-              <button
-                onClick={goPrev}
-                disabled={step === 1}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 font-medium py-3 rounded-xl transition-all"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={goNext}
-                disabled={step === 8 || !canProceed}
-                className="flex-1 bg-gradient-to-r from-indigo-600/80 to-purple-600/80 hover:from-indigo-600 hover:to-purple-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-all"
-              >
-                {step >= 6 && (!completedText || completedText.length < 50) ? 'Skip Step →' : 'Next →'}
-              </button>
-            </div>
           </div>
 
           {/* Right Panel - Content */}
           <div className="lg:col-span-2">
-            <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl min-h-[600px] flex flex-col">
+            <div className="bg-eb-surface border border-eb-border rounded-[14px] min-h-[600px] flex flex-col">
               {/* Content Header */}
-              <div className="flex items-center justify-between p-5 border-b border-slate-700/50">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-eb-border">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`w-2.5 h-2.5 rounded-full ${
-                      isGenerating ? 'bg-green-400 animate-pulse' : 'bg-slate-600'
+                    className={`w-2 h-2 rounded-full ${
+                      isGenerating ? 'bg-eb-green animate-pulse' : 'bg-eb-muted-2'
                     }`}
                   />
-                  <span className="text-slate-400 text-sm">
-                    {isGenerating ? 'AI is generating...' : 'AI Output'}
+                  <span className="text-eb-muted text-xs">
+                    {isGenerating ? 'IA generando...' : 'Contenido IA'}
                   </span>
                 </div>
                 {completedText && !isGenerating && (
-                  <span className="text-slate-500 text-xs">
-                    {completedText.length.toLocaleString()} characters
+                  <span className="text-eb-muted-2 text-xs">
+                    {completedText.length.toLocaleString()} caracteres
                   </span>
                 )}
               </div>
@@ -1901,23 +1855,23 @@ ${bookData.marketingContent || 'No generado'}
                 {/* Step 1: Show ideas as cards */}
                 {step === 1 && bookData.ideas.length > 0 && !isGenerating ? (
                   <div className="space-y-3 animate-fade-in">
-                    <p className="text-slate-400 text-sm mb-4">
-                      Select a book idea to continue:
+                    <p className="text-eb-muted text-sm mb-4">
+                      Selecciona una idea para continuar:
                     </p>
                     {bookData.ideas.map((idea, i) => (
                       <div
                         key={i}
                         className={`idea-card border rounded-xl p-4 transition-all relative ${
                           bookData.selectedIdea?.title === idea.title
-                            ? 'selected border-indigo-500 bg-indigo-950/20'
-                            : 'border-slate-700/50 bg-slate-800/30'
+                            ? 'selected'
+                            : 'border-eb-border bg-eb-surface-2'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 cursor-pointer" onClick={() => {
                             if (bookData.selectedIdea?.title !== idea.title) {
-                              setBookData((p) => ({ 
-                                ...p, 
+                              setBookData((p) => ({
+                                ...p,
                                 selectedIdea: idea,
                                 outline: '',
                                 chapters: [],
@@ -1933,50 +1887,49 @@ ${bookData.marketingContent || 'No generado'}
                             }
                           }}>
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs text-indigo-400 font-medium bg-indigo-950/50 px-2 py-0.5 rounded-full">
+                              <span className="text-xs text-eb-gold font-medium bg-eb-gold/10 px-2 py-0.5 rounded-full">
                                 Idea {i + 1}
                               </span>
                               {bookData.selectedIdea?.title === idea.title && (
-                                <span className="text-xs text-green-400">✓ Seleccionada para ahora</span>
+                                <span className="text-xs text-eb-green flex items-center gap-1"><SvgIcon name="check" size={10} color="#3a9e76"/> Seleccionada</span>
                               )}
                               {bookData.savedIdeas.some(s => s.title === idea.title) && (
-                                <span className="text-xs text-purple-400">★ En la lista "Próximo Libro"</span>
+                                <span className="text-xs text-eb-gold-lt">En lista &quot;Próximo Libro&quot;</span>
                               )}
                             </div>
-                            <h3 className="text-white font-semibold">{idea.title}</h3>
+                            <h3 className="text-eb-text font-semibold">{idea.title}</h3>
                             {idea.subtitle && (
-                              <p className="text-indigo-300 text-sm mt-0.5">{idea.subtitle}</p>
+                              <p className="text-eb-gold-lt text-sm mt-0.5">{idea.subtitle}</p>
                             )}
-                            <p className="text-slate-400 text-sm mt-1.5">{idea.description}</p>
+                            <p className="text-eb-muted text-sm mt-1.5">{idea.description}</p>
                             {idea.targetAudience && (
-                              <p className="text-slate-500 text-xs mt-1.5">
-                                👥 {idea.targetAudience}
+                              <p className="text-eb-muted text-xs mt-1.5">
+                                {idea.targetAudience}
                               </p>
                             )}
                             {idea.suggestedCategories && idea.suggestedCategories.length > 0 && (
-                              <p className="text-slate-500 text-xs mt-1.5">
-                                📚 {idea.suggestedCategories.join(', ')}
+                              <p className="text-eb-muted text-xs mt-1.5">
+                                {idea.suggestedCategories.join(', ')}
                               </p>
                             )}
                             {idea.amazonKeywords && idea.amazonKeywords.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-1">
                           {idea.amazonKeywords.map((kw, idx) => (
-                                <span key={idx} className="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full border border-slate-700/50">
+                                <span key={idx} className="bg-eb-surface-3 text-eb-text text-[10px] px-2 py-0.5 rounded-full border border-eb-border">
                                   {kw}
                                 </span>
                               ))}
                             </div>
                           )}
                         </div>
-                        
-                        {/* Save button or selected indicator */}
+
                         <div className="flex flex-col gap-2">
                           {bookData.selectedIdea?.title !== idea.title && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setBookData((p) => ({ 
-                                  ...p, 
+                                setBookData((p) => ({
+                                  ...p,
                                   selectedIdea: idea,
                                   outline: '',
                                   chapters: [],
@@ -1990,25 +1943,25 @@ ${bookData.marketingContent || 'No generado'}
                                   marketingContent: ''
                                 }));
                               }}
-                              className="text-[10px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                              className="text-[10px] font-bold bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
                             >
-                              ESTE AHORA
+                              SELECCIONAR
                             </button>
                           )}
-                          
+
                           {!bookData.savedIdeas.some(s => s.title === idea.title) ? (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setBookData((p) => ({ ...p, savedIdeas: [...p.savedIdeas, idea] }));
                               }}
-                              className="text-[10px] font-bold bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                              className="text-[10px] font-bold bg-eb-surface-3 hover:bg-eb-border text-eb-text px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap border border-eb-border"
                             >
-                              METER EN PRÓXIMO LIBRO
+                              PRÓXIMO LIBRO
                             </button>
                           ) : (
-                            <span className="text-[10px] font-bold text-center text-purple-400 bg-purple-950/30 border border-purple-900/50 px-3 py-1.5 rounded-lg">
-                              GUARDADO✓
+                            <span className="text-[10px] font-bold text-center text-eb-gold bg-eb-gold/10 border border-eb-gold/20 px-3 py-1.5 rounded-lg">
+                              GUARDADO
                             </span>
                           )}
                         </div>
@@ -2021,9 +1974,9 @@ ${bookData.marketingContent || 'No generado'}
                           setStep(2);
                           setStreamedText('');
                         }}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold py-3 rounded-xl mt-2 hover:opacity-90 transition-opacity"
+                        className="w-full bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] font-semibold py-2.5 rounded-lg mt-2 transition-all text-sm"
                       >
-                        Continue with "{bookData.selectedIdea.title}" →
+                        Continuar con &quot;{bookData.selectedIdea.title.length > 40 ? bookData.selectedIdea.title.slice(0, 40) + '…' : bookData.selectedIdea.title}&quot; →
                       </button>
                     )}
                   </div>
@@ -2034,22 +1987,21 @@ ${bookData.marketingContent || 'No generado'}
                     {step === 5 && (bookData.coverImage || isGeneratingCover) && (
                       <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-yellow-400 font-semibold text-sm">🍌 Nano Banana Pro — Generated Cover</span>
+                          <span className="text-eb-gold-lt font-semibold text-sm flex items-center gap-1.5"><SvgIcon name="image" size={14} color="#e8b85a"/> Nano Banana Pro — Portada Generada</span>
                           {bookData.coverImage && (
-                            <span className="text-slate-500 text-xs">1600×2560 · Kindle-ready JPG</span>
+                            <span className="text-eb-muted text-xs">1600×2560 · JPG para KDP</span>
                           )}
                         </div>
                         {isGeneratingCover ? (
-                          <div key="cover-loading" className="flex flex-col items-center justify-center h-64 bg-slate-800/50 rounded-xl border border-yellow-700/30">
-                            <div className="text-5xl mb-3 animate-pulse">🍌</div>
-                            <p className="text-yellow-400 font-medium">Generating your cover...</p>
-                            <p className="text-slate-500 text-sm mt-1">Nano Banana Pro is working its magic</p>
+                          <div key="cover-loading" className="flex flex-col items-center justify-center h-64 bg-eb-surface-2 rounded-xl border border-eb-gold/20">
+                            <div className="mb-3 animate-pulse"><SvgIcon name="image" size={48} color="#c8963a"/></div>
+                            <p className="text-eb-gold font-medium">Generando portada...</p>
+                            <p className="text-eb-muted text-sm mt-1">Nano Banana Pro está trabajando</p>
                           </div>
                         ) : bookData.coverImage ? (
                           <div key="cover-display" className="flex flex-col items-center gap-3">
-                            {/* Aspect-ratio preview (9:16 portrait) */}
                             <div className="relative w-full max-w-[220px] mx-auto">
-                              <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl shadow-yellow-900/30 border border-yellow-700/20">
+                              <div className="aspect-[9/16] rounded-xl overflow-hidden shadow-2xl shadow-eb-gold-dim/30 border border-eb-gold/20">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={`data:image/jpeg;base64,${bookData.coverImage}`}
@@ -2060,55 +2012,55 @@ ${bookData.marketingContent || 'No generado'}
                             </div>
                             {bookData.coverPrompt && (
                               <details className="w-full">
-                                <summary className="text-slate-500 text-xs cursor-pointer hover:text-slate-400">
-                                  View image prompt
+                                <summary className="text-eb-muted text-xs cursor-pointer hover:text-eb-text">
+                                  Ver prompt de imagen
                                 </summary>
-                                <p className="text-slate-500 text-xs mt-2 bg-slate-800/50 rounded-lg p-3 leading-relaxed">
+                                <p className="text-eb-muted text-xs mt-2 bg-eb-surface-2 rounded-lg p-3 leading-relaxed">
                                   {bookData.coverPrompt}
                                 </p>
                               </details>
                             )}
                             <button
                               onClick={downloadCover}
-                              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                              className="w-full bg-eb-green hover:brightness-110 text-white font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm"
                             >
-                              📥 Download Cover (1600×2560 JPG)
+                              <SvgIcon name="download" size={14}/> Descargar Portada (1600×2560 JPG)
                             </button>
                           </div>
                         ) : null}
                         {bookData.coverImage && (
-                          <div className="mt-8 border-t border-slate-700/50 pt-8 animate-fade-in">
+                          <div className="mt-8 border-t border-eb-border pt-8 animate-fade-in">
                             <div className="flex items-center justify-between mb-6">
                               <div>
-                                <h4 className="text-white font-bold text-lg mb-1">🚀 Amazon KDP A+ Content Pack</h4>
-                                <p className="text-slate-400 text-sm">3 Módulos Premium · 1940×1200 px (Retina 2x) · RGB · Amazon Compliance</p>
+                                <h4 className="text-eb-text font-bold text-base mb-1">Amazon KDP A+ Content Pack</h4>
+                                <p className="text-eb-muted text-xs">3 Módulos Premium · 1940×1200 px (Retina 2x) · RGB · Amazon Compliance</p>
                               </div>
                               <button
                                 onClick={generateMarketingPack}
                                 disabled={isGeneratingMarketing}
-                                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center gap-2"
+                                className="bg-eb-gold hover:bg-eb-gold-lt disabled:opacity-50 text-[#0a0600] font-bold px-5 py-2 rounded-lg transition-all flex items-center gap-2 text-sm"
                               >
-                                {isGeneratingMarketing ? <span className="animate-spin text-lg">⟳</span> : <span>✨</span>}
+                                {isGeneratingMarketing ? <span className="animate-spin text-lg">⟳</span> : <SvgIcon name="horn" size={14} color="#0a0600"/>}
                                 {isGeneratingMarketing ? 'Generando Pack...' : 'Generar Marketing Pack'}
                               </button>
                             </div>
 
-                            {marketingError && <p className="text-red-400 text-sm mb-4">❌ {marketingError}</p>}
+                            {marketingError && <p className="text-red-400 text-sm mb-4">{marketingError}</p>}
 
-                            <div className="grid grid-cols-1 gap-6">
+                            <div className="grid grid-cols-1 gap-5">
                               {[
                                 { type: 'comparison', label: 'Módulo 1: Antes vs. Después', desc: 'Gancho emocional — el lector se identifica con el dolor y ve la transformación' },
                                 { type: 'authority', label: 'Módulo 2: Autoridad del Autor', desc: 'Credibilidad editorial — mockup 3D del libro con firma personal' },
                                 { type: 'method', label: 'Módulo 3: Metodología / Proceso', desc: 'Infografía de las 4 fases — transforma características en beneficios' },
                               ].map(({ type, label, desc }) => (
-                                <div key={type} className="bg-slate-800/40 border border-slate-700/30 rounded-2xl p-4 transition-all hover:bg-slate-800/60 overflow-hidden">
+                                <div key={type} className="bg-eb-surface-2 border border-eb-border rounded-xl p-4 transition-all hover:border-eb-border-2 overflow-hidden">
                                   <div className="flex items-center justify-between mb-2">
                                     <div>
-                                      <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">{label}</span>
-                                      <p className="text-[11px] text-slate-500 mt-0.5">{desc}</p>
+                                      <span className="text-xs font-bold uppercase tracking-wider text-eb-gold">{label}</span>
+                                      <p className="text-[11px] text-eb-muted mt-0.5">{desc}</p>
                                     </div>
                                     {bookData.marketingAssets[type] && (
-                                      <button 
+                                      <button
                                         onClick={() => {
                                           const blob = new Blob([Buffer.from(bookData.marketingAssets[type], 'base64')], { type: 'image/jpeg' });
                                           const url = URL.createObjectURL(blob);
@@ -2117,25 +2069,25 @@ ${bookData.marketingContent || 'No generado'}
                                           link.download = `${bookData.selectedIdea?.title}-Aplus-${type}-2x.jpg`;
                                           link.click();
                                         }}
-                                        className="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded-lg text-slate-300"
+                                        className="text-xs bg-eb-surface-3 hover:bg-eb-border px-3 py-1 rounded-lg text-eb-text border border-eb-border"
                                       >
-                                        📥 Descargar 2x JPG
+                                        <span className="flex items-center gap-1"><SvgIcon name="download" size={11}/> 2x JPG</span>
                                       </button>
                                     )}
                                   </div>
-                                  
-                                  <div className="aspect-[970/600] w-full bg-slate-900/80 rounded-xl overflow-hidden border border-slate-700/50 flex items-center justify-center relative">
+
+                                  <div className="aspect-[970/600] w-full bg-eb-bg rounded-xl overflow-hidden border border-eb-border flex items-center justify-center relative">
                                     {bookData.marketingAssets[type] ? (
                                       <img src={`data:image/jpeg;base64,${bookData.marketingAssets[type]}`} alt={`A+ ${label}`} className="w-full h-full object-cover" />
                                     ) : (
-                                      <div className="text-slate-700 flex flex-col items-center gap-2">
-                                        <div className="text-3xl">🖼️</div>
+                                      <div className="text-eb-muted-2 flex flex-col items-center gap-2">
+                                        <SvgIcon name="image" size={28} color="#36485e"/>
                                         <span className="text-xs">Sin generar</span>
                                       </div>
                                     )}
                                     {isGeneratingMarketing && !bookData.marketingAssets[type] && (
-                                      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center">
-                                        <div className="animate-pulse text-indigo-400 font-bold">Generando pieza...</div>
+                                      <div className="absolute inset-0 bg-eb-bg/60 backdrop-blur-sm flex items-center justify-center">
+                                        <div className="animate-pulse text-eb-gold font-bold text-sm">Generando pieza...</div>
                                       </div>
                                     )}
                                   </div>
@@ -2145,8 +2097,8 @@ ${bookData.marketingContent || 'No generado'}
                           </div>
                         )}
                         {(completedText || streamedText) && (
-                          <div className="mt-8 border-t border-slate-700/50 pt-6">
-                            <p className="text-slate-400 text-xs font-medium mb-3">Guía de Diseño para Amazon</p>
+                          <div className="mt-8 border-t border-eb-border pt-6">
+                            <p className="text-eb-muted text-xs font-medium mb-3">Guía de Diseño para Amazon</p>
                           </div>
                         )}
                       </div>
@@ -2163,9 +2115,9 @@ ${bookData.marketingContent || 'No generado'}
                           <div className="flex justify-end gap-3 mb-4">
                             <button
                               onClick={saveToLibrary}
-                              className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-xl transition-all shadow-lg shadow-green-900/20 flex items-center gap-2"
+                              className="bg-eb-green hover:brightness-110 text-white font-bold py-2 px-5 rounded-lg transition-all flex items-center gap-2 text-sm"
                             >
-                              <span>🏛️</span> Finalizar y Guardar en Biblioteca
+                              <SvgIcon name="library" size={14}/> Finalizar y Guardar en Biblioteca
                             </button>
                           </div>
                           {renderAIContent(completedText)}
@@ -2179,12 +2131,12 @@ ${bookData.marketingContent || 'No generado'}
                               <button
                                 onClick={() => setAutoScroll(!autoScroll)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-medium shadow-md transition-all flex items-center gap-2 ${
-                                  autoScroll 
-                                    ? 'bg-indigo-600/90 text-white hover:bg-indigo-500' 
-                                    : 'bg-slate-700/90 text-slate-200 hover:bg-slate-600'
+                                  autoScroll
+                                    ? 'bg-eb-gold/90 text-[#0a0600] hover:bg-eb-gold-lt'
+                                    : 'bg-eb-surface-3/90 text-eb-text hover:bg-eb-border'
                                 }`}
                               >
-                                {autoScroll ? '⬇️ Auto-scroll ON' : '⏸️ Auto-scroll OFF'}
+                                {autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
                               </button>
                             </div>
                           )}
@@ -2192,20 +2144,20 @@ ${bookData.marketingContent || 'No generado'}
                         </div>
                       ) : step !== 5 || (!bookData.coverImage && !isGeneratingCover) ? (
                         <div className="flex flex-col items-center justify-center h-64 text-center">
-                          <div className="text-6xl mb-4 opacity-30">{STEPS[step - 1].icon}</div>
-                          <p className="text-slate-500 text-lg font-medium">
+                          <div className="mb-4 opacity-20"><SvgIcon name={['','bulb','list','pen','file','image','amazon','tag','horn'][step]} size={48} color="#5e7291"/></div>
+                          <p className="text-eb-muted text-base font-medium font-serif">
                             {STEPS[step - 1].title}
                           </p>
-                          <p className="text-slate-600 text-sm mt-2">
+                          <p className="text-eb-muted-2 text-sm mt-2">
                             {step === 1
-                              ? 'Enter your niche and click "Generate Book Ideas" to start'
+                              ? 'Introduce tu nicho y pulsa "Generar Ideas" para empezar'
                               : step === 2
-                              ? 'Click "Generate Outline" to create your book structure'
+                              ? 'Pulsa "Generar Estructura" para crear el índice'
                               : step === 3
-                              ? 'Select a chapter and click "Write Chapter" to generate content'
+                              ? 'Selecciona un capítulo y pulsa "Escribir" para generar contenido'
                               : step === 5
-                              ? 'Click "Generate Cover" to create your cover with Nano Banana Pro'
-                              : `Click "Generate ${STEPS[step - 1].title}" to continue`}
+                              ? 'Pulsa "Generar Portada" para crear tu portada con Nano Banana Pro'
+                              : `Pulsa "Generar ${STEPS[step - 1].title}" para continuar`}
                           </p>
                         </div>
                       ) : null
@@ -2215,11 +2167,10 @@ ${bookData.marketingContent || 'No generado'}
                 )}
               </div>
 
-              {/* Step 3: Chapter navigation tabs */}
               {step === 3 && Object.keys(bookData.writtenChapters).length > 0 && (
-                <div className="p-4 border-t border-slate-700/50">
-                  <p className="text-slate-400 text-xs mb-2">Written chapters:</p>
-                  <div className="flex flex-wrap gap-2">
+                <div className="p-4 border-t border-eb-border">
+                  <p className="text-eb-muted text-xs mb-2">Capítulos escritos:</p>
+                  <div className="flex flex-wrap gap-1.5">
                     {Object.keys(bookData.writtenChapters).map((num) => (
                       <button
                         key={num}
@@ -2230,66 +2181,64 @@ ${bookData.marketingContent || 'No generado'}
                           }));
                           setStreamedText('');
                         }}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
                           bookData.currentWritingChapter === parseInt(num)
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                            ? 'bg-eb-gold/20 text-eb-gold-lt border border-eb-gold/30'
+                            : 'bg-eb-surface-2 text-eb-text hover:bg-eb-surface-3 border border-eb-border'
                         }`}
                       >
-                        {num === '0' ? 'Intro' : num === '99' ? 'Concl' : `Ch.${num}`} ✓
+                        {num === '0' ? 'Intro' : num === '99' ? 'Concl' : `Cap.${num}`}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Export area in step 8 */}
               {step === 8 && bookData.selectedIdea && (
-                <div className="p-5 border-t border-slate-700/50">
-                  <div className="bg-gradient-to-r from-green-950/50 to-emerald-950/50 border border-green-700/30 rounded-xl p-4 space-y-4">
+                <div className="p-5 border-t border-eb-border">
+                  <div className="bg-eb-green/[0.08] border border-eb-green/20 rounded-xl p-4 space-y-4">
                     <div>
-                      <p className="text-green-400 font-semibold">🎉 Tu ebook está listo!</p>
-                      <p className="text-slate-400 text-sm mt-0.5">
+                      <p className="text-eb-green font-semibold text-sm flex items-center gap-1.5"><SvgIcon name="check" size={14} color="#3a9e76"/> Tu ebook está listo!</p>
+                      <p className="text-eb-muted text-xs mt-0.5">
                         {chaptersWritten > 0
-                          ? `${chaptersWritten} capítulos escritos - .docx listo para Amazon KDP`
+                          ? `${chaptersWritten} capítulos escritos — .docx listo para Amazon KDP`
                           : 'Exporta tu libro como .docx'}
                       </p>
                     </div>
 
-                    {/* Publication format selector */}
-                    <div className="bg-slate-800/60 border border-slate-700/40 rounded-lg p-3 space-y-2">
-                      <p className="text-slate-300 font-semibold text-sm">Formato de publicación:</p>
+                    <div className="bg-eb-surface-2 border border-eb-border rounded-lg p-3 space-y-2">
+                      <p className="text-eb-text font-semibold text-xs">Formato de publicación:</p>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={pubFormats.ebook}
                           onChange={(e) => setPubFormats(prev => ({ ...prev, ebook: e.target.checked }))}
-                          className="w-4 h-4 rounded border-gray-300 accent-green-500"
+                          className="w-4 h-4 rounded"
                         />
-                        <span className="text-sm text-slate-300">Ebook (libro electrónico Kindle)</span>
+                        <span className="text-xs text-eb-text">Ebook (libro electrónico Kindle)</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={pubFormats.paperback}
                           onChange={(e) => setPubFormats(prev => ({ ...prev, paperback: e.target.checked }))}
-                          className="w-4 h-4 rounded border-gray-300 accent-green-500"
+                          className="w-4 h-4 rounded"
                         />
-                        <span className="text-sm text-slate-300">Tapa blanda (libro impreso)</span>
+                        <span className="text-xs text-eb-text">Tapa blanda (libro impreso)</span>
                       </label>
                     </div>
 
-                    <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <button
                         onClick={exportKdpStrategy}
-                        className="bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white font-medium px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                        className="bg-eb-surface-3 hover:bg-eb-border border border-eb-border text-eb-text font-medium px-4 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap text-xs"
                       >
-                        📋 Datos KDP (TXT)
+                        <SvgIcon name="file" size={12}/> Datos KDP (TXT)
                       </button>
                       <button
                         onClick={exportDocx}
                         disabled={isExporting || (!pubFormats.ebook && !pubFormats.paperback)}
-                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-xl transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap"
+                        className="bg-eb-green hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-5 py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none whitespace-nowrap text-xs"
                       >
                         {isExporting ? (
                           <>
@@ -2298,13 +2247,13 @@ ${bookData.marketingContent || 'No generado'}
                         ) : !pubFormats.ebook && !pubFormats.paperback ? (
                           <>Selecciona al menos un formato</>
                         ) : exportSuccess ? (
-                          <>✅ Descargar de nuevo</>
+                          <><SvgIcon name="check" size={12}/> Descargar de nuevo</>
                         ) : pubFormats.ebook && pubFormats.paperback ? (
-                          <>📥 Descargar Ebook + Tapa blanda</>
+                          <><SvgIcon name="download" size={12}/> Descargar Ebook + Tapa blanda</>
                         ) : pubFormats.ebook ? (
-                          <>📥 Descargar Ebook (.docx)</>
+                          <><SvgIcon name="download" size={12}/> Descargar Ebook (.docx)</>
                         ) : (
-                          <>📥 Descargar Tapa blanda (.docx)</>
+                          <><SvgIcon name="download" size={12}/> Descargar Tapa blanda (.docx)</>
                         )}
                       </button>
                     </div>
@@ -2315,51 +2264,60 @@ ${bookData.marketingContent || 'No generado'}
           </div>
         </div>
       </main>
+      </div>
 
       {/* Library View Modal */}
       {viewingLibraryBook && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl">
-            <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+          <div className="bg-eb-surface border border-eb-border w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+            <div className="px-6 py-5 border-b border-eb-border flex items-center justify-between">
               <div>
-                <h2 className="text-white font-bold text-xl">{viewingLibraryBook.selectedIdea?.title}</h2>
-                <p className="text-slate-400 text-sm">Reviewing setup data for publication</p>
+                <h2 className="text-eb-text font-bold text-lg font-serif">{viewingLibraryBook.selectedIdea?.title}</h2>
+                <p className="text-eb-muted text-xs mt-1">Datos de publicación para Amazon KDP</p>
               </div>
-              <button 
+              <button
                 onClick={() => setViewingLibraryBook(null)}
-                className="text-slate-400 hover:text-white p-2"
+                className="text-eb-muted hover:text-eb-text p-2 transition-colors"
               >
-                ✕ Close
+                <SvgIcon name="trash" size={16}/>
               </button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-950/20">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-eb-bg/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-4">
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                    <h3 className="text-indigo-400 text-sm font-semibold mb-2">📋 KDP Setup (Step 6)</h3>
-                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
-                      {viewingLibraryBook.kdpSetup || "No data saved"}
+                  <div className="bg-eb-surface p-4 rounded-xl border border-eb-border">
+                    <h3 className="text-eb-gold text-xs font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                      <SvgIcon name="amazon" size={12} color="#c8963a"/> KDP Setup (Paso 6)
+                    </h3>
+                    <div className="text-eb-text text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                      {viewingLibraryBook.kdpSetup || "Sin datos guardados"}
                     </div>
                   </div>
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                    <h3 className="text-yellow-500 text-sm font-semibold mb-2">💰 Pricing Strategy (Step 7)</h3>
-                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed">
-                      {viewingLibraryBook.pricingStrategy || "No data saved"}
+                  <div className="bg-eb-surface p-4 rounded-xl border border-eb-border">
+                    <h3 className="text-eb-gold-lt text-xs font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                      <SvgIcon name="tag" size={12} color="#e8b85a"/> Precios (Paso 7)
+                    </h3>
+                    <div className="text-eb-text text-xs whitespace-pre-wrap leading-relaxed">
+                      {viewingLibraryBook.pricingStrategy || "Sin datos guardados"}
                     </div>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                    <h3 className="text-orange-500 text-sm font-semibold mb-2">📣 Marketing Content (Step 8)</h3>
-                    <div className="text-slate-300 text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
-                      {viewingLibraryBook.marketingContent || "No data saved"}
+                  <div className="bg-eb-surface p-4 rounded-xl border border-eb-border">
+                    <h3 className="text-eb-blue-lt text-xs font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                      <SvgIcon name="horn" size={12} color="#7aadde"/> Marketing (Paso 8)
+                    </h3>
+                    <div className="text-eb-text text-xs whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                      {viewingLibraryBook.marketingContent || "Sin datos guardados"}
                     </div>
                   </div>
                   {viewingLibraryBook.coverImage && (
-                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                      <h3 className="text-green-500 text-sm font-semibold mb-2">🖼️ Book Cover</h3>
-                      <div className="aspect-[9/16] w-32 rounded-lg overflow-hidden border border-slate-700 mx-auto">
+                    <div className="bg-eb-surface p-4 rounded-xl border border-eb-border">
+                      <h3 className="text-eb-green text-xs font-semibold mb-2 flex items-center gap-1.5 uppercase tracking-wider">
+                        <SvgIcon name="image" size={12} color="#3a9e76"/> Portada
+                      </h3>
+                      <div className="aspect-[9/16] w-32 rounded-lg overflow-hidden border border-eb-border mx-auto">
                         <img src={`data:image/jpeg;base64,${viewingLibraryBook.coverImage}`} alt="Cover" className="w-full h-full object-cover" />
                       </div>
                     </div>
@@ -2367,9 +2325,9 @@ ${bookData.marketingContent || 'No generado'}
                 </div>
               </div>
             </div>
-            
-            <div className="p-4 border-t border-slate-800 bg-slate-900/50 text-center">
-              <p className="text-slate-500 text-[10px]">EbookAI Library System — Use these details to fill your Amazon KDP listing.</p>
+
+            <div className="px-5 py-3 border-t border-eb-border text-center">
+              <p className="text-eb-muted-2 text-[10px]">EbookAI · Usa estos datos para completar tu ficha en Amazon KDP.</p>
             </div>
           </div>
         </div>

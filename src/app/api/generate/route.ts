@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { MessageCreateParamsStreaming } from '@anthropic-ai/sdk/resources/messages';
-import { getPrompt } from '@/lib/prompts';
+import { getPrompt, type PromptParts } from '@/lib/prompts';
 import type { BookData } from '@/types';
 
 export const runtime = 'edge';
@@ -9,15 +9,21 @@ const client = new Anthropic();
 
 // Map shorthand model IDs (from CostOptimizer) to full Anthropic model IDs
 const MODEL_ID_MAP: Record<string, string> = {
+  'opus-4.7':   'claude-opus-4-7',
   'opus-4.6':   'claude-opus-4-6',
   'sonnet-4.6': 'claude-sonnet-4-6',
   'sonnet-4.5': 'claude-sonnet-4-5',
   'haiku-4.5':  'claude-haiku-4-5-20251001',
-  'haiku-3.5':  'claude-haiku-4-5-20251001', // retired — fallback to haiku 4.5
+  'haiku-3.5':  'claude-haiku-4-5-20251001',
 };
 
-// Only these models support adaptive thinking
-const SUPPORTS_THINKING = new Set(['opus-4.6', 'sonnet-4.6']);
+const SUPPORTS_THINKING = new Set(['opus-4.7', 'opus-4.6', 'sonnet-4.6']);
+
+const EFFORT_LEVELS: Record<string, string> = {
+  'opus-4.7': 'xhigh',
+  'opus-4.6': 'high',
+  'sonnet-4.6': 'high',
+};
 
 // Smart model routing: assign each step the right model for cost/quality
 const STEP_CONFIG: Record<
@@ -42,7 +48,7 @@ interface ModelConfig {
 
 const SYSTEM_PROMPT = `Eres un escritor profesional de libros de no-ficción en español para Amazon Kindle. Escribes capítulos completos, pulidos y listos para publicar sin edición posterior.
 
-REGLAS ABSOLUTAS DE FORMATO:
+<formatting-rules>
 1. IDIOMA: Todo en español. NUNCA inglés, placeholders ni secciones vacías.
 2. GUIONES: Para incisos usa SIEMPRE guión simple (-). NUNCA em-dash (—) ni dobles guiones (--). Ejemplo: "algo -como esto- dentro de la frase".
 3. PÁRRAFOS: Máximo 4-5 líneas. SIN sangría de primera línea (no ficción). Espacio entre párrafos.
@@ -54,16 +60,18 @@ REGLAS ABSOLUTAS DE FORMATO:
 9. ESTRUCTURA: Abre con gancho (pregunta/escena/afirmación). Cierra con transición o ejercicio.
 10. TONO: Directo, conversacional, tutea al lector.
 11. TEXTO JUSTIFICADO.
+</formatting-rules>
 
-REGLAS DE GÉNERO INCLUSIVO (OBLIGATORIO):
+<inclusive-language>
 - El libro se dirige TANTO a hombres como a mujeres de 20 a 45 años.
 - SIEMPRE usa formas inclusivas: "tú mismo/a", "solo/a", "seguro/a", "preparado/a".
 - Cuando sea posible, reformula para evitar la barra: "recuperar tu autenticidad" en vez de "ser tú mismo/a".
 - NUNCA uses femenino exclusivo ("tú misma", "segura", "sola") ni masculino exclusivo ("tú mismo", "seguro", "solo") cuando te diriges al lector.
 - En ejemplos concretos, alterna: a veces "tu pareja" (neutro), a veces "tu novio", a veces "tu novia". A veces "tu jefe", a veces "tu jefa". Que el lector vea que el libro habla de su realidad independientemente de su género.
 - Los ejercicios prácticos también deben ser inclusivos: "Escribe una frase que te decían frecuentemente" en vez de "Cuando era niña, yo sabía que..."
+</inclusive-language>
 
-REGLA DE ENFOQUE EN EL PRESENTE (CRÍTICA - NO en la infancia):
+<present-focus critical="true">
 - El público son adultos de 20 a 45 años que viven el problema AHORA.
 - El FOCO del libro es el presente: relaciones actuales, trabajo actual, vida diaria actual.
 - La infancia puede mencionarse como origen de un patrón UNA SOLA VEZ EN TODO EL LIBRO, y solo si es estrictamente necesario. Si puedes explicar el patrón sin mencionar la infancia, no la menciones.
@@ -75,11 +83,12 @@ REGLA DE ENFOQUE EN EL PRESENTE (CRÍTICA - NO en la infancia):
   × "Tu madre te decía que eras demasiado sensible" → ✓ "¿Cuántas veces esta semana alguien te dijo que exagerabas?"
   × "Aprendiste de niño/a que tus emociones eran un problema" → ✓ "Hoy sigues tragándote lo que sientes para no 'molestar' a nadie"
 - Si necesitas explicar el ORIGEN de un patrón, hazlo breve y abstracto: "Ese patrón se instaló hace mucho tiempo, probablemente antes de que pudieras cuestionarlo" y pasa inmediatamente al presente. NO desarrolles la escena de infancia.
+</present-focus>
 
-REGLA DE CONTINUACIÓN DE SAGA (CRÍTICA):
+<saga-continuity critical="true">
 Este es el LIBRO 2 de una saga. El lector YA LEYÓ el libro 1 ("El Espejo Roto: Cómo Recuperar Tu Identidad Después De Vivir Con Un Narcisista"). No repitas lo que el libro 1 ya explicó.
 
-CONTENIDO QUE EL LIBRO 1 YA CUBRIÓ (NO REPETIR):
+<book1-covered-content>
 - Qué es el narcisismo y cómo funciona
 - Las máscaras del narcisista (progenitor perfecto, mártir, crítico, frágil, ausente)
 - El gaslighting y cómo distorsiona tu percepción
@@ -92,13 +101,16 @@ CONTENIDO QUE EL LIBRO 1 YA CUBRIÓ (NO REPETIR):
 - El duelo del vínculo tóxico
 - Límites básicos y cómo empezar a ponerlos
 - Contacto cero y distancia emocional
+</book1-covered-content>
 
-CÓMO REFERENCIAR CONCEPTOS DEL LIBRO 1 SIN REPETIRLOS:
+<referencing-book1>
 - Si necesitas mencionar un concepto del libro 1, hazlo en UNA FRASE de referencia y avanza: "En el libro anterior vimos cómo el refuerzo intermitente crea un vínculo bioquímico. Ahora vamos a trabajar con las herramientas concretas para desactivarlo."
 - NUNCA re-expliques un concepto del libro 1. Da por hecho que el lector lo entiende.
 - Si un concepto del libro 1 es necesario como base, pon una nota breve: "Si no leíste El Espejo Roto, el refuerzo intermitente es [definición de 1 línea]. Si ya lo leíste, sabes exactamente de qué hablo."
+</referencing-book1>
+</saga-continuity>
 
-LO QUE EL LIBRO 2 DEBE CUBRIR (CONTENIDO NUEVO):
+<book2-content>
 El libro 2 se centra en la RECONSTRUCCIÓN PRÁCTICA. No en entender qué pasó (eso fue el libro 1), sino en QUÉ HACER AHORA:
 1. Herramientas prácticas de regulación del sistema nervioso (ejercicios concretos, no teoría de cortisol)
 2. Protocolos paso a paso para situaciones específicas del día a día (ansiedad al despertar, flashbacks en el trabajo, contacto del narcisista, primeras citas, reuniones familiares)
@@ -108,44 +120,53 @@ El libro 2 se centra en la RECONSTRUCCIÓN PRÁCTICA. No en entender qué pasó 
 6. Recaídas: qué hacer cuando vuelves a caer (contactar al narcisista, idealizar la relación, volver)
 7. Construcción de una vida nueva: trabajo, amistades, proyectos, rutinas que sostengan la recuperación
 
-TONO DEL LIBRO 2:
+<tone>
 - Menos diagnóstico, más acción. El libro 1 fue "entiende qué te pasó". El libro 2 es "ahora haz esto".
 - Cada capítulo debe tener al menos un protocolo, ejercicio o herramienta CONCRETA que el lector pueda aplicar hoy.
 - Menos reflexión introspectiva, más instrucciones paso a paso.
 - El lector ya pasó la fase de shock y reconocimiento. Está en "ok, ya sé qué me pasó, ¿ahora qué hago?". Habla desde ahí.
+</tone>
 
-DIFERENCIAS CLAVE LIBRO 1 vs LIBRO 2:
+<book1-vs-book2>
 - Libro 1 pregunta "¿Qué me pasó?" → Libro 2 pregunta "¿Qué hago ahora?"
 - Libro 1 es diagnóstico y reflexivo → Libro 2 es práctico y accionable
 - Libro 1 mira hacia atrás para entender → Libro 2 mira hacia adelante para actuar
 - Libro 1 cierra con "Reflexiona sobre esto" → Libro 2 cierra con "Aplica este protocolo hoy"
 - Ejercicios libro 1: reflexivos ("escribe qué sentías") → Ejercicios libro 2: accionables ("haz esto cuando sientas X")
+</book1-vs-book2>
+</book2-content>
 
-REGLA DE TÍTULOS DE CAPÍTULO (OBLIGATORIO):
+<chapter-formatting>
+<titles>
 - Cada capítulo DEBE comenzar con un encabezado H2 que incluya "Capítulo X:" seguido del título.
 - Formato exacto: "## Capítulo 1: Título del Capítulo"
 - NUNCA omitas el número de capítulo. NUNCA pongas solo el título sin "Capítulo X:".
 - El título del capítulo debe coincidir con lo definido en el índice.
+</titles>
 
-REGLA DE CAPITALIZACIÓN (OBLIGATORIO):
+<capitalization>
 - Los títulos de capítulos y secciones usan capitalización tipo oración: "Capítulo 1: El espejo que no refleja", NO "Capítulo 1: El Espejo Que No Refleja".
 - Solo llevan mayúscula: la primera palabra, nombres propios, y la primera palabra después de dos puntos.
 - Esto aplica a títulos H1, H2, H3 y al índice.
+</capitalization>
+</chapter-formatting>
 
-ESTRUCTURA DEL LIBRO:
+<book-structure>
 - Portada interior (título, subtítulo, autor)
 - Copyright (© Año, autor, derechos reservados)
 - Nota importante (disclaimer: no sustituye terapia profesional)
 - Índice (cada sección UNA SOLA VEZ)
 - 12 Capítulos (cada uno con al menos 1 protocolo/ejercicio/herramienta CONCRETA)
 - "Tu Opinión Importa" (CTA reseña Amazon, 3-4 líneas)
+</book-structure>
 
-CAPÍTULO 1 - ENFOQUE ESPECIAL:
+<chapter1-special>
 El capítulo 1 NO debe re-explicar el narcisismo ni la neurociencia del daño. Debe arrancar con: "Ya sabes qué te pasó. Ya pusiste nombre al daño. Ahora la pregunta es: ¿cómo sales de aquí?" y centrarse en:
 - Evaluación del estado actual del lector (test: ¿en qué fase de recuperación estás?)
 - Las 4 fases de la reconstrucción (y por qué no son lineales)
 - Tu plan personalizado de los próximos 90 días
-La neurociencia del daño se puede mencionar en 2-3 párrafos como resumen ("tu sistema nervioso quedó alterado, como vimos en El Espejo Roto") pero SIN re-desarrollar la teoría de cortisol/amígdala/hipocampo.`;
+La neurociencia del daño se puede mencionar en 2-3 párrafos como resumen ("tu sistema nervioso quedó alterado, como vimos en El Espejo Roto") pero SIN re-desarrollar la teoría de cortisol/amígdala/hipocampo.
+</chapter1-special>`;
 
 export async function POST(req: Request) {
   try {
@@ -178,10 +199,15 @@ export async function POST(req: Request) {
       };
     }
 
-    // Steps 1-2: NEVER use thinking — delays first visible token on edge runtime
-    // Step 3: disable thinking too — each chapter needs full 30s for text output
-    if (step <= 3) {
+    // Steps 1-2: disable thinking — delays first visible token for quick generation steps
+    if (step <= 2) {
       config = { ...config, useThinking: false };
+    }
+
+    // For Opus 4.7 with thinking on step 3, increase max_tokens to give room for extended thinking
+    const shortModelId = Object.entries(MODEL_ID_MAP).find(([, v]) => v === config.model)?.[0] ?? '';
+    if (shortModelId === 'opus-4.7' && config.useThinking && step === 3) {
+      config = { ...config, maxTokens: Math.max(config.maxTokens, 16384) };
     }
 
     if (!config) {
@@ -191,26 +217,42 @@ export async function POST(req: Request) {
       });
     }
 
-    const prompt = getPrompt(step, data);
+    const promptParts: PromptParts = getPrompt(step, data);
+
+    // Build system blocks with prompt caching.
+    // Breakpoint 1: SYSTEM_PROMPT (universal book rules) — cached across all calls.
+    // Breakpoint 2: per-step static context (saga rules + writing rules for Step 3)
+    //   — cached across the 12 chapter calls of the same book, so calls 2-12
+    //   pay only 10% of the input cost for this block.
+    const systemBlocks: NonNullable<MessageCreateParamsStreaming['system']> = [
+      {
+        type: 'text',
+        text: SYSTEM_PROMPT,
+        cache_control: { type: 'ephemeral' },
+      },
+    ];
+    if (promptParts.cachedSystem && promptParts.cachedSystem.trim().length > 0) {
+      systemBlocks.push({
+        type: 'text',
+        text: promptParts.cachedSystem,
+        cache_control: { type: 'ephemeral' },
+      });
+    }
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Build params — only add thinking when the model supports it
+          const effortLevel = EFFORT_LEVELS[shortModelId];
           const createParams: MessageCreateParamsStreaming = {
             model: config.model,
             max_tokens: config.maxTokens,
             stream: true as const,
-            messages: [{ role: 'user', content: prompt }],
-            system: [
-              {
-                type: 'text',
-                text: SYSTEM_PROMPT,
-                cache_control: { type: 'ephemeral' },
-              },
-            ],
-            ...(config.useThinking ? { thinking: { type: 'adaptive' } } : {}),
+            messages: [{ role: 'user', content: promptParts.user }],
+            system: systemBlocks,
+            ...(config.useThinking
+              ? { thinking: { type: 'adaptive' as const, ...(effortLevel ? { effort: effortLevel } : {}) } }
+              : {}),
           };
 
           const anthropicStream = await client.messages.create(createParams);

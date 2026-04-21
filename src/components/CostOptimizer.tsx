@@ -22,8 +22,8 @@ interface ModelInfo {
   name: string;
   inputCostPer1M: number;
   outputCostPer1M: number;
-  quality: number; // 1-10
-  speed: number;   // 1-10
+  quality: number;
+  speed: number;
   badge?: string;
 }
 
@@ -31,9 +31,8 @@ interface StrategyDef {
   id: string;
   name: string;
   description: string;
-  icon: string;
   badge?: string;
-  badgeColor?: string;
+  savePct?: string;
   steps: Record<number, StepAssignment>;
 }
 
@@ -41,13 +40,21 @@ interface StrategyDef {
 
 const MODELS: ModelInfo[] = [
   {
-    id: 'opus-4.6',
-    name: 'Claude Opus 4.6',
-    inputCostPer1M: 15,
-    outputCostPer1M: 75,
+    id: 'opus-4.7',
+    name: 'Claude Opus 4.7',
+    inputCostPer1M: 5,
+    outputCostPer1M: 25,
     quality: 10,
     speed: 5,
     badge: 'Best Quality',
+  },
+  {
+    id: 'opus-4.6',
+    name: 'Claude Opus 4.6',
+    inputCostPer1M: 5,
+    outputCostPer1M: 25,
+    quality: 9,
+    speed: 5,
   },
   {
     id: 'sonnet-4.6',
@@ -69,8 +76,8 @@ const MODELS: ModelInfo[] = [
   {
     id: 'haiku-4.5',
     name: 'Claude Haiku 4.5',
-    inputCostPer1M: 0.8,
-    outputCostPer1M: 4,
+    inputCostPer1M: 1,
+    outputCostPer1M: 5,
     quality: 5,
     speed: 10,
     badge: 'Fastest & Cheapest',
@@ -83,12 +90,11 @@ const STRATEGIES: StrategyDef[] = [
   {
     id: 'default',
     name: 'Default',
-    description: 'Balanced quality — the original smart routing config',
-    icon: '⚖️',
+    description: 'Opus para escritura, Sonnet para estructura y marketing.',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
       2: { model: 'sonnet-4.6', thinking: false, maxTokens: 8000 },
-      3: { model: 'opus-4.6',   thinking: true,  maxTokens: 6000 },
+      3: { model: 'opus-4.7',   thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
       6: { model: 'haiku-4.5',  thinking: false, maxTokens: 3500 },
@@ -98,33 +104,31 @@ const STRATEGIES: StrategyDef[] = [
   },
   {
     id: 'optimized',
-    name: 'Optimized (~60% savings)',
-    description: 'Great quality at reduced cost — Sonnet for chapter writing',
-    icon: '💡',
-    badge: '~60% cheaper',
-    badgeColor: 'text-green-400 bg-green-950/50 border-green-700/30',
+    name: 'Optimized',
+    description: 'Sonnet para escritura y pasos clave. Gran calidad a menor precio.',
+    badge: '-36% coste',
+    savePct: '36%',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
-      2: { model: 'sonnet-4.5', thinking: false, maxTokens: 3000 },
+      2: { model: 'sonnet-4.6', thinking: false, maxTokens: 3000 },
       3: { model: 'sonnet-4.6', thinking: true,  maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
       6: { model: 'haiku-4.5',  thinking: false, maxTokens: 3500 },
       7: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
-      8: { model: 'sonnet-4.5', thinking: false, maxTokens: 5000 },
+      8: { model: 'sonnet-4.6', thinking: false, maxTokens: 5000 },
     },
   },
   {
     id: 'budget',
     name: 'Budget',
-    description: 'Haiku for most steps, Sonnet only for heavy writing',
-    icon: '💰',
-    badge: '~80% cheaper',
-    badgeColor: 'text-yellow-400 bg-yellow-950/50 border-yellow-700/30',
+    description: 'Haiku en todo excepto Sonnet para escritura de capítulos.',
+    badge: '-42% coste',
+    savePct: '42%',
     steps: {
       1: { model: 'haiku-4.5',  thinking: false, maxTokens: 2000 },
       2: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
-      3: { model: 'sonnet-4.5', thinking: false, maxTokens: 6000 },
+      3: { model: 'sonnet-4.6', thinking: false, maxTokens: 6000 },
       4: { model: 'haiku-4.5',  thinking: false, maxTokens: 2500 },
       5: { model: 'haiku-4.5',  thinking: false, maxTokens: 3000 },
       6: { model: 'haiku-4.5',  thinking: false, maxTokens: 3500 },
@@ -135,10 +139,9 @@ const STRATEGIES: StrategyDef[] = [
   {
     id: 'ultra_budget',
     name: 'Ultra Budget',
-    description: 'All Haiku — maximum savings, fastest generation',
-    icon: '🪙',
-    badge: '~90% cheaper',
-    badgeColor: 'text-orange-400 bg-orange-950/50 border-orange-700/30',
+    description: 'Todo Haiku — máximo ahorro, generación más rápida.',
+    badge: '-75% coste',
+    savePct: '75%',
     steps: {
       1: { model: 'haiku-4.5', thinking: false, maxTokens: 2000 },
       2: { model: 'haiku-4.5', thinking: false, maxTokens: 3000 },
@@ -152,22 +155,10 @@ const STRATEGIES: StrategyDef[] = [
   },
 ];
 
-const STEP_LABELS: Record<number, string> = {
-  1: 'Book Ideas',
-  2: 'Outline',
-  3: 'Write Chapters',
-  4: 'Format',
-  5: 'Cover Design',
-  6: 'KDP Setup',
-  7: 'Pricing',
-  8: 'Marketing',
-};
-
-// Rough token estimates per step (input + output combined)
 const STEP_TOKEN_ESTIMATES: Record<number, { input: number; output: number }> = {
   1: { input: 500,  output: 1800 },
   2: { input: 800,  output: 2500 },
-  3: { input: 1200, output: 5500 }, // per chapter, multiplied by chapters
+  3: { input: 1200, output: 5500 },
   4: { input: 2000, output: 2000 },
   5: { input: 1000, output: 2500 },
   6: { input: 1200, output: 3000 },
@@ -175,42 +166,47 @@ const STEP_TOKEN_ESTIMATES: Record<number, { input: number; output: number }> = 
   8: { input: 2000, output: 4500 },
 };
 
-// ─── Helper: calculate cost for a strategy ───────────────────────────────────
-
 function calcCost(
   steps: Record<number, StepAssignment>,
   chaptersPerBook: number,
   ebooksPerMonth: number
 ): number {
   let costPerBook = 0;
-
   for (let s = 1; s <= 8; s++) {
     const assignment = steps[s];
     const model = MODELS.find((m) => m.id === assignment.model) ?? MODELS[3];
     const tokens = STEP_TOKEN_ESTIMATES[s];
     const repeats = s === 3 ? chaptersPerBook : 1;
-
     const inputCost  = (tokens.input  / 1_000_000) * model.inputCostPer1M  * repeats;
     const outputCost = (tokens.output / 1_000_000) * model.outputCostPer1M * repeats;
     costPerBook += inputCost + outputCost;
   }
-
   return costPerBook * ebooksPerMonth;
 }
 
-// ─── QualityBar ──────────────────────────────────────────────────────────────
+// ─── SVG Icons ──────────────────────────────────────────────────────────────
 
-function QualityBar({ value, max = 10 }: { value: number; max?: number }) {
-  const pct = (value / max) * 100;
-  const color =
-    value >= 8 ? 'bg-green-500' : value >= 6 ? 'bg-yellow-500' : 'bg-orange-500';
+function BookIcon() {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div className={`h-full ${color} rounded-full`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-slate-400 text-xs w-4 text-right">{value}</span>
-    </div>
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+    </svg>
+  );
+}
+
+function CheckIcon({ size = 10 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
+
+function PenIcon() {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#0a0600" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+    </svg>
   );
 }
 
@@ -221,7 +217,7 @@ interface CostOptimizerProps {
 }
 
 export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('default');
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>('optimized');
   const [customSteps, setCustomSteps] = useState<Record<number, StepAssignment>>(
     () => ({ ...STRATEGIES[0].steps })
   );
@@ -231,10 +227,7 @@ export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
   const isCustom = selectedStrategyId === 'custom';
   const selectedStrategy = STRATEGIES.find((s) => s.id === selectedStrategyId);
   const activeSteps = isCustom ? customSteps : (selectedStrategy?.steps ?? STRATEGIES[0].steps);
-
-  const defaultCost = calcCost(STRATEGIES[0].steps, chaptersPerBook, ebooksPerMonth);
-  const activeCost  = calcCost(activeSteps, chaptersPerBook, ebooksPerMonth);
-  const savings     = defaultCost > 0 ? ((defaultCost - activeCost) / defaultCost) * 100 : 0;
+  const activeCost = calcCost(activeSteps, chaptersPerBook, ebooksPerMonth);
 
   const handleConfirm = () => {
     const config: ModelConfig = {
@@ -252,242 +245,197 @@ export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
     onConfirm(config);
   };
 
+  const FEATURES = [
+    'Generación de ideas rentables con datos reales de KDP',
+    'Escritura de capítulos con Claude Opus / Sonnet',
+    'Portada profesional con Nano Banana Pro',
+    'Estrategia de marketing y lanzamiento incluida',
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/20 to-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl mx-auto mb-4">
-            📖
-          </div>
-          <h1 className="text-white font-bold text-3xl mb-2">EbookAI</h1>
-          <p className="text-slate-400">Choose your AI model strategy before we begin</p>
+    <div className="min-h-screen flex flex-col bg-eb-bg font-sans">
+      {/* Top bar */}
+      <div className="border-b border-eb-border px-8 py-5 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-eb-gold-dim to-eb-gold flex items-center justify-center">
+          <BookIcon />
         </div>
+        <div>
+          <div className="font-serif text-[1.1rem] font-semibold text-eb-text tracking-tight">EbookAI</div>
+          <div className="text-[0.7rem] text-eb-muted tracking-widest uppercase">by Edgar Manchón</div>
+        </div>
+      </div>
 
-        {/* Strategy cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {STRATEGIES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedStrategyId(s.id)}
-              className={`text-left p-4 rounded-2xl border transition-all ${
-                selectedStrategyId === s.id
-                  ? 'border-indigo-500 bg-indigo-950/40'
-                  : 'border-slate-700/50 bg-slate-900/60 hover:border-slate-600'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">{s.icon}</span>
-                {selectedStrategyId === s.id && (
-                  <span className="text-xs text-indigo-400 font-medium bg-indigo-950 border border-indigo-700/50 px-2 py-0.5 rounded-full">
-                    Selected
-                  </span>
-                )}
-              </div>
-              <p className="text-white font-semibold text-sm">{s.name}</p>
-              <p className="text-slate-400 text-xs mt-1 leading-relaxed">{s.description}</p>
-              {s.badge && (
-                <span
-                  className={`inline-block mt-2 text-xs font-medium border px-2 py-0.5 rounded-full ${
-                    s.badgeColor ?? 'text-slate-300 bg-slate-800 border-slate-600'
-                  }`}
-                >
-                  {s.badge}
-                </span>
-              )}
-            </button>
-          ))}
-
-          {/* Custom card */}
-          <button
-            onClick={() => setSelectedStrategyId('custom')}
-            className={`text-left p-4 rounded-2xl border transition-all ${
-              selectedStrategyId === 'custom'
-                ? 'border-indigo-500 bg-indigo-950/40'
-                : 'border-slate-700/50 bg-slate-900/60 hover:border-slate-600'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-2xl">🎛️</span>
-              {selectedStrategyId === 'custom' && (
-                <span className="text-xs text-indigo-400 font-medium bg-indigo-950 border border-indigo-700/50 px-2 py-0.5 rounded-full">
-                  Selected
-                </span>
-              )}
+      <div className="flex-1 flex items-stretch overflow-hidden">
+        {/* Left panel — decorative */}
+        <div className="w-[420px] flex-shrink-0 bg-eb-surface border-r border-eb-border px-12 py-16 flex flex-col justify-center relative overflow-hidden hidden lg:flex">
+          {/* BG grid pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(0deg, #c8963a 0px, #c8963a 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, #c8963a 0px, #c8963a 1px, transparent 1px, transparent 40px)',
+            }}
+          />
+          <div className="relative">
+            <div className="inline-block bg-eb-gold/10 border border-eb-gold/25 rounded-lg px-3 py-1 mb-6 text-[0.7rem] font-semibold text-eb-gold tracking-widest uppercase">
+              Automated Publishing
             </div>
-            <p className="text-white font-semibold text-sm">Custom</p>
-            <p className="text-slate-400 text-xs mt-1 leading-relaxed">
-              Pick a different model for each step manually
+            <h1 className="font-serif text-[2.8rem] font-bold leading-[1.15] text-eb-text mb-5 tracking-tight">
+              De idea<br/><em className="text-eb-gold italic">a best-seller</em><br/>en horas.
+            </h1>
+            <p className="text-[0.95rem] text-eb-muted leading-relaxed mb-9">
+              8 pasos guiados por IA para escribir, formatear, diseñar y lanzar tu ebook en Amazon KDP.
             </p>
-          </button>
-        </div>
-
-        {/* Custom step editor */}
-        {isCustom && (
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5">
-            <h3 className="text-white font-semibold mb-4">Per-step model assignment</h3>
-            <div className="space-y-3">
-              {([1, 2, 3, 4, 5, 6, 7, 8] as const).map((s) => (
-                <div key={s} className="flex items-center gap-3">
-                  <span className="text-slate-400 text-sm w-28 flex-shrink-0">
-                    {STEP_LABELS[s]}
-                  </span>
-                  <select
-                    value={customSteps[s]?.model ?? 'haiku-4.5'}
-                    onChange={(e) =>
-                      setCustomSteps((prev) => ({
-                        ...prev,
-                        [s]: { ...prev[s], model: e.target.value },
-                      }))
-                    }
-                    className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-indigo-500"
-                  >
-                    {MODELS.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))}
-                  </select>
-                  {(customSteps[s]?.model === 'opus-4.6' ||
-                    customSteps[s]?.model === 'sonnet-4.6') && (
-                    <label className="flex items-center gap-1.5 text-xs text-slate-400 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={customSteps[s]?.thinking ?? false}
-                        onChange={(e) =>
-                          setCustomSteps((prev) => ({
-                            ...prev,
-                            [s]: { ...prev[s], thinking: e.target.checked },
-                          }))
-                        }
-                        className="accent-indigo-500"
-                      />
-                      Thinking
-                    </label>
-                  )}
+            <div className="flex flex-col gap-3">
+              {FEATURES.map((f, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-eb-gold/15 border border-eb-gold/30 flex items-center justify-center flex-shrink-0 mt-0.5 text-eb-gold">
+                    <CheckIcon size={10} />
+                  </div>
+                  <span className="text-[0.85rem] text-eb-muted leading-snug">{f}</span>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Cost estimator + sliders */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Sliders */}
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5 space-y-5">
-            <h3 className="text-white font-semibold">Usage estimate</h3>
+        {/* Right panel — strategy */}
+        <div className="flex-1 px-14 py-12 overflow-y-auto">
+          <h2 className="font-serif text-[1.6rem] font-semibold mb-1.5 tracking-tight text-eb-text">
+            Elige tu estrategia de modelos
+          </h2>
+          <p className="text-sm text-eb-muted mb-8">
+            Cada paso del proceso usa un modelo diferente. Elige según tu balance calidad/coste.
+          </p>
 
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-400">Chapters per book</span>
-                <span className="text-indigo-400 font-medium">{chaptersPerBook}</span>
-              </div>
-              <input
-                type="range"
-                min={4}
-                max={20}
-                value={chaptersPerBook}
-                onChange={(e) => setChaptersPerBook(Number(e.target.value))}
-                className="w-full accent-indigo-500"
-              />
-            </div>
-
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-slate-400">Ebooks per month</span>
-                <span className="text-indigo-400 font-medium">{ebooksPerMonth}</span>
-              </div>
-              <input
-                type="range"
-                min={1}
-                max={20}
-                value={ebooksPerMonth}
-                onChange={(e) => setEbooksPerMonth(Number(e.target.value))}
-                className="w-full accent-indigo-500"
-              />
-            </div>
+          {/* Strategy cards */}
+          <div className="grid grid-cols-2 gap-3 mb-8">
+            {STRATEGIES.map((s) => {
+              const sel = selectedStrategyId === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedStrategyId(s.id)}
+                  className={`text-left p-[18px] rounded-[14px] transition-all font-sans ${
+                    sel
+                      ? 'border-[1.5px] border-eb-gold bg-eb-gold/[0.06]'
+                      : 'border border-eb-border bg-eb-surface hover:border-eb-border-2'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className={`text-[0.9rem] font-semibold ${sel ? 'text-eb-gold-lt' : 'text-eb-text'}`}>
+                      {s.name}
+                    </span>
+                    {s.badge && (
+                      <span className="text-[0.65rem] font-bold px-2 py-0.5 rounded-full bg-eb-green/15 text-eb-green border border-eb-green/30">
+                        {s.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[0.8rem] text-eb-muted leading-snug">{s.description}</p>
+                  <div className={`mt-3 text-[1.1rem] font-bold ${sel ? 'text-eb-gold' : 'text-eb-text'}`}>
+                    ~${calcCost(s.steps, chaptersPerBook, ebooksPerMonth).toFixed(2)}
+                    <span className="text-[0.7rem] font-normal text-eb-muted ml-1">/mes</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Cost summary */}
-          <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5">
-            <h3 className="text-white font-semibold mb-4">Estimated monthly cost</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-end">
-                <span className="text-slate-400 text-sm">Default (reference)</span>
-                <span className="text-slate-300 font-mono">${defaultCost.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-end">
-                <span className="text-slate-400 text-sm">
-                  {isCustom ? 'Custom' : (selectedStrategy?.name ?? 'Selected')}
+          {/* Custom option */}
+          <button
+            onClick={() => setSelectedStrategyId('custom')}
+            className={`w-full text-left p-4 rounded-[14px] mb-8 transition-all font-sans ${
+              isCustom
+                ? 'border-[1.5px] border-eb-gold bg-eb-gold/[0.06]'
+                : 'border border-eb-border bg-eb-surface hover:border-eb-border-2'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <span className={`text-[0.9rem] font-semibold ${isCustom ? 'text-eb-gold-lt' : 'text-eb-text'}`}>
+                  Custom
                 </span>
-                <span className="text-white font-mono font-bold text-xl">
-                  ${activeCost.toFixed(2)}
-                </span>
+                <p className="text-[0.8rem] text-eb-muted mt-1">Elige un modelo diferente para cada paso manualmente.</p>
               </div>
-              {savings > 0 && (
-                <div className="flex justify-between items-center bg-green-950/40 border border-green-700/30 rounded-xl px-3 py-2">
-                  <span className="text-green-400 text-sm">You save</span>
-                  <span className="text-green-400 font-bold">
-                    ${(defaultCost - activeCost).toFixed(2)} ({savings.toFixed(0)}%)
-                  </span>
+              {isCustom && (
+                <div className="text-[1.1rem] font-bold text-eb-gold whitespace-nowrap ml-4">
+                  ~${calcCost(customSteps, chaptersPerBook, ebooksPerMonth).toFixed(2)}
+                  <span className="text-[0.7rem] font-normal text-eb-muted ml-1">/mes</span>
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </button>
 
-        {/* Step-by-step model table */}
-        <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-5">
-          <h3 className="text-white font-semibold mb-4">Model assignment per step</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-700/50">
-                  <th className="pb-2 pr-4 font-medium">Step</th>
-                  <th className="pb-2 pr-4 font-medium">Model</th>
-                  <th className="pb-2 pr-4 font-medium">Quality</th>
-                  <th className="pb-2 font-medium">Thinking</th>
-                </tr>
-              </thead>
-              <tbody>
-                {([1, 2, 3, 4, 5, 6, 7, 8] as const).map((s) => {
-                  const assignment = activeSteps[s];
-                  const model = MODELS.find((m) => m.id === assignment.model);
+          {/* Custom step editor */}
+          {isCustom && (
+            <div className="bg-eb-surface border border-eb-border rounded-[14px] p-5 mb-8">
+              <h3 className="text-eb-text font-semibold mb-4 text-sm">Asignación por paso</h3>
+              <div className="space-y-3">
+                {([1,2,3,4,5,6,7,8] as const).map((s) => {
+                  const labels: Record<number,string> = {1:'Ideas',2:'Estructura',3:'Escritura',4:'Formato',5:'Portada',6:'KDP Setup',7:'Precios',8:'Marketing'};
                   return (
-                    <tr key={s} className="border-b border-slate-800/50 last:border-0">
-                      <td className="py-2 pr-4 text-slate-300">{STEP_LABELS[s]}</td>
-                      <td className="py-2 pr-4 text-indigo-300 font-medium">
-                        {model?.name ?? assignment.model}
-                      </td>
-                      <td className="py-2 pr-4 w-32">
-                        <QualityBar value={model?.quality ?? 5} />
-                      </td>
-                      <td className="py-2">
-                        {assignment.thinking ? (
-                          <span className="text-purple-400 text-xs">✦ on</span>
-                        ) : (
-                          <span className="text-slate-600 text-xs">—</span>
-                        )}
-                      </td>
-                    </tr>
+                    <div key={s} className="flex items-center gap-3">
+                      <span className="text-eb-muted text-sm w-24 flex-shrink-0">{labels[s]}</span>
+                      <select
+                        value={customSteps[s]?.model ?? 'haiku-4.5'}
+                        onChange={(e) => setCustomSteps((prev) => ({ ...prev, [s]: { ...prev[s], model: e.target.value } }))}
+                        className="flex-1 bg-eb-surface-2 border border-eb-border rounded-lg px-3 py-1.5 text-eb-text text-sm focus:outline-none focus:border-eb-gold"
+                      >
+                        {MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                      </select>
+                      {(customSteps[s]?.model === 'opus-4.7' || customSteps[s]?.model === 'opus-4.6' || customSteps[s]?.model === 'sonnet-4.6') && (
+                        <label className="flex items-center gap-1.5 text-xs text-eb-muted whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={customSteps[s]?.thinking ?? false}
+                            onChange={(e) => setCustomSteps((prev) => ({ ...prev, [s]: { ...prev[s], thinking: e.target.checked } }))}
+                          />
+                          Thinking
+                        </label>
+                      )}
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </div>
+            </div>
+          )}
 
-        {/* Confirm button */}
-        <button
-          onClick={handleConfirm}
-          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 rounded-2xl transition-all text-lg flex items-center justify-center gap-3"
-        >
-          <span>🚀</span>
-          Start Creating My Ebook
-          <span className="text-sm font-normal text-indigo-200 ml-1">
-            ({isCustom ? 'Custom' : selectedStrategy?.name})
-          </span>
-        </button>
+          {/* Sliders */}
+          <div className="bg-eb-surface border border-eb-border rounded-[14px] px-6 py-5 mb-8 grid grid-cols-2 gap-5">
+            {[
+              { label: 'Capítulos por libro', val: chaptersPerBook, set: setChaptersPerBook, min: 4, max: 20 },
+              { label: 'Ebooks por mes', val: ebooksPerMonth, set: setEbooksPerMonth, min: 1, max: 20 },
+            ].map((s) => (
+              <div key={s.label}>
+                <div className="flex justify-between text-[0.8rem] mb-2">
+                  <span className="text-eb-muted">{s.label}</span>
+                  <span className="text-eb-gold font-semibold">{s.val}</span>
+                </div>
+                <input
+                  type="range"
+                  min={s.min}
+                  max={s.max}
+                  value={s.val}
+                  onChange={(e) => s.set(+e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Start button */}
+          <button
+            onClick={handleConfirm}
+            className="w-full py-4 rounded-[14px] border-none bg-eb-gold text-[#0a0600] font-sans text-base font-bold cursor-pointer tracking-tight transition-colors hover:bg-eb-gold-lt flex items-center justify-center gap-2.5"
+          >
+            <PenIcon />
+            Comenzar a crear mi ebook
+            <span className="font-normal opacity-70 text-sm">
+              ({isCustom ? 'Custom' : selectedStrategy?.name})
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );
