@@ -334,7 +334,7 @@ export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
                   </div>
                   <p className="text-[0.8rem] text-eb-muted leading-snug">{s.description}</p>
                   <div className={`mt-3 text-[1.1rem] font-bold ${sel ? 'text-eb-gold' : 'text-eb-text'}`}>
-                    ~${(calcCost(s.steps, ebooksPerMonth, chaptersPerBook / 8 * ebooksPerMonth) / ebooksPerMonth * ebooksPerMonth).toFixed(2)}
+                    ~${calcCost(s.steps, chaptersPerBook, ebooksPerMonth).toFixed(2)}
                     <span className="text-[0.7rem] font-normal text-eb-muted ml-1">/mes</span>
                   </div>
                 </button>
@@ -351,10 +351,20 @@ export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
                 : 'border border-eb-border bg-eb-surface hover:border-eb-border-2'
             }`}
           >
-            <span className={`text-[0.9rem] font-semibold ${isCustom ? 'text-eb-gold-lt' : 'text-eb-text'}`}>
-              Custom
-            </span>
-            <p className="text-[0.8rem] text-eb-muted mt-1">Elige un modelo diferente para cada paso manualmente.</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <span className={`text-[0.9rem] font-semibold ${isCustom ? 'text-eb-gold-lt' : 'text-eb-text'}`}>
+                  Custom
+                </span>
+                <p className="text-[0.8rem] text-eb-muted mt-1">Elige un modelo diferente para cada paso manualmente.</p>
+              </div>
+              {isCustom && (
+                <div className="text-[1.1rem] font-bold text-eb-gold whitespace-nowrap ml-4">
+                  ~${calcCost(customSteps, chaptersPerBook, ebooksPerMonth).toFixed(2)}
+                  <span className="text-[0.7rem] font-normal text-eb-muted ml-1">/mes</span>
+                </div>
+              )}
+            </div>
           </button>
 
           {/* Custom step editor */}
@@ -374,7 +384,7 @@ export default function CostOptimizer({ onConfirm }: CostOptimizerProps) {
                       >
                         {MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                       </select>
-                      {(customSteps[s]?.model === 'opus-4.6' || customSteps[s]?.model === 'sonnet-4.6') && (
+                      {(customSteps[s]?.model === 'opus-4.7' || customSteps[s]?.model === 'opus-4.6' || customSteps[s]?.model === 'sonnet-4.6') && (
                         <label className="flex items-center gap-1.5 text-xs text-eb-muted whitespace-nowrap">
                           <input
                             type="checkbox"
