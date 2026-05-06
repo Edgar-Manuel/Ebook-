@@ -37,6 +37,8 @@ function SvgIcon({ name, size = 16, color = 'currentColor' }: { name: string; si
     settings: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
     download: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
     dice: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2" ry="2"/><circle cx="8" cy="8" r="1" fill={color}/><circle cx="16" cy="8" r="1" fill={color}/><circle cx="12" cy="12" r="1" fill={color}/><circle cx="8" cy="16" r="1" fill={color}/><circle cx="16" cy="16" r="1" fill={color}/></svg>,
+    menu: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
   };
   return <>{icons[name] || null}</>;
 }
@@ -534,6 +536,7 @@ export default function Home() {
   const [viewingLibraryBook, setViewingLibraryBook] = useState<BookData | null>(null);
   const [headerPanel, setHeaderPanel] = useState<'library' | 'nextBooks' | 'ideas' | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Cloud Sync: Fetch library from InsForge
   useEffect(() => {
@@ -1110,13 +1113,28 @@ ${bookData.marketingContent || 'No generado'}
 
   return (
     <div className="flex h-screen overflow-hidden font-sans bg-eb-bg">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          aria-hidden="true"
+        />
+      )}
       {/* ─── Sidebar ─── */}
-      <aside className="w-60 flex-shrink-0 bg-eb-surface border-r border-eb-border flex flex-col h-full overflow-y-auto">
+      <aside className={`fixed lg:relative inset-y-0 left-0 z-40 w-64 lg:w-60 flex-shrink-0 bg-eb-surface border-r border-eb-border flex flex-col h-full overflow-y-auto transform transition-transform duration-300 ease-out lg:transform-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="px-6 py-5 border-b border-eb-border flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-eb-gold-dim to-eb-gold flex items-center justify-center">
             <SvgIcon name="book" size={15} color="#fff"/>
           </div>
           <div className="font-serif text-base font-semibold text-eb-text">EbookAI</div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="ml-auto lg:hidden p-1 rounded-lg text-eb-muted hover:text-eb-text hover:bg-eb-surface-2 transition-colors bg-transparent border-none cursor-pointer"
+            aria-label="Cerrar menú"
+          >
+            <SvgIcon name="x" size={18}/>
+          </button>
         </div>
         {bookData.selectedIdea && (
           <div className="px-5 py-3.5 border-b border-eb-border">
@@ -1132,7 +1150,7 @@ ${bookData.marketingContent || 'No generado'}
             const active = s.number === step;
             const locked = s.number > Math.max(step, furthestStep);
             return (
-              <button key={s.number} onClick={() => { if (!locked) { setStep(s.number as Step); setStreamedText(''); } }}
+              <button key={s.number} onClick={() => { if (!locked) { setStep(s.number as Step); setStreamedText(''); setSidebarOpen(false); } }}
                 className={`w-full text-left px-5 py-2.5 flex items-center gap-3 transition-all font-sans border-l-2 border-none ${active ? 'bg-eb-gold/[0.08] !border-l-eb-gold' : '!border-l-transparent'} ${locked ? 'opacity-35 cursor-default' : 'cursor-pointer'}`}
                 style={{ borderLeft: active ? '2px solid #c8963a' : '2px solid transparent' }}>
                 <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[0.7rem] font-semibold ${done ? 'bg-eb-green text-white' : active ? 'bg-eb-gold text-[#0a0600]' : 'bg-eb-surface-2 border border-eb-border-2 text-eb-muted'}`}>
@@ -1164,22 +1182,30 @@ ${bookData.marketingContent || 'No generado'}
       </aside>
 
       {/* ─── Main ─── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full min-w-0">
         {/* Top bar */}
-        <div className="border-b border-eb-border px-7 py-3.5 flex items-center justify-between bg-eb-surface flex-shrink-0">
-          <div className="text-[0.8rem] text-eb-muted">
-            {STEPS[step - 1]?.title} · {STEPS[step - 1]?.sub}
+        <div className="border-b border-eb-border px-3 sm:px-7 py-3 sm:py-3.5 flex items-center gap-2 bg-eb-surface flex-shrink-0">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden p-2 -ml-1 rounded-lg text-eb-muted hover:text-eb-text hover:bg-eb-surface-2 transition-colors bg-transparent border-none cursor-pointer flex-shrink-0"
+            aria-label="Abrir menú"
+          >
+            <SvgIcon name="menu" size={20}/>
+          </button>
+          <div className="text-[0.75rem] sm:text-[0.8rem] text-eb-muted truncate flex-1 min-w-0">
+            <span className="font-semibold text-eb-text sm:text-eb-muted sm:font-normal">{STEPS[step - 1]?.title}</span>
+            <span className="hidden sm:inline"> · {STEPS[step - 1]?.sub}</span>
           </div>
-          <div className="flex gap-2 items-center">
-            {step > 1 && <button onClick={goPrev} className="px-3 py-1.5 text-xs rounded-lg bg-transparent hover:bg-eb-surface-2 text-eb-muted hover:text-eb-text transition-colors font-sans font-medium border-none cursor-pointer">← Anterior</button>}
-            {step < 8 && <button onClick={goNext} disabled={step < 6 && !canProceed} className="px-3 py-1.5 text-xs rounded-xl bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] font-sans font-medium border-none cursor-pointer disabled:opacity-40 transition-colors">Continuar →</button>}
+          <div className="flex gap-1.5 sm:gap-2 items-center flex-shrink-0">
+            {step > 1 && <button onClick={goPrev} className="px-2 sm:px-3 py-1.5 text-xs rounded-lg bg-transparent hover:bg-eb-surface-2 text-eb-muted hover:text-eb-text transition-colors font-sans font-medium border-none cursor-pointer">←<span className="hidden sm:inline ml-1">Anterior</span></button>}
+            {step < 8 && <button onClick={goNext} disabled={step < 6 && !canProceed} className="px-2.5 sm:px-3 py-1.5 text-xs rounded-xl bg-eb-gold hover:bg-eb-gold-lt text-[#0a0600] font-sans font-medium border-none cursor-pointer disabled:opacity-40 transition-colors whitespace-nowrap"><span className="hidden sm:inline">Continuar </span>→</button>}
           </div>
         </div>
 
       {/* Header Dropdown Panels */}
       {headerPanel && (
         <div className="border-b border-eb-border bg-eb-surface/95 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-5 py-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-5 py-4">
             {/* Ideas Panel */}
             {headerPanel === 'ideas' && (
               <div>
@@ -1343,8 +1369,8 @@ ${bookData.marketingContent || 'No generado'}
 
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-7 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl">
+      <main className="flex-1 overflow-y-auto px-3 sm:px-7 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl">
           {/* Left Panel - Controls */}
           <div className="lg:col-span-1 space-y-4">
             {/* Step Card */}
@@ -2268,11 +2294,11 @@ ${bookData.marketingContent || 'No generado'}
 
       {/* Library View Modal */}
       {viewingLibraryBook && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-eb-surface border border-eb-border w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
-            <div className="px-6 py-5 border-b border-eb-border flex items-center justify-between">
-              <div>
-                <h2 className="text-eb-text font-bold text-lg font-serif">{viewingLibraryBook.selectedIdea?.title}</h2>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-eb-surface border border-eb-border w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+            <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-eb-border flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-eb-text font-bold text-base sm:text-lg font-serif truncate">{viewingLibraryBook.selectedIdea?.title}</h2>
                 <p className="text-eb-muted text-xs mt-1">Datos de publicación para Amazon KDP</p>
               </div>
               <button
